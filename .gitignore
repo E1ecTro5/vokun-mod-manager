@@ -416,3 +416,17 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+
+# CUSTOM ADDED HERE
+.idea/
+bin/
+obj/
+*.user
+*.suo
+*.DotSettings.user
+publish/
+artifacts/
+*.log
+*~
