@@ -8,13 +8,45 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="VokunModManager">
+    
+    <Grid RowDefinitions="Auto,*"
+          Margin="10"
+          RowSpacing="10">
+        <Border Background="LightGray"
+                BorderBrush="Black"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="10,0,0,0"
+                VerticalAlignment="Top"
+                Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0"
+                           Text="hey there this is some line here i hope you enjoy this shi"
+                           VerticalAlignment="Center"/>
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
+                <Button Grid.Column="1"
+                        Content="Choose directory"
+                        Padding="1"/>
+            </Grid>
+        </Border>
+        
+        <Border Grid.Row="1" Background="Aquamarine">
+            <DataGrid Grid.Row="1"
+                      AutoGenerateColumns="False"
+                      Margin="20"
+                      ItemsSource="{Binding PathFiles}"
+                      IsReadOnly="True"
+                      GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="FileName" Width="*" Binding="{Binding FileName}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
 </Window>
