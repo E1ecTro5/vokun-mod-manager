@@ -35,18 +35,15 @@
             </Grid>
         </Border>
         
-        <Border Grid.Row="1" Background="Aquamarine">
-            <DataGrid Grid.Row="1"
-                      AutoGenerateColumns="False"
-                      Margin="20"
-                      ItemsSource="{Binding PathFiles}"
-                      IsReadOnly="True"
-                      GridLinesVisibility="All"
-                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="FileName" Width="*" Binding="{Binding FileName}"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Border>
+        <DataGrid Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  ItemsSource="{Binding PathFiles}"
+                  IsReadOnly="True"
+                  GridLinesVisibility="All"
+                  BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="FileName" Width="*" Binding="{Binding FileName}"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>
