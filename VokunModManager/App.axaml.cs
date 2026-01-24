@@ -18,14 +18,19 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // using the manager to avoid problems with references
+        var appManager = AppManager.Instance;
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new MainWindow
+            
+            // changed this to manager variant
+            desktop.MainWindow = appManager.MainWindow;
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = appManager.MainWindowViewModel;
             };
         }
 
