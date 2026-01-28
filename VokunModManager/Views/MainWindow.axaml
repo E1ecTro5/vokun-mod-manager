@@ -26,10 +26,11 @@
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Grid.Column="0"
-                           Text="hey there this is some line here i hope you enjoy this shi"
+                           Text="{Binding CurrentPath}"
                            VerticalAlignment="Center"/>
 
                 <Button Grid.Column="1"
+                        Command="{Binding SelectDirectoryCommand}"
                         Content="Choose directory"
                         Padding="1"/>
             </Grid>
@@ -42,7 +43,7 @@
                   GridLinesVisibility="All"
                   BorderThickness="1" BorderBrush="Black" CornerRadius="10">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="FileName" Width="*" Binding="{Binding FileName}"/>
+                <DataGridTextColumn Header="FileName" Width="*"  Binding="{Binding FileName}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

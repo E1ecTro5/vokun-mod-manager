@@ -15,9 +15,9 @@ public class FileManager
         _mainWindow = mainWindow;
     }
     
-    public static string? CurrentPath { get; set; }
+    public string? CurrentPath { get; set; }
 
-    public static async Task SelectDirectory()
+    public async Task SelectDirectory()
     {
         var storage = TopLevel.GetTopLevel(_mainWindow)?.StorageProvider;
 
