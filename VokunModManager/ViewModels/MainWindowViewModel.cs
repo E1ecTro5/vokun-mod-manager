@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,7 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentPath = "not selected";
         PathFiles = new ObservableCollection<PathFile>
         { 
-            new PathFile() { FileName = "TESTING" }
+            new PathFile("TEST", PathFile.FileType.Directory)
         };
 
         SelectDirectoryCommand = new AsyncRelayCommand(() => SelectDirectory());
@@ -40,17 +41,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task ReadFiles(string path)
     {
-        if(path == "NULL") return;
+        if (string.IsNullOrWhiteSpace(path) || path == "NULL") return;
         
-        string[] dirs = Directory.GetDirectories(path);
+        string[] entries = Directory.GetFileSystemEntries(path);
         var newList = new ObservableCollection<PathFile>();
-        
-        foreach (var dir in dirs)
+
+        foreach (var fullPath in entries)
         {
-            var file = new PathFile() { FileName = dir };
+            FileAttributes attr = File.GetAttributes(fullPath); // attributes of an object
+            bool isDirectory = attr.HasFlag(FileAttributes.Directory); // check if it has Directory flag
+            string name = Path.GetFileName(fullPath); // get only name of the file/dir
+            PathFile.FileType fileType = isDirectory ? PathFile.FileType.Directory : PathFile.FileType.File;
+            
+            var file = new PathFile(name, fileType);
             newList.Add(file);
         }
-        
-        PathFiles =  newList;
+
+        PathFiles = newList;
     }
 }

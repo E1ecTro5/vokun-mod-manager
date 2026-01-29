@@ -44,6 +44,7 @@
                   BorderThickness="1" BorderBrush="Black" CornerRadius="10">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="FileName" Width="*"  Binding="{Binding FileName}"/>
+                <DataGridTextColumn Header="FileName" Width="*"  Binding="{Binding ThisFileType}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
