@@ -17,8 +17,13 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<PathFile> pathFiles;
     [ObservableProperty] private string currentPath;
+    [ObservableProperty] private string origGamePath;
+    [ObservableProperty] private string configFilePath;
+    [ObservableProperty] private string modListPath;
     
     public ICommand SelectDirectoryCommand { get; }
+    public ICommand SetDirCommand { get; }
+    public ICommand SetModPathCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -29,13 +34,18 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         SelectDirectoryCommand = new AsyncRelayCommand(() => SelectDirectory());
+        SetDirCommand = new AsyncRelayCommand(() => SelectPath("setGamePath"));
+        SetModPathCommand = new AsyncRelayCommand(SelectModFile);
+
+        ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
+        ModListPath = "NONE";
     }
 
+    // make it the only 
     private async Task SelectDirectory()
     {
         var fileM = new FileManager(AppManager.Instance.MainWindow);
-        await fileM.SelectDirectory();
-        this.CurrentPath = fileM.CurrentPath ??= "NULL";
+        this.CurrentPath = await fileM.SelectDirectory();
         await ReadFiles(CurrentPath);
     }
 
@@ -58,5 +68,29 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         PathFiles = newList;
+    }
+
+    // refactor/remove
+    private async Task SelectModFile()
+    {
+        var fileM = new FileManager(AppManager.Instance.MainWindow);
+        ModListPath = "ModList Path: " + await fileM.SelectFile();
+        await SelectPath("setModPath");
+    }
+    
+    // useless, remove this later
+    private async Task SelectPath(string command)
+    {
+        string path = await new FileManager(AppManager.Instance.MainWindow).SelectDirectory();
+
+        switch (command)
+        {
+            case "setGamePath":
+                await AppConfig.Instance.UpdateConfig("gamePath", path);
+                break;
+            case "setModPath":
+                await AppConfig.Instance.UpdateConfig("modFilePath", path);
+                break;
+        }
     }
 }

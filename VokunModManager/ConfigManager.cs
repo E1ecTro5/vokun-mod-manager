@@ -28,30 +28,12 @@ public class ConfigManager
     /// </summary>
     public string? PluginFilePath { get; private set; }
 
-    public async Task SetPath(string game)
+    public async Task SetPath(string game, string path)
     {
-        var storage = TopLevel.GetTopLevel(AppManager.Instance.MainWindow)?.StorageProvider;
-        if (storage == null) throw new NullReferenceException("Storage provider is null");
-        
-        var folders = await storage.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions
-            {
-                Title = "Select folder.",
-                AllowMultiple = false
-            });
-        
-        var folder = folders.FirstOrDefault();
-        if (folder is null)
-            return;
-        
         switch (game)
         {
-            case "origin":
-                await SetGamePath(folder.Path.AbsolutePath);
-                break;
-            case "skse":
-                await  SetModdedGamePath(folder.Path.AbsolutePath);
-                break;
+            case "origin": await SetGamePath(path); break;
+            case "skse": await  SetModdedGamePath(path); break;
         }
     }
     

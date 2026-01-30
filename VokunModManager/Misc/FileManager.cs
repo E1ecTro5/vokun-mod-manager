@@ -14,10 +14,28 @@ public class FileManager
     {
         _mainWindow = mainWindow;
     }
-    
-    public string? CurrentPath { get; set; }
 
-    public async Task SelectDirectory()
+    public async Task<string> SelectFile()
+    {
+        var storage = TopLevel.GetTopLevel(_mainWindow)?.StorageProvider;
+
+        if (storage == null) throw new NullReferenceException("Storage provider is null");
+        
+        var files = await storage.OpenFilePickerAsync(
+            new FilePickerOpenOptions()
+            {
+                Title = "Select a file",
+                AllowMultiple = false
+            });
+        
+        var file = files.FirstOrDefault();
+        if (file is null)
+            return null;
+
+        return file.Path.AbsolutePath;
+    }
+
+    public async Task<string> SelectDirectory()
     {
         var storage = TopLevel.GetTopLevel(_mainWindow)?.StorageProvider;
 
@@ -26,14 +44,14 @@ public class FileManager
         var folders = await storage.OpenFolderPickerAsync(
             new FolderPickerOpenOptions
             {
-                Title = "Выберите папку",
+                Title = "Select a  folder",
                 AllowMultiple = false
             });
         
         var folder = folders.FirstOrDefault();
         if (folder is null)
-            return;
+            return null;
 
-        CurrentPath = folder.Path.LocalPath;
+        return folder.Path.AbsolutePath;
     }
 }

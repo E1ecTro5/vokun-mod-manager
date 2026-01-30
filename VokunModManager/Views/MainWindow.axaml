@@ -9,7 +9,7 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="VokunModManager">
     
-    <Grid RowDefinitions="Auto,*"
+    <Grid RowDefinitions="Auto,Auto,*"
           Margin="10"
           RowSpacing="10">
         <Border Background="LightGray"
@@ -36,15 +36,25 @@
             </Grid>
         </Border>
         
-        <DataGrid Grid.Row="1"
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5">
+                <Button Content="Select Game Directory" Padding="1" Command="{Binding SetDirCommand}"/>
+                <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SetModPathCommand}"/>
+            </StackPanel>
+            <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
+            <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        
+        <DataGrid Grid.Row="2"
                   AutoGenerateColumns="False"
+                  CanUserSortColumns="True"
                   ItemsSource="{Binding PathFiles}"
                   IsReadOnly="True"
                   GridLinesVisibility="All"
                   BorderThickness="1" BorderBrush="Black" CornerRadius="10">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="FileName" Width="*"  Binding="{Binding FileName}"/>
-                <DataGridTextColumn Header="FileName" Width="*"  Binding="{Binding ThisFileType}"/>
+                <DataGridTextColumn Header="FileName" Width="Auto"  Binding="{Binding FileName}"/>
+                <DataGridTextColumn Header="Type" Width="Auto"  Binding="{Binding ThisFileType}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
