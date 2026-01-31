@@ -19,22 +19,36 @@
                 <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SelectFileCommand}"/>
                 <Button Content="Update TextBlocks" Padding="1" Command="{Binding UpdateTextBlocksCommand}"/>
             </StackPanel>
-            <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
-            <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" HorizontalAlignment="Stretch"/>
-            <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" HorizontalAlignment="Stretch"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
+            </ScrollViewer>
         </StackPanel>
         
-        <DataGrid Grid.Row="1"
-                  AutoGenerateColumns="False"
-                  CanUserSortColumns="True"
-                  ItemsSource="{Binding PathFiles}"
-                  IsReadOnly="True"
-                  GridLinesVisibility="All"
-                  BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="FileName" Width="Auto"  Binding="{Binding FileName}"/>
-                <DataGridTextColumn Header="Type" Width="Auto"  Binding="{Binding ThisFileType}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+            <Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="10">
+                <DataGrid Grid.Row="0"
+                          AutoGenerateColumns="False"
+                          CanUserSortColumns="True"
+                          ItemsSource="{Binding PathFiles}"
+                          IsReadOnly="True"
+                          GridLinesVisibility="All"
+                          BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="FileName" Width="Auto"  Binding="{Binding FileName}"/>
+                        <DataGridTextColumn Header="Type" Width="Auto"  Binding="{Binding ThisFileType}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="Play" Padding="10,1"></Button>
+                    <Button Content="Save" Padding="10,1"></Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>
