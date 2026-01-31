@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
@@ -16,22 +17,19 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
-        // using the manager to avoid problems with references
-        var appManager = AppManager.Instance;
-        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
-            
-            // changed this to manager variant
-            desktop.MainWindow = appManager.MainWindow;
+            // better not to touch
+            desktop.MainWindow = new MainWindow
             {
-                DataContext = appManager.MainWindowViewModel;
+                DataContext = new MainWindowViewModel()
             };
+            
+            // just to avoid some UI blocks
+            await AppConfig.Instance.InitConfig();
+
         }
 
         base.OnFrameworkInitializationCompleted();

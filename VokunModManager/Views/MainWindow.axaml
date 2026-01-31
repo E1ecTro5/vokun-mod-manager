@@ -36,13 +36,13 @@
             </Grid>
         </Border>
         
-        <StackPanel Grid.Row="1" Orientation="Vertical">
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5">
+        <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="5">
+            <StackPanel Orientation="Horizontal" Spacing="5">
                 <Button Content="Select Game Directory" Padding="1" Command="{Binding SetDirCommand}"/>
                 <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SetModPathCommand}"/>
             </StackPanel>
             <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
-            <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
+            <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" HorizontalAlignment="Stretch"/>
         </StackPanel>
         
         <DataGrid Grid.Row="2"

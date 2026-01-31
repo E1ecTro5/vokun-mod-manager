@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Misc;
@@ -17,7 +18,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<PathFile> pathFiles;
     [ObservableProperty] private string currentPath;
-    [ObservableProperty] private string origGamePath;
+    [ObservableProperty] private string? origGamePath;
     [ObservableProperty] private string configFilePath;
     [ObservableProperty] private string modListPath;
     
@@ -44,11 +45,12 @@ public partial class MainWindowViewModel : ViewModelBase
     // make it the only 
     private async Task SelectDirectory()
     {
-        var fileM = new FileManager(AppManager.Instance.MainWindow);
+        var fileM = new FileManager();
         this.CurrentPath = await fileM.SelectDirectory();
         await ReadFiles(CurrentPath);
     }
 
+    // maybe this should be in FileManager, not here
     private async Task ReadFiles(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || path == "NULL") return;
@@ -73,7 +75,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // refactor/remove
     private async Task SelectModFile()
     {
-        var fileM = new FileManager(AppManager.Instance.MainWindow);
+        var fileM = new FileManager();
         ModListPath = "ModList Path: " + await fileM.SelectFile();
         await SelectPath("setModPath");
     }
@@ -81,7 +83,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // useless, remove this later
     private async Task SelectPath(string command)
     {
-        string path = await new FileManager(AppManager.Instance.MainWindow).SelectDirectory();
+        string path = await new FileManager().SelectDirectory();
 
         switch (command)
         {

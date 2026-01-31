@@ -24,8 +24,6 @@ public class AppConfig
     {
         BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
         configPath = Path.Combine(BaseDirectory, "config.txt");
-        
-        InitConfig().Wait();
     }
     
     public string BaseDirectory { get; private set; }
@@ -50,9 +48,12 @@ public class AppConfig
         await File.WriteAllLinesAsync(configPath, newLines);
     }
     
-    private async Task InitConfig()
+    public async Task InitConfig()
     {
-        if (!File.Exists(configPath)) File.Create(configPath);
+        if (!File.Exists(configPath))
+        {
+            using (File.Create(configPath)) { } // DON'T FORGET TO CLOSE THE STREAM!
+        }
 
         var lines = await File.ReadAllLinesAsync(configPath);
         ConfigStates = new Dictionary<string, string>();
