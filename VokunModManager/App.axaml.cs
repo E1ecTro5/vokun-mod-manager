@@ -29,8 +29,8 @@ public partial class App : Application
             };
             
             // just to avoid some UI blocks
+            await LogManager.Instance.InitLogs();   // logs ; should come first to detect following inits
             await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
-            await LogManager.Instance.InitLogs();   // logs
         }
 
         base.OnFrameworkInitializationCompleted();

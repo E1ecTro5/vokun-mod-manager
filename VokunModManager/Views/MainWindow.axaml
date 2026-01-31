@@ -9,43 +9,22 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="VokunModManager">
     
-    <Grid RowDefinitions="Auto,Auto,*"
+    <Grid RowDefinitions="Auto,*"
           Margin="10"
           RowSpacing="10">
-        <Border Background="LightGray"
-                BorderBrush="Black"
-                BorderThickness="1"
-                CornerRadius="10"
-                Padding="10,0,0,0"
-                VerticalAlignment="Top"
-                Grid.Row="0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                
-                <TextBlock Grid.Column="0"
-                           Text="{Binding CurrentPath}"
-                           VerticalAlignment="Center"/>
-
-                <Button Grid.Column="1"
-                        Command="{Binding SelectDirectoryCommand}"
-                        Content="Choose directory"
-                        Padding="1"/>
-            </Grid>
-        </Border>
         
-        <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="5">
+        <StackPanel Grid.Row="0" Orientation="Vertical" Spacing="5">
             <StackPanel Orientation="Horizontal" Spacing="5">
-                <Button Content="Select Game Directory" Padding="1" Command="{Binding SetDirCommand}"/>
-                <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SetModPathCommand}"/>
+                <Button Content="Select Game Directory" Padding="1" Command="{Binding SelectDirectoryCommand}"/>
+                <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SelectFileCommand}"/>
+                <Button Content="Update TextBlocks" Padding="1" Command="{Binding UpdateTextBlocksCommand}"/>
             </StackPanel>
             <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" HorizontalAlignment="Stretch"/>
             <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" HorizontalAlignment="Stretch"/>
+            <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" HorizontalAlignment="Stretch"/>
         </StackPanel>
         
-        <DataGrid Grid.Row="2"
+        <DataGrid Grid.Row="1"
                   AutoGenerateColumns="False"
                   CanUserSortColumns="True"
                   ItemsSource="{Binding PathFiles}"

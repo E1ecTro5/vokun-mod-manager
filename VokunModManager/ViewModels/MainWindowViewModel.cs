@@ -16,15 +16,15 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<PathFile> pathFiles;
-    [ObservableProperty] private string currentPath;
-    [ObservableProperty] private string? origGamePath;
-    [ObservableProperty] private string configFilePath;
-    [ObservableProperty] private string modListPath;
+    [ObservableProperty] private ObservableCollection<PathFile> pathFiles; // don't need for now
+    [ObservableProperty] private string currentPath;    // remove this later
+    [ObservableProperty] private string? origGamePath;  // Steam game folder
+    [ObservableProperty] private string configFilePath; // remove this later
+    [ObservableProperty] private string modListPath;    // plugins.txt file
     
     public ICommand SelectDirectoryCommand { get; }
-    public ICommand SetDirCommand { get; }
-    public ICommand SetModPathCommand { get; }
+    public ICommand SelectFileCommand { get; }
+    public ICommand UpdateTextBlocksCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -34,23 +34,42 @@ public partial class MainWindowViewModel : ViewModelBase
             new PathFile("TEST", PathFile.FileType.Directory)
         };
 
-        SelectDirectoryCommand = new AsyncRelayCommand(() => SelectDirectory());
-        SetDirCommand = new AsyncRelayCommand(() => SelectPath("setGamePath"));
-        SetModPathCommand = new AsyncRelayCommand(SelectModFile);
+        SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
+        SelectFileCommand = new AsyncRelayCommand(SetModListPath);
+        UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
 
         ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         ModListPath = "NONE";
     }
 
-    // make it the only 
-    private async Task SelectDirectory()
+    private async Task UpdateTextBlocks()
+    {
+        string[] result = await AppConfig.Instance.GetPathStrings();
+        // GAME FOLDER GOES FIRST
+        OrigGamePath =  result[0];
+        ModListPath = result[1];
+        await LogManager.Instance.Log("TextBlocks updated.");
+    }
+
+    private async Task SetGamePath()
     {
         var fileM = new FileManager();
-        this.CurrentPath = await fileM.SelectDirectory();
-        await ReadFiles(CurrentPath);
+        OrigGamePath = await fileM.SelectDirectory();
+        // just make ENUM
+        await AppConfig.Instance.UpdateConfig("gameFolderPath", OrigGamePath);
+    }
+
+    private async Task SetModListPath()
+    {
+        var fileM = new FileManager();
+        ModListPath = await fileM.SelectFile();
+        // just make ENUM
+        await AppConfig.Instance.UpdateConfig("modFilePath", ModListPath);
     }
 
     // maybe this should be in FileManager, not here
+    // this shi reads everything in the given path ; COMMENT/DOC LATER
+    // P.S.: I deleted any ref with this Method, REPLACE IT LATER
     private async Task ReadFiles(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || path == "NULL") return;
@@ -70,29 +89,5 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         PathFiles = newList;
-    }
-
-    // refactor/remove
-    private async Task SelectModFile()
-    {
-        var fileM = new FileManager();
-        ModListPath = "ModList Path: " + await fileM.SelectFile();
-        await SelectPath("setModPath");
-    }
-    
-    // useless, remove this later
-    private async Task SelectPath(string command)
-    {
-        string path = await new FileManager().SelectDirectory();
-
-        switch (command)
-        {
-            case "setGamePath":
-                await AppConfig.Instance.UpdateConfig("gamePath", path);
-                break;
-            case "setModPath":
-                await AppConfig.Instance.UpdateConfig("modFilePath", path);
-                break;
-        }
     }
 }
