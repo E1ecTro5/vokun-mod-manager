@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Animation;
+using VokunModManager.Misc;
 
 namespace VokunModManager;
 
@@ -14,8 +15,7 @@ public class AppConfig
     {
         get
         {
-            if (_instance == null)
-                _instance = new AppConfig();
+            _instance ??= new AppConfig();
             return _instance;
         }
     }
@@ -52,7 +52,7 @@ public class AppConfig
     {
         if (!File.Exists(configPath))
         {
-            using (File.Create(configPath)) { } // DON'T FORGET TO CLOSE THE STREAM!
+            await using (File.Create(configPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
         }
 
         var lines = await File.ReadAllLinesAsync(configPath);
@@ -69,6 +69,8 @@ public class AppConfig
 
             ConfigStates[key] = value;
         }
+        
+        await LogManager.Instance.Log("AppManager initialized");
         
         // manage the other stuff here....
     }

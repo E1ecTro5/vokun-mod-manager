@@ -5,6 +5,7 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using VokunModManager.Misc;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 
@@ -28,8 +29,8 @@ public partial class App : Application
             };
             
             // just to avoid some UI blocks
-            await AppConfig.Instance.InitConfig();
-
+            await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
+            await LogManager.Instance.InitLogs();   // logs
         }
 
         base.OnFrameworkInitializationCompleted();
