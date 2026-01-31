@@ -33,6 +33,8 @@ public class AppConfig
     public async Task UpdateConfig(string key, string value)
     {
         ConfigStates[key] = value;
+        await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
+        
         await WriteConfig();
     }
     
@@ -46,6 +48,7 @@ public class AppConfig
         }
         
         await File.WriteAllLinesAsync(configPath, newLines);
+        await LogManager.Instance.Log("Config rewritten");
     }
     
     public async Task InitConfig()
