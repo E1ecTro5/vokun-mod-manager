@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SelectFileCommand { get; }
     public ICommand UpdateTextBlocksCommand { get; }
     public ICommand UpdateModListCommand { get; }
+    public ICommand PlayClickCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -38,12 +40,36 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
 
+        PlayClickCommand = new AsyncRelayCommand(StartGame);
+
         ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         OrigGamePath = AppConfig.Instance.GameFolderPath;
         ModListPath = AppConfig.Instance.ModFilePath;
         ModGameId = AppConfig.Instance.ModGameSteamId.ToString();
     }
 
+    private async Task StartGame()
+    {
+        // if you use config instance, why use modGameId in MainVM? ???
+        ulong appId = AppConfig.Instance.ModGameSteamId;
+        
+        // I found out that Steam uses its own ID making methods
+        // compatdata ID != real game ID
+        ulong id = 18380482078509629440; // this is what i got for launcher
+        
+        // this will work AS LONG AS I HAVE THIS ID FOR LAUNCHER
+        // now think about how to fix this
+        string uri = "steam://rungameid/18380482078509629440";
+
+        // this variant should work on Linux;
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = uri,
+            UseShellExecute = true,
+            CreateNoWindow = true
+        });
+    }
+    
     private async Task UpdateTextBlocks()
     {
         OrigGamePath = AppConfig.Instance.GameFolderPath;

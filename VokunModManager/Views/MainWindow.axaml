@@ -49,7 +49,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-                    <Button Content="Play" Padding="10,1"></Button>
+                    <Button Content="Play" Command="{Binding PlayClickCommand}" Padding="10,1"></Button>
                     <Button Content="Save" Padding="10,1"></Button>
                 </StackPanel>
             </Grid>
