@@ -23,10 +23,13 @@
                 <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
             </ScrollViewer>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                 <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
             </ScrollViewer>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
+                <TextBlock Text="{Binding ModGameId}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
             </ScrollViewer>
         </StackPanel>
         

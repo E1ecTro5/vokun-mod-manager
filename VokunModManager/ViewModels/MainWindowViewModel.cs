@@ -21,6 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string? origGamePath;  // Steam game folder
     [ObservableProperty] private string configFilePath; // remove this later
     [ObservableProperty] private string modListPath;    // plugins.txt file
+    [ObservableProperty] private string modGameId;      // compatdata ID for skse64_loader.exe
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -48,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // GAME FOLDER GOES FIRST
         OrigGamePath =  result[0];
         ModListPath = result[1];
+        ModGameId = result[2];
         await LogManager.Instance.Log("TextBlocks updated.");
     }
 

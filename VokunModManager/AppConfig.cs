@@ -31,24 +31,31 @@ public class AppConfig
     private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
     private string modFilePath; // Plugins.txt
     private string gameFolderPath; //SKSE Steam folder
+    private ulong modGameSteamId; // ID for skse64_launch.exe located in steam library
 
     public async Task UpdateConfig(string key, string value)
     {
         // same here, because of only 2 props switch should be enough
         switch (key)
         {
-            case "modFilePath": modFilePath = value; break;
-            case "gameFolderPath": gameFolderPath = value; break;
+            case "modFilePath":
+                modFilePath = value;
+                modGameSteamId = await GetModGameID();   // automatically calculates while setting the gameFolderPath
+                break;
+            case "gameFolderPath":
+                gameFolderPath = value;
+                break;
             default: return; // return if not match
         }
         
+        // maybe you should do this in set inside the props
         await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
         await ReWriteConfig(); // don't forget to update
     }
 
     public async Task<string[]> GetPathStrings()
     {
-        return new []{ modFilePath, gameFolderPath };
+        return new []{ modFilePath, gameFolderPath, modGameSteamId.ToString() };
     }
     
     public async Task InitConfig()
@@ -72,6 +79,7 @@ public class AppConfig
             {
                 case "modFilePath": modFilePath = value; break;
                 case "gameFolderPath": gameFolderPath = value; break;
+                case "modGameSteamId": modGameSteamId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
             }
 
@@ -100,7 +108,26 @@ public class AppConfig
             // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
             await sw.WriteLineAsync($"gameFolderPath={gameFolderPath}");
             await sw.WriteLineAsync($"modFilePath={modFilePath}");
+            await sw.WriteLineAsync($"modGameSteamId={modGameSteamId}");
         }
         await LogManager.Instance.Log("Config has been written.");
+    }
+
+    private async Task<ulong> GetModGameID()
+    {
+        DirectoryInfo dir = new DirectoryInfo(modFilePath);
+        
+        // find the pfx dir and get its ID
+        while (!dir.Name.Equals("pfx"))
+        {
+            dir = dir.Parent;
+        }
+
+        // we expect to get an ID -> ../{ID}/pfx/...
+        //modGameSteamId = Convert.ToUInt64(dir.Parent.Name);
+        // bad practice?
+        string result = dir.Parent.Name;
+        await LogManager.Instance.Log($"Updated config for GameID with value: {result}");
+        return Convert.ToUInt64(result);
     }
 }
