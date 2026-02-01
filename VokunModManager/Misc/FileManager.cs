@@ -41,7 +41,8 @@ public class FileManager
         if (file is null)
             return null;
 
-        return file.Path.AbsolutePath;
+        // LOCALPATH because of OS
+        return file.Path.LocalPath;
     }
 
     public async Task<string> SelectDirectory()
@@ -61,6 +62,7 @@ public class FileManager
         if (folder is null)
             return null;
 
-        return folder.Path.AbsolutePath;
+        // LOCALPATH because of OS
+        return folder.Path.LocalPath;
     }
 }
