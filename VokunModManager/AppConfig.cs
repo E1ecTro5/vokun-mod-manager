@@ -29,9 +29,9 @@ public class AppConfig
     public string BaseDirectory { get; private set; }
     
     private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
-    private string modFilePath; // Plugins.txt
-    private string gameFolderPath; //SKSE Steam folder
-    private ulong modGameSteamId; // ID for skse64_launch.exe located in steam library
+    private string gameFolderPath; // Skyrim Steam folder ; INDEX 0
+    private string modFilePath; // path for Plugins.txt ; INDEX 1 
+    private ulong modGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
 
     public async Task UpdateConfig(string key, string value)
     {
@@ -55,7 +55,7 @@ public class AppConfig
 
     public async Task<string[]> GetPathStrings()
     {
-        return new []{ modFilePath, gameFolderPath, modGameSteamId.ToString() };
+        return new []{ gameFolderPath, modFilePath, modGameSteamId.ToString() };
     }
     
     public async Task InitConfig()

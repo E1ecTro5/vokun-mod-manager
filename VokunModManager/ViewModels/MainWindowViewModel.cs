@@ -16,28 +16,27 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<PathFile> pathFiles; // don't need for now
+    [ObservableProperty] private ObservableCollection<Mod> modList;
     [ObservableProperty] private string currentPath;    // remove this later
-    [ObservableProperty] private string? origGamePath;  // Steam game folder
     [ObservableProperty] private string configFilePath; // remove this later
+    [ObservableProperty] private string origGamePath;  // Steam game folder
     [ObservableProperty] private string modListPath;    // plugins.txt file
     [ObservableProperty] private string modGameId;      // compatdata ID for skse64_loader.exe
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
     public ICommand UpdateTextBlocksCommand { get; }
+    public ICommand UpdateModListCommand { get; }
     
     public MainWindowViewModel()
     {
         CurrentPath = "not selected";
-        PathFiles = new ObservableCollection<PathFile>
-        { 
-            new PathFile("TEST", PathFile.FileType.Directory)
-        };
+        ModList = new ObservableCollection<Mod>();
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
         UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
+        UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
 
         ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         ModListPath = "NONE";
@@ -51,6 +50,13 @@ public partial class MainWindowViewModel : ViewModelBase
         ModListPath = result[1];
         ModGameId = result[2];
         await LogManager.Instance.Log("TextBlocks updated.");
+    }
+
+    private async Task UpdateModList()
+    {
+        await LogManager.Instance.Log("Updating mod list...");
+        var modListM = new ModListManager(ModListPath);
+        ModList = await modListM.GetModList();
     }
 
     private async Task SetGamePath()
@@ -90,6 +96,6 @@ public partial class MainWindowViewModel : ViewModelBase
             newList.Add(file);
         }
 
-        PathFiles = newList;
+        //PathFiles = newList;
     }
 }

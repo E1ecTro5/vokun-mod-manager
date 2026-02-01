@@ -18,6 +18,7 @@
                 <Button Content="Select Game Directory" Padding="1" Command="{Binding SelectDirectoryCommand}"/>
                 <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SelectFileCommand}"/>
                 <Button Content="Update TextBlocks" Padding="1" Command="{Binding UpdateTextBlocksCommand}"/>
+                <Button Content="Update ModList" Padding="1" Command="{Binding UpdateModListCommand}"/>
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                 <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
@@ -38,13 +39,13 @@
                 <DataGrid Grid.Row="0"
                           AutoGenerateColumns="False"
                           CanUserSortColumns="True"
-                          ItemsSource="{Binding PathFiles}"
+                          ItemsSource="{Binding ModList}"
                           IsReadOnly="True"
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="FileName" Width="Auto"  Binding="{Binding FileName}"/>
-                        <DataGridTextColumn Header="Type" Width="Auto"  Binding="{Binding ThisFileType}"/>
+                        <DataGridTextColumn Header="ModName" Width="Auto"  Binding="{Binding Name}"/>
+                        <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}"/>
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
