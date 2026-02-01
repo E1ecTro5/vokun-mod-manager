@@ -39,21 +39,22 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
 
         ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
-        ModListPath = "NONE";
+        OrigGamePath = AppConfig.Instance.GameFolderPath;
+        ModListPath = AppConfig.Instance.ModFilePath;
+        ModGameId = AppConfig.Instance.ModGameSteamId.ToString();
     }
 
     private async Task UpdateTextBlocks()
     {
-        string[] result = await AppConfig.Instance.GetPathStrings();
-        // GAME FOLDER GOES FIRST
-        OrigGamePath =  result[0];
-        ModListPath = result[1];
-        ModGameId = result[2];
+        OrigGamePath = AppConfig.Instance.GameFolderPath;
+        ModListPath = AppConfig.Instance.ModFilePath;
+        ModGameId = AppConfig.Instance.ModGameSteamId.ToString();
         await LogManager.Instance.Log("TextBlocks updated.");
     }
 
     private async Task UpdateModList()
     {
+        await UpdateTextBlocks();
         await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager(ModListPath);
         ModList = await modListM.GetModList();

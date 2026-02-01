@@ -29,9 +29,10 @@ public class AppConfig
     public string BaseDirectory { get; private set; }
     
     private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
-    private string gameFolderPath; // Skyrim Steam folder ; INDEX 0
-    private string modFilePath; // path for Plugins.txt ; INDEX 1 
-    private ulong modGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
+    
+    public string GameFolderPath; // Skyrim Steam folder ; INDEX 0
+    public string ModFilePath; // path for Plugins.txt ; INDEX 1 
+    public ulong ModGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
 
     public async Task UpdateConfig(string key, string value)
     {
@@ -39,11 +40,11 @@ public class AppConfig
         switch (key)
         {
             case "modFilePath":
-                modFilePath = value;
-                modGameSteamId = await GetModGameID();   // automatically calculates while setting the gameFolderPath
+                ModFilePath = value;
+                ModGameSteamId = await GetModGameID();   // automatically calculates while setting the gameFolderPath
                 break;
             case "gameFolderPath":
-                gameFolderPath = value;
+                GameFolderPath = value;
                 break;
             default: return; // return if not match
         }
@@ -51,11 +52,6 @@ public class AppConfig
         // maybe you should do this in set inside the props
         await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
         await ReWriteConfig(); // don't forget to update
-    }
-
-    public async Task<string[]> GetPathStrings()
-    {
-        return new []{ gameFolderPath, modFilePath, modGameSteamId.ToString() };
     }
     
     public async Task InitConfig()
@@ -77,9 +73,9 @@ public class AppConfig
             // I guess this is better, because we don't need a lot of strings
             switch (key)
             {
-                case "modFilePath": modFilePath = value; break;
-                case "gameFolderPath": gameFolderPath = value; break;
-                case "modGameSteamId": modGameSteamId = Convert.ToUInt64(value); break;
+                case "modFilePath": ModFilePath = value; break;
+                case "gameFolderPath": GameFolderPath = value; break;
+                case "modGameSteamId": ModGameSteamId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
             }
 
@@ -106,16 +102,16 @@ public class AppConfig
         await using (StreamWriter sw = new StreamWriter(configPath))
         {
             // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
-            await sw.WriteLineAsync($"gameFolderPath={gameFolderPath}");
-            await sw.WriteLineAsync($"modFilePath={modFilePath}");
-            await sw.WriteLineAsync($"modGameSteamId={modGameSteamId}");
+            await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
+            await sw.WriteLineAsync($"modFilePath={ModFilePath}");
+            await sw.WriteLineAsync($"modGameSteamId={ModGameSteamId}");
         }
         await LogManager.Instance.Log("Config has been written.");
     }
 
     private async Task<ulong> GetModGameID()
     {
-        DirectoryInfo dir = new DirectoryInfo(modFilePath);
+        DirectoryInfo dir = new DirectoryInfo(ModFilePath);
         
         // find the pfx dir and get its ID
         while (!dir.Name.Equals("pfx"))
