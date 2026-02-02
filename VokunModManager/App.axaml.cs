@@ -1,9 +1,11 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using VokunModManager.Misc;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 
@@ -16,17 +18,19 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
+            // better not to touch
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = new MainWindowViewModel()
             };
+            
+            // just to avoid some UI blocks
+            await LogManager.Instance.InitLogs();   // logs ; should come first to detect following inits
+            await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
         }
 
         base.OnFrameworkInitializationCompleted();
