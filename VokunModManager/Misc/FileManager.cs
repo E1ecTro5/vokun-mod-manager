@@ -10,21 +10,12 @@ namespace VokunModManager.Misc;
 
 public class FileManager
 {
-    //private static Window? _mainWindow;
-
-    public FileManager()
-    {
-        //_mainWindow = mainWindow;
-        if (GetOwner().StorageProvider is null)
-            throw new InvalidOperationException("Window is not initialized yet. Call after Opened event.");
-    }
-    
     private TopLevel GetOwner()
     {
-        return (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
+        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
     }
 
-    public async Task<string> SelectFile()
+    public async Task<string?> SelectFile()
     {
         var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
 
@@ -45,7 +36,7 @@ public class FileManager
         return file.Path.LocalPath;
     }
 
-    public async Task<string> SelectDirectory()
+    public async Task<string?> SelectDirectory()
     {
         var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
 

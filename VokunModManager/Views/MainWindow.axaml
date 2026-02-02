@@ -45,7 +45,7 @@
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ModName" Width="Auto"  Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="ModName" Width="*"  Binding="{Binding Name}"/>
                         <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}"/>
                     </DataGrid.Columns>
                 </DataGrid>

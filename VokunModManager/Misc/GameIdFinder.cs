@@ -1,17 +1,13 @@
-using System;
 using System.IO;
-using System.Text;
-using System.IO.Hashing;
-
 using SteamKit2;
 
 namespace VokunModManager.Misc;
 
-public class GameIdFinder
+public static class GameIdFinder
 {
-    public uint GetShortIdFromVdf(string vdfPath, string targetExePath)
+    private static uint GetShortIdFromVdf(string vdfPath, string targetExePath)
     {
-        if (!File.Exists(vdfPath)) return 0; // throw exep?
+        if (!File.Exists(vdfPath)) return 0; // throw exception?
         
         using var fs = File.OpenRead(vdfPath);
         var kv = new KeyValue();
@@ -19,7 +15,7 @@ public class GameIdFinder
         if (!kv.TryReadAsBinary(fs))
             return 0;
 
-        // there goes some Valve shi, I'll doc here later..
+        // there goes some Valve shi, I'll doc here later...
         foreach (var shortcut in kv.Children)
         {
             var exe = shortcut["exe"].Value;
@@ -39,7 +35,7 @@ public class GameIdFinder
         return 0;
     }
     
-    public ulong GetLongId(string exePath)
+    public static ulong GetLongId(string exePath)
     {
         string vdfPath = AppConfig.Instance.VdfConfigPath;
         uint num = GetShortIdFromVdf(vdfPath, exePath);

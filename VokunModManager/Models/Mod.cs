@@ -1,13 +1,7 @@
 namespace VokunModManager.Models;
 
-public class Mod
+public class Mod(string modName, bool isEnabled)
 {
-    public string Name { get; set; }
-    public bool IsEnabled { get; set; }
-
-    public Mod(string modName, bool isEnabled)
-    {
-        Name = modName;
-        IsEnabled = isEnabled;
-    }
+    public string Name { get; set; } = modName;
+    public bool IsEnabled { get; set; } = isEnabled;
 }

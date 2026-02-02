@@ -8,7 +8,7 @@ using VokunModManager.Misc;
 
 namespace VokunModManager;
 
-public class AppConfig
+public sealed class AppConfig
 {
     private static AppConfig? _instance;
     public static AppConfig Instance
@@ -23,18 +23,18 @@ public class AppConfig
     private AppConfig()
     {
         BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
-        configPath = Path.Combine(BaseDirectory, "config.txt");
+        _appConfigPath = Path.Combine(BaseDirectory, "config.txt");
     }
     
-    public string BaseDirectory { get; private set; }
+    public string BaseDirectory { get; private set; } // ../VokunModManager directory
     
-    private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
+    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
     
     // change get set props soon, pls
-    public string GameFolderPath; // Skyrim Steam folder ; INDEX 0
-    public string ModFilePath; // path for Plugins.txt ; INDEX 1 
-    public ulong ModGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
-    public string VdfConfigPath; // shortcuts.vdf file path ; this is used to get non-steam game ID ; INDEX 3?
+    public string GameFolderPath { get; private set; } // Skyrim Steam folder ; INDEX 0
+    public string ModFilePath { get; private set; } // path for Plugins.txt ; INDEX 1 
+    public ulong ModGameSteamId { get; private set; } // ID for skse64_launch.exe located in steam library ; INDEX 2
+    public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID ; INDEX 3?
 
     public async Task UpdateConfig(string key, string value)
     {
@@ -42,7 +42,7 @@ public class AppConfig
         {
             case "modFilePath":
                 ModFilePath = value;
-                ModGameSteamId = await GetModGameID();   // automatically calculates while setting the gameFolderPath
+                ModGameSteamId = await GetModGameId();   // automatically calculates while setting the gameFolderPath
                 break;
             case "gameFolderPath":
                 GameFolderPath = value;
@@ -60,10 +60,10 @@ public class AppConfig
     
     public async Task InitConfig()
     {
-        if (!File.Exists(configPath))
-            await using (File.Create(configPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
+        if (!File.Exists(_appConfigPath))
+            await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
 
-        var lines = await File.ReadAllLinesAsync(configPath);
+        var lines = await File.ReadAllLinesAsync(_appConfigPath);
         Dictionary<string,string> dict = new();
 
         foreach (var line in lines)
@@ -104,7 +104,7 @@ public class AppConfig
     }
     private async Task ReWriteConfig()
     {
-        await using (StreamWriter sw = new StreamWriter(configPath))
+        await using (StreamWriter sw = new StreamWriter(_appConfigPath))
         {
             // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
@@ -116,7 +116,7 @@ public class AppConfig
     }
 
     // maybe remove method from this class?
-    private async Task<ulong> GetModGameID()
+    private async Task<ulong> GetModGameId()
     {
         DirectoryInfo dir = new DirectoryInfo(ModFilePath);
         

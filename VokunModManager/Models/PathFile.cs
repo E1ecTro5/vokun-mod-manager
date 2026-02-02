@@ -1,6 +1,6 @@
 namespace VokunModManager.Models;
 
-public class PathFile
+public class PathFile(string fileName, PathFile.FileType thisFileType)
 {
     // maybe will add smth like "archive" or "mod folder" later...
     public enum FileType
@@ -9,12 +9,6 @@ public class PathFile
         File
     }
 
-    public string FileName { get; set; }
-    public FileType ThisFileType { get; set;}
-
-    public PathFile(string fileName, FileType thisFileType)
-    {
-        FileName = fileName;
-        ThisFileType = thisFileType;
-    }
+    public string FileName { get; set; } = fileName;
+    public FileType ThisFileType { get; set;} = thisFileType;
 }
