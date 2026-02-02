@@ -30,13 +30,14 @@ public class AppConfig
     
     private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
     
+    // change get set props soon, pls
     public string GameFolderPath; // Skyrim Steam folder ; INDEX 0
     public string ModFilePath; // path for Plugins.txt ; INDEX 1 
     public ulong ModGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
+    public string VdfConfigPath; // shortcuts.vdf file path ; this is used to get non-steam game ID ; INDEX 3?
 
     public async Task UpdateConfig(string key, string value)
     {
-        // same here, because of only 2 props switch should be enough
         switch (key)
         {
             case "modFilePath":
@@ -45,6 +46,9 @@ public class AppConfig
                 break;
             case "gameFolderPath":
                 GameFolderPath = value;
+                break;
+            case "vdfConfigPath":
+                VdfConfigPath = value;
                 break;
             default: return; // return if not match
         }
@@ -76,6 +80,7 @@ public class AppConfig
                 case "modFilePath": ModFilePath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
                 case "modGameSteamId": ModGameSteamId = Convert.ToUInt64(value); break;
+                case "vdfConfigPath": VdfConfigPath = value; break;
                 default: continue; // skip if not match
             }
 
@@ -105,10 +110,12 @@ public class AppConfig
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
             await sw.WriteLineAsync($"modFilePath={ModFilePath}");
             await sw.WriteLineAsync($"modGameSteamId={ModGameSteamId}");
+            await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
         }
         await LogManager.Instance.Log("Config has been written.");
     }
 
+    // maybe remove method from this class?
     private async Task<ulong> GetModGameID()
     {
         DirectoryInfo dir = new DirectoryInfo(ModFilePath);

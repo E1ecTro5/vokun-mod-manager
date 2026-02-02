@@ -24,11 +24,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string modListPath;    // plugins.txt file
     [ObservableProperty] private string modGameId;      // compatdata ID for skse64_loader.exe
     
+    // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
     public ICommand UpdateTextBlocksCommand { get; }
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
+    public ICommand SelectVdfCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -39,6 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
         UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
+        SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
 
@@ -50,16 +53,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        // if you use config instance, why use modGameId in MainVM? ???
-        ulong appId = AppConfig.Instance.ModGameSteamId;
+        string exePath = Path.Combine(OrigGamePath, "skse64_loader.exe");
+        ulong longId = new GameIdFinder().GetLongId(exePath); // refactor this
         
-        // I found out that Steam uses its own ID making methods
-        // compatdata ID != real game ID
-        ulong id = 18380482078509629440; // this is what i got for launcher
-        
-        // this will work AS LONG AS I HAVE THIS ID FOR LAUNCHER
-        // now think about how to fix this
-        string uri = "steam://rungameid/18380482078509629440";
+        // just uri command to run the game
+        string uri = $"steam://rungameid/{longId}";
 
         // this variant should work on Linux;
         Process.Start(new ProcessStartInfo
@@ -84,6 +82,13 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager(ModListPath);
         ModList = await modListM.GetModList();
+    }
+
+    private async Task SelectVdf()
+    {
+        var fileM = new  FileManager();
+        var filePath = await fileM.SelectFile();
+        await AppConfig.Instance.UpdateConfig("vdfConfigPath",  filePath);
     }
 
     private async Task SetGamePath()

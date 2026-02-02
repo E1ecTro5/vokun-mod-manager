@@ -19,6 +19,7 @@
                 <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SelectFileCommand}"/>
                 <Button Content="Update TextBlocks" Padding="1" Command="{Binding UpdateTextBlocksCommand}"/>
                 <Button Content="Update ModList" Padding="1" Command="{Binding UpdateModListCommand}"/>
+                <Button Content="Select .vdf File" Padding="1" Command="{Binding SelectVdfCommand}"/>
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                 <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
