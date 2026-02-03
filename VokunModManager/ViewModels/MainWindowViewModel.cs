@@ -12,11 +12,12 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<Mod> modList;
-    [ObservableProperty] private string configFilePath; // remove this later
-    [ObservableProperty] private string origGamePath;  // Steam game folder
-    [ObservableProperty] private string modListPath;    // plugins.txt file
-    [ObservableProperty] private string modGameId;      // compatdata ID for skse64_loader.exe
+    [ObservableProperty] private ObservableCollection<Mod> _modList;
+    [ObservableProperty] private string _gameFolderPath;     // Steam game folder
+    [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
+    [ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
+    [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
+    [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     
     // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
@@ -40,15 +41,16 @@ public partial class MainWindowViewModel : ViewModelBase
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
 
-        ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
-        OrigGamePath = AppConfig.Instance.GameFolderPath;
-        ModListPath = AppConfig.Instance.ModFilePath;
-        ModGameId = AppConfig.Instance.ModGameSteamId.ToString();
+        // ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
+        GameFolderPath = AppConfig.Instance.GameFolderPath;
+        PluginFilePath = AppConfig.Instance.PluginFilePath;
+        ModGameId = AppConfig.Instance.GameId;
+        VdfFilePath = AppConfig.Instance.VdfConfigPath;
     }
 
     private async Task StartGame()
     {
-        string exePath = Path.Combine(OrigGamePath, "skse64_loader.exe");
+        string exePath = Path.Combine(GameFolderPath, "skse64_loader.exe");
         ulong longId = GameIdFinder.GetLongId(exePath);
         
         // just uri command to run the game
@@ -65,9 +67,11 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task UpdateTextBlocks()
     {
-        OrigGamePath = AppConfig.Instance.GameFolderPath;
-        ModListPath = AppConfig.Instance.ModFilePath;
-        ModGameId = AppConfig.Instance.ModGameSteamId.ToString();
+        GameFolderPath = AppConfig.Instance.GameFolderPath;
+        PluginFilePath = AppConfig.Instance.PluginFilePath;
+        CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
+        ModGameId = AppConfig.Instance.GameId;
+        VdfFilePath = AppConfig.Instance.VdfConfigPath;
         await LogManager.Instance.Log("TextBlocks updated.");
     }
 
@@ -75,14 +79,14 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         await UpdateTextBlocks();
         await LogManager.Instance.Log("Updating mod list...");
-        var modListM = new ModListManager(ModListPath);
+        var modListM = new ModListManager(PluginFilePath);
         ModList = await modListM.GetModList();
     }
     
     private async Task SaveModList()
     {
         await LogManager.Instance.Log("Saving current mod list state...");
-        var modListM = new ModListManager(ModListPath);
+        var modListM = new ModListManager(PluginFilePath);
         await modListM.SetModList(ModList);
         await LogManager.Instance.Log("Current mod list state saved...");
     }
@@ -91,22 +95,22 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var fileM = new  FileManager();
         var filePath = await fileM.SelectFile();
-        await AppConfig.Instance.UpdateConfig("vdfConfigPath",  filePath);
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, filePath);
     }
 
     private async Task SetGamePath()
     {
         var fileM = new FileManager();
-        OrigGamePath = await fileM.SelectDirectory();
+        GameFolderPath = await fileM.SelectDirectory();
         // just make ENUM
-        await AppConfig.Instance.UpdateConfig("gameFolderPath", OrigGamePath);
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
     }
 
     private async Task SetModListPath()
     {
         var fileM = new FileManager();
-        ModListPath = await fileM.SelectFile();
+        PluginFilePath = await fileM.SelectFile();
         // just make ENUM
-        await AppConfig.Instance.UpdateConfig("modFilePath", ModListPath);
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
     }
 }

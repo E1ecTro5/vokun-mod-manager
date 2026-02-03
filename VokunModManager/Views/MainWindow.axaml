@@ -22,20 +22,14 @@
                 <Button Content="Select .vdf File" Padding="1" Command="{Binding SelectVdfCommand}"/>
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
+                <TextBlock Text="{Binding GameFolderPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
             </ScrollViewer>
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ModGameId}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
+                <TextBlock Text="{Binding PluginFilePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
             </ScrollViewer>
         </StackPanel>
         
-        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+        <Grid Grid.Row="1" ColumnDefinitions="4*,5*" ColumnSpacing="10">
             <Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="10">
                 <DataGrid Grid.Row="0"
                           AutoGenerateColumns="False"
@@ -44,14 +38,21 @@
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Order" Width="Auto"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Order" Width="50"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
                         <DataGridTextColumn Header="ModName" Width="*"  Binding="{Binding Name}" IsReadOnly="True"/>
-                        <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}" IsReadOnly="False"/>
+                        <DataGridCheckBoxColumn Header="IsActive" Width="50"  Binding="{Binding IsEnabled}" IsReadOnly="False"/>
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
                     <Button Content="Play" Command="{Binding PlayClickCommand}" Padding="10,1"></Button>
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Padding="10,1"></Button>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Column="1">
+                <StackPanel>
+                    <TextBlock Text="{Binding ModGameId, StringFormat='Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
+                    <TextBlock Text="{Binding CompatdataFolderId, StringFormat='Compatdata ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
+                    <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
                 </StackPanel>
             </Grid>
         </Grid>

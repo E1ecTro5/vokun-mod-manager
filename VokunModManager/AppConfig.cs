@@ -25,29 +25,36 @@ public sealed class AppConfig
         BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
         _appConfigPath = Path.Combine(BaseDirectory, "config.txt");
     }
+
+    public enum ConfigType
+    {
+        GameFolderPath,
+        PluginFilePath,
+        VdfConfigPath,
+    }
     
     public string BaseDirectory { get; private set; } // ../VokunModManager directory
-    
     private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
-    
-    // change get set props soon, pls
-    public string GameFolderPath { get; private set; } // Skyrim Steam folder ; INDEX 0
-    public string ModFilePath { get; private set; } // path for Plugins.txt ; INDEX 1 
-    public ulong ModGameSteamId { get; private set; } // ID for skse64_launch.exe located in steam library ; INDEX 2
-    public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID ; INDEX 3?
 
-    public async Task UpdateConfig(string key, string value)
+    public string GameFolderPath { get; private set; } // Skyrim Steam folder
+    public string PluginFilePath { get; private set; } // path for Plugins.txt
+    public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID
+    public ulong CompatdataFolderId { get; private set; } // ID of skse64 compatdata folder
+    public ulong GameId { get; private set; } // the actual game (modded version) ID
+
+    public async Task UpdateConfig(ConfigType key, string value)
     {
         switch (key)
         {
-            case "modFilePath":
-                ModFilePath = value;
-                ModGameSteamId = await GetModGameId();   // automatically calculates while setting the gameFolderPath
-                break;
-            case "gameFolderPath":
+            case ConfigType.GameFolderPath:
                 GameFolderPath = value;
                 break;
-            case "vdfConfigPath":
+            case ConfigType.PluginFilePath:
+                PluginFilePath = value;
+                CompatdataFolderId = await GetCompatdataId(); // automatically calculates while setting the gameFolderPath
+                GameId = await GetGameId(PluginFilePath);
+                break;
+            case ConfigType.VdfConfigPath:
                 VdfConfigPath = value;
                 break;
             default: return; // return if not match
@@ -77,10 +84,12 @@ public sealed class AppConfig
             // I guess this is better, because we don't need a lot of strings
             switch (key)
             {
-                case "modFilePath": ModFilePath = value; break;
+                case "pluginFilePath": PluginFilePath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
-                case "modGameSteamId": ModGameSteamId = Convert.ToUInt64(value); break;
                 case "vdfConfigPath": VdfConfigPath = value; break;
+                
+                case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
+                case "gameId": GameId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
             }
 
@@ -108,17 +117,19 @@ public sealed class AppConfig
         {
             // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
-            await sw.WriteLineAsync($"modFilePath={ModFilePath}");
-            await sw.WriteLineAsync($"modGameSteamId={ModGameSteamId}");
+            await sw.WriteLineAsync($"pluginFilePath={PluginFilePath}");
             await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
+            
+            await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
+            await sw.WriteLineAsync($"gameId={GameId}");
         }
         await LogManager.Instance.Log("Config has been written.");
     }
 
     // maybe remove method from this class?
-    private async Task<ulong> GetModGameId()
+    private async Task<ulong> GetCompatdataId()
     {
-        DirectoryInfo dir = new DirectoryInfo(ModFilePath);
+        DirectoryInfo dir = new DirectoryInfo(PluginFilePath);
         
         // find the pfx dir and get its ID
         while (!dir.Name.Equals("pfx"))
@@ -132,5 +143,11 @@ public sealed class AppConfig
         string result = dir.Parent.Name;
         await LogManager.Instance.Log($"Updated config for GameID with value: {result}");
         return Convert.ToUInt64(result);
+    }
+
+    private async Task<ulong> GetGameId(string pluginPath)
+    {
+        string path = Path.Combine(PluginFilePath, "skse64_loader.exe");
+        return GameIdFinder.GetLongId(path);
     }
 }
