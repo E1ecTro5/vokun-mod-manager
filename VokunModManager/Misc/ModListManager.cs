@@ -14,6 +14,7 @@ public class ModListManager(string modlistPath)
 
         using (StreamReader reader = new StreamReader(modlistPath))
         {
+            ushort currentIndex = 0;
             while (!reader.EndOfStream)
             {
                 string line = await reader.ReadLineAsync();
@@ -21,9 +22,12 @@ public class ModListManager(string modlistPath)
                 // ignore comments and empty lines
                 if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
 
+                ushort loadOrder = 0;
                 bool isActive = line.StartsWith('*');
+                if(!isActive) loadOrder = 0; // don't mention offed mods
+                else loadOrder = ++currentIndex;
                 string name = line.TrimStart('*');
-                var  mod = new Mod(name, isActive);
+                var mod = new Mod(loadOrder, name, isActive);
                 result.Add(mod);
             }
         }

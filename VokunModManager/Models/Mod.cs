@@ -1,7 +1,8 @@
 namespace VokunModManager.Models;
 
-public class Mod(string modName, bool isEnabled)
+public class Mod(ushort loadOrder ,string modName, bool isEnabled)
 {
+    public ushort LoadOrder { get; set; } = loadOrder;
     public string Name { get; set; } = modName;
     public bool IsEnabled { get; set; } = isEnabled;
 

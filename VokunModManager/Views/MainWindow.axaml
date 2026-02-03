@@ -44,6 +44,7 @@
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
+                        <DataGridTextColumn Header="Order" Width="Auto"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
                         <DataGridTextColumn Header="ModName" Width="*"  Binding="{Binding Name}" IsReadOnly="True"/>
                         <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}" IsReadOnly="False"/>
                     </DataGrid.Columns>
