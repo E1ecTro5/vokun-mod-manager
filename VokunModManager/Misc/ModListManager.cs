@@ -5,21 +5,14 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class ModListManager
+public class ModListManager(string modlistPath)
 {
-    private string pluginPath;
-    
-    public ModListManager(string modlistPath)
-    {
-        pluginPath = modlistPath;
-    }
-
     public async Task<ObservableCollection<Mod>> GetModList()
     {
         await LogManager.Instance.Log("Initializing mod list");
         ObservableCollection<Mod> result = new();
 
-        using (StreamReader reader = new StreamReader(pluginPath))
+        using (StreamReader reader = new StreamReader(modlistPath))
         {
             while (!reader.EndOfStream)
             {
@@ -37,5 +30,21 @@ public class ModListManager
         
         await LogManager.Instance.Log("Mod list initialized");
         return result;
+    }
+
+    public async Task SetModList(ObservableCollection<Mod> modList)
+    {
+        await LogManager.Instance.Log("Setting mod list");
+
+        // this will overwrite everything, including comments and null lines
+        await using (StreamWriter writer = new StreamWriter(modlistPath))
+        {
+            foreach (Mod mod in modList)
+            {
+                await writer.WriteLineAsync(mod.ToString());
+            }
+        }
+        
+        await LogManager.Instance.Log("Mod list initialized");
     }
 }

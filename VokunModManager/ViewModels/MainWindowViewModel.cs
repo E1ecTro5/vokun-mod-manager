@@ -25,6 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
     public ICommand SelectVdfCommand { get; }
+    public ICommand SaveModListCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -37,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
+        SaveModListCommand = new AsyncRelayCommand(SaveModList);
 
         ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         OrigGamePath = AppConfig.Instance.GameFolderPath;
@@ -75,6 +77,14 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager(ModListPath);
         ModList = await modListM.GetModList();
+    }
+    
+    private async Task SaveModList()
+    {
+        await LogManager.Instance.Log("Saving current mod list state...");
+        var modListM = new ModListManager(ModListPath);
+        await modListM.SetModList(ModList);
+        await LogManager.Instance.Log("Current mod list state saved...");
     }
 
     private async Task SelectVdf()

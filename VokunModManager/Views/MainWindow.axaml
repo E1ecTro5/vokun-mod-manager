@@ -41,17 +41,16 @@
                           AutoGenerateColumns="False"
                           CanUserSortColumns="True"
                           ItemsSource="{Binding ModList}"
-                          IsReadOnly="True"
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ModName" Width="*"  Binding="{Binding Name}"/>
-                        <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}"/>
+                        <DataGridTextColumn Header="ModName" Width="*"  Binding="{Binding Name}" IsReadOnly="True"/>
+                        <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}" IsReadOnly="False"/>
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
                     <Button Content="Play" Command="{Binding PlayClickCommand}" Padding="10,1"></Button>
-                    <Button Content="Save" Padding="10,1"></Button>
+                    <Button Content="Save" Command="{Binding SaveModListCommand}" Padding="10,1"></Button>
                 </StackPanel>
             </Grid>
         </Grid>
