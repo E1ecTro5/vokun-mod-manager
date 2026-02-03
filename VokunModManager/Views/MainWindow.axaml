@@ -21,12 +21,6 @@
                 <Button Content="Update ModList" Padding="1" Command="{Binding UpdateModListCommand}"/>
                 <Button Content="Select .vdf File" Padding="1" Command="{Binding SelectVdfCommand}"/>
             </StackPanel>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding GameFolderPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding PluginFilePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
         </StackPanel>
         
         <Grid Grid.Row="1" ColumnDefinitions="4*,5*" ColumnSpacing="10">
@@ -50,9 +44,15 @@
             </Grid>
             <Grid Grid.Column="1">
                 <StackPanel>
-                    <TextBlock Text="{Binding ModGameId, StringFormat='Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
-                    <TextBlock Text="{Binding CompatdataFolderId, StringFormat='Compatdata ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
-                    <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="12"></TextBlock>
+                    <TextBlock Text="{Binding ModGameId, StringFormat='Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <TextBlock Text="{Binding CompatdataFolderId, StringFormat='Compatdata ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+                    </ScrollViewer>
                 </StackPanel>
             </Grid>
         </Grid>

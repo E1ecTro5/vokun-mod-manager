@@ -1,8 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Misc;
@@ -50,12 +52,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        string exePath = Path.Combine(GameFolderPath, "skse64_loader.exe");
-        ulong longId = GameIdFinder.GetLongId(exePath);
+        ulong longId = AppConfig.Instance.GameId;
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
-
+        
+        await LogManager.Instance.Log($"Starting the game... ID:{longId}");
+        
         // this variant should work on Linux;
         Process.Start(new ProcessStartInfo
         {
@@ -67,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task UpdateTextBlocks()
     {
+        await LogManager.Instance.Log("Updating text blocks...");
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
@@ -77,10 +81,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task UpdateModList()
     {
-        await UpdateTextBlocks();
         await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager(PluginFilePath);
         ModList = await modListM.GetModList();
+        await LogManager.Instance.Log("Mod list updated.");
     }
     
     private async Task SaveModList()
@@ -95,22 +99,53 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var fileM = new  FileManager();
         var filePath = await fileM.SelectFile();
+        
+        if (String.IsNullOrEmpty(filePath))
+        {
+            // no need to throw exception here
+            await LogManager.Instance.Log("No file selected.");
+            return;
+        }
+
+        VdfFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, filePath);
     }
 
     private async Task SetGamePath()
     {
         var fileM = new FileManager();
-        GameFolderPath = await fileM.SelectDirectory();
-        // just make ENUM
+        var filePath = await fileM.SelectFile();
+
+        if (String.IsNullOrEmpty(filePath))
+        {
+            // no need to throw exception here
+            await LogManager.Instance.Log("No file selected.");
+            return;
+        }
+        
+        GameFolderPath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
     }
 
     private async Task SetModListPath()
     {
         var fileM = new FileManager();
-        PluginFilePath = await fileM.SelectFile();
-        // just make ENUM
+        var filePath = await fileM.SelectFile();
+
+        if (String.IsNullOrEmpty(filePath))
+        {
+            // no need to throw exception here
+            await LogManager.Instance.Log("No file selected.");
+            return;
+        }
+
+        PluginFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+    }
+
+    public async Task UpdateAll()
+    {
+        await UpdateTextBlocks();
+        await UpdateModList();
     }
 }

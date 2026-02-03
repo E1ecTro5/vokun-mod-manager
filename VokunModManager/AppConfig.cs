@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Animation;
 using VokunModManager.Misc;
 
 namespace VokunModManager;
@@ -52,7 +51,7 @@ public sealed class AppConfig
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
                 CompatdataFolderId = await GetCompatdataId(); // automatically calculates while setting the gameFolderPath
-                GameId = await GetGameId(PluginFilePath);
+                GameId = await GetGameId(PluginFilePath);       //calculate the actual gameID
                 break;
             case ConfigType.VdfConfigPath:
                 VdfConfigPath = value;
@@ -67,11 +66,12 @@ public sealed class AppConfig
     
     public async Task InitConfig()
     {
+        await LogManager.Instance.Log("Initializing config...");
+        
         if (!File.Exists(_appConfigPath))
             await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
-        Dictionary<string,string> dict = new();
 
         foreach (var line in lines)
         {
@@ -137,7 +137,7 @@ public sealed class AppConfig
             dir = dir.Parent;
         }
 
-        // we expect to get an ID -> ../{ID}/pfx/...
+        // we expect to get an ID -> ../{ID}/pfx/... improvements 
         //modGameSteamId = Convert.ToUInt64(dir.Parent.Name);
         // bad practice?
         string result = dir.Parent.Name;
@@ -147,7 +147,7 @@ public sealed class AppConfig
 
     private async Task<ulong> GetGameId(string pluginPath)
     {
-        string path = Path.Combine(PluginFilePath, "skse64_loader.exe");
-        return GameIdFinder.GetLongId(path);
+        string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
+        return await GameIdFinder.GetLongId(path);
     }
 }

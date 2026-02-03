@@ -22,15 +22,17 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            var vm = new MainWindowViewModel();
             // better not to touch
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel()
+                DataContext = vm
             };
             
             // just to avoid some UI blocks
             await LogManager.Instance.InitLogs();   // logs ; should come first to detect following inits
             await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
+            await vm.UpdateAll();
         }
 
         base.OnFrameworkInitializationCompleted();

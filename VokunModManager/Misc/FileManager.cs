@@ -29,11 +29,8 @@ public class FileManager
             });
         
         var file = files.FirstOrDefault();
-        if (file is null)
-            return null;
-
         // LOCALPATH because of OS
-        return file.Path.LocalPath;
+        return file?.Path.LocalPath;
     }
 
     public async Task<string?> SelectDirectory()
@@ -50,10 +47,7 @@ public class FileManager
             });
         
         var folder = folders.FirstOrDefault();
-        if (folder is null)
-            return null;
-
         // LOCALPATH because of OS
-        return folder.Path.LocalPath;
+        return folder?.Path.LocalPath;
     }
 }
