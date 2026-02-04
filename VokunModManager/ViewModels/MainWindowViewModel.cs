@@ -15,6 +15,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod> _modList;
+    
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
