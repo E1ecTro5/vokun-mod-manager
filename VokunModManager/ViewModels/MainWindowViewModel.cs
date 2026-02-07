@@ -15,6 +15,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod> _modList;
+    [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems;
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
@@ -30,6 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand PlayClickCommand { get; }
     public ICommand SelectVdfCommand { get; }
     public ICommand SaveModListCommand { get; }
+    public ICommand LoadArchiveCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -43,6 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
+        LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
 
         // ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         GameFolderPath = AppConfig.Instance.GameFolderPath;
@@ -142,6 +145,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PluginFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+    }
+
+    private async Task LoadArchive()
+    {
+        var fileM = new FileManager();
+        var archive = await fileM.SelectFile();
+        ArchiveItems = await new FileManager().GetZipFiles(archive);
     }
 
     public async Task UpdateAll()
