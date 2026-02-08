@@ -66,7 +66,7 @@
                             <TreeDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="2">
                                     <!-- add check all the children of the parent feature -->
-                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" IsThreeState="False" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TreeDataTemplate>
