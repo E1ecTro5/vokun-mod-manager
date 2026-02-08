@@ -12,16 +12,19 @@ using VokunModManager.Models;
 
 namespace VokunModManager.ViewModels;
 
+// A LOT of things should be refactored here, I hope you won't forget
+
 public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod> _modList;
-    [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems;
+    [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
+    [ObservableProperty] private string _archivePath;        // path of a selected archive
     
     // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
@@ -52,6 +55,8 @@ public partial class MainWindowViewModel : ViewModelBase
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
+
+        ArchivePath = "Not selected";
     }
 
     private async Task StartGame()
@@ -151,6 +156,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var fileM = new FileManager();
         var archive = await fileM.SelectFile();
+        if(string.IsNullOrEmpty(archive)) return;
+        ArchivePath = archive;
         ArchiveItems = await new FileManager().GetZipFiles(archive);
     }
 

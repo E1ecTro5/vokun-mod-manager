@@ -14,17 +14,27 @@
         <DataGrid Grid.Row="0"
                   AutoGenerateColumns="False"
                   CanUserSortColumns="True"
+                  CanUserResizeColumns="True"
                   ItemsSource="{Binding ModList}"
                   GridLinesVisibility="All"
                   BorderThickness="1" BorderBrush="Black" CornerRadius="10">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Order" Width="50"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Mod's Name (.esp)" Width="*" Binding="{Binding Name}" IsReadOnly="True"/>
-                <DataGridCheckBoxColumn Header="IsActive" Width="50" Binding="{Binding IsEnabled}" IsReadOnly="False"/>
+                <DataGridTemplateColumn Header="Mod" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
             </DataGrid.Columns>
         </DataGrid>
         <Grid Grid.Column="1">
-            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="5">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
+                <!--one day just make style for all these boxes-->
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="{Binding ModGameId, StringFormat='Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
                     <TextBlock Text="{Binding CompatdataFolderId, StringFormat='Compatdata ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
@@ -47,16 +57,25 @@
                     <Button Content="Update Text Blocks" Command="{Binding UpdateTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                     <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
                 </Grid>
-                <Border Grid.Row="3" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
-                    <TreeView ItemsSource="{Binding ArchiveItems}" >
+                <StackPanel Grid.Row="3">
+                    <TextBlock Text="{Binding ArchivePath, StringFormat='Selected archive: {0}'}" FontSize="11"/>
+                </StackPanel>
+                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
+                    <TreeView ItemsSource="{Binding ArchiveItems}">
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding Name}" />
+                                <StackPanel Orientation="Horizontal" Margin="2">
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </Border>
-                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                    <Button Content="Install files" Padding="10,5"></Button>
+                </StackPanel>
+                <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" Padding="10,5"></Button>
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Padding="10,5"></Button>
                     <Button Content="Play" Command="{Binding PlayClickCommand}" Padding="10,5"></Button>
