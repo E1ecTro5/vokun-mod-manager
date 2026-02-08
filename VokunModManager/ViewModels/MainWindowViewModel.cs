@@ -161,6 +161,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ArchiveItems = await new FileManager().GetZipFiles(archive);
     }
 
+
     public async Task UpdateAll()
     {
         await UpdateTextBlocks();

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using VokunModManager.Models;
 using VokunModManager.ViewModels;
 
 namespace VokunModManager.Views;

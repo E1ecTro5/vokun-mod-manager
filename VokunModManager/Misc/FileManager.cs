@@ -82,28 +82,26 @@ public class FileManager
     
     private void Insert(ObservableCollection<ArchiveNode> roots, string fullPath)
     {
-        // split the full path into parts by '/' to separate folders and file name
+        // get all items paths
         var parts = fullPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        // start at the root level of the tree
+        
         var currentLevel = roots;
-        ArchiveNode currentNode = null;
+        ArchiveNode? parent = null;
 
-        // loop through each part of the path
         for (int i = 0; i < parts.Length; i++)
         {
-            // check if a node with the current part name already exists at this level
             var existing = currentLevel.FirstOrDefault(x => x.Name == parts[i]);
 
             if (existing == null)
             {
-                // check is it's the last ; if yes than it's the file
-                existing = new ArchiveNode { Name = parts[i], IsFolder = i != parts.Length - 1 };
+                existing = new ArchiveNode { Name = parts[i], IsFolder = i != parts.Length - 1, Parent = parent };
 
                 currentLevel.Add(existing);
             }
 
+            parent = existing;
             currentLevel = existing.Children;
         }
     }
+
 }
