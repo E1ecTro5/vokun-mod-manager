@@ -23,6 +23,7 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+        <PackageReference Include="SharpCompress" Version="0.44.5" />
         <PackageReference Include="SteamKit2" Version="3.4.0" />
         <PackageReference Include="System.IO.Hashing" Version="10.0.2" />
     </ItemGroup>
