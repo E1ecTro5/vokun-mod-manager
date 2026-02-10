@@ -4,26 +4,35 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace VokunModManager.Models;
 
-public partial class ArchiveNode : ObservableObject
+public class ArchiveNode : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
-    public bool IsFolder { get; set; }
+    public string Name { get; set; }
+    public string FullPath { get; set; }
+    public bool IsDirectory { get; set; }
 
-    public ArchiveNode? Parent { get; set; }
     public ObservableCollection<ArchiveNode> Children { get; } = new();
 
-    [ObservableProperty] private bool _isSelected;
-
-    partial void OnIsSelectedChanged(bool value)
+    private bool _isChecked;
+    public bool IsChecked
     {
-        UpdateChildren(value);
+        get => _isChecked;
+        set
+        {
+            SetProperty(ref _isChecked, value);
+            
+            foreach (var child in Children) child.IsChecked = value;
+            Parent?.UpdateFromChildren();
+        }
     }
 
-    private void UpdateChildren(bool value)
+    public ArchiveNode? Parent { get; set; }
+
+    private void UpdateFromChildren()
     {
-        foreach (var child in Children)
-        {
-            child.IsSelected = value;
-        }
+        if (Children.All(c => c.IsChecked)) _isChecked = true;
+        else _isChecked = false;
+
+        OnPropertyChanged(nameof(IsChecked));
+        Parent?.UpdateFromChildren();
     }
 }

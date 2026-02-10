@@ -2,11 +2,14 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 using VokunModManager.Misc;
 using VokunModManager.Models;
 
@@ -35,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SelectVdfCommand { get; }
     public ICommand SaveModListCommand { get; }
     public ICommand LoadArchiveCommand { get; }
+    public ICommand InstallFilesCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -49,6 +53,8 @@ public partial class MainWindowViewModel : ViewModelBase
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
         LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
+        
+        InstallFilesCommand = new AsyncRelayCommand(InstallFiles);
 
         // ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
         GameFolderPath = AppConfig.Instance.GameFolderPath;
@@ -155,10 +161,46 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task LoadArchive()
     {
         var fileM = new FileManager();
-        var archive = await fileM.SelectFile();
-        if(string.IsNullOrEmpty(archive)) return;
-        ArchivePath = archive;
-        ArchiveItems = await new FileManager().GetZipFiles(archive);
+        var path =  await fileM.SelectFile();
+        
+        if(string.IsNullOrEmpty(path)) return;
+        
+        ArchivePath = path;
+        ArchiveItems = await fileM.BuildTree(path);
+    }
+
+    // update logs later
+    private async Task InstallFiles()
+    {
+        await LogManager.Instance.Log("Installing files...");
+        var fileM = new FileManager();
+        await InstallFiles(ArchivePath);
+        await LogManager.Instance.Log("Files installed.");
+    }
+    
+    private async Task InstallFiles(string archivePath)
+    {
+        using var archive = ArchiveFactory.Open(archivePath);
+
+        var entryLookup = archive.Entries
+            .Where(e => !e.IsDirectory && e.Key != null)
+            .ToDictionary(e => e.Key!);
+
+        var selectedFiles = new FileManager().GetSelectedFiles(ArchiveItems);
+
+        foreach (var filePath in selectedFiles)
+        {
+            if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
+            
+            string destination = Path.Combine(GameFolderPath, "Data", filePath);
+
+            string? directory = Path.GetDirectoryName(destination);
+            await LogManager.Instance.Log($"Writing {filePath} to {directory}");
+            // you have to check before writing
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+            await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
+        }
     }
 
 

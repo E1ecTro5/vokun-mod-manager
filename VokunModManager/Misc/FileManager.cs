@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using SharpCompress.Archives;
+using SharpCompress.Common;
 using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
@@ -18,6 +20,8 @@ public class FileManager
     {
         return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
     }
+
+    public DirectoryInfo LoadedArchive { get; private set; }
 
     // make it all static?
     
@@ -57,51 +61,145 @@ public class FileManager
         return folder?.Path.LocalPath;
     }
 
-    public async Task<ObservableCollection<ArchiveNode>> GetZipFiles(string path)
+    // let's just dump all to a specific directory and work form there
+    public async Task LoadArchive(string path)
     {
-        // no async needed?
-        var items = LoadArchive(path);
-        return items;
-    }
-
-    private ObservableCollection<ArchiveNode> LoadArchive(string path)
-    {
-        var roots = new ObservableCollection<ArchiveNode>();
-
-        // collection with entries (everyone, like fomod/.../... and something.bsa on a single level
+        string destDirectory = Path.Combine(AppConfig.Instance.BaseDirectory, "temp");
+        
+        await LogManager.Instance.Log("Cleaning temp folder...");
+        if(Directory.Exists(destDirectory)) Directory.Delete(destDirectory, true); // probably the best way
+        Directory.CreateDirectory(destDirectory);
+        
+        await LogManager.Instance.Log("Getting archive's files...");
         using var archive = ArchiveFactory.Open(path);
 
-        // make them like a hierarchy for easy install 
-        foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+        foreach (var entry in archive.Entries)
         {
-            Insert(roots, entry.Key);
+            if (entry.IsDirectory) continue;
+            if (string.IsNullOrEmpty(entry.Key)) continue;
+
+            string fullPath = Path.Combine(destDirectory, entry.Key);
+
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            await entry.WriteToFileAsync(fullPath);
         }
+
+        await LogManager.Instance.Log("Archive's files have been written to folder.");
+    }
+    
+    // research this later
+    public async Task<ObservableCollection<ArchiveNode>> BuildTree(string archivePath)
+    {
+        var roots = new ObservableCollection<ArchiveNode>();
+        var lookup = new Dictionary<string, ArchiveNode>();
+
+        await Task.Run(() =>
+        {
+            using var archive = ArchiveFactory.Open(archivePath);
+
+            foreach (var entry in archive.Entries)
+            {
+                if (string.IsNullOrEmpty(entry.Key)) continue;
+
+                var parts = entry.Key.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                string currentPath = "";
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    currentPath = currentPath == ""
+                        ? parts[i]
+                        : currentPath + "/" + parts[i];
+
+                    if (!lookup.TryGetValue(currentPath, out _))
+                    {
+                        bool isLastPart = i == parts.Length - 1;
+
+                        var node = new ArchiveNode
+                        {
+                            Name = parts[i],
+                            FullPath = currentPath,
+                            IsDirectory = !isLastPart || entry.IsDirectory
+                        };
+
+                        lookup[currentPath] = node;
+
+                        if (i == 0)
+                        {
+                            roots.Add(node);
+                        }
+                        else
+                        {
+                            var parentPath = currentPath.Substring(0, currentPath.LastIndexOf('/'));
+                            var parent = lookup[parentPath];
+
+                            node.Parent = parent;
+                            parent.Children.Add(node);
+                        }
+                    }
+                }
+            }
+        });
 
         return roots;
     }
+
     
-    private void Insert(ObservableCollection<ArchiveNode> roots, string fullPath)
+    public List<string> GetSelectedFiles(IEnumerable<ArchiveNode> nodes)
     {
-        // get all items paths
-        var parts = fullPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        
-        var currentLevel = roots;
-        ArchiveNode? parent = null;
+        var result = new List<string>();
 
-        for (int i = 0; i < parts.Length; i++)
+        foreach (var node in nodes)
         {
-            var existing = currentLevel.FirstOrDefault(x => x.Name == parts[i]);
-
-            if (existing == null)
+            if (node.IsDirectory)
             {
-                existing = new ArchiveNode { Name = parts[i], IsFolder = i != parts.Length - 1, Parent = parent };
-
-                currentLevel.Add(existing);
+                // if Directory checked get ALL
+                if (node.IsChecked) result.AddRange(GetAllFiles(node));
+                else result.AddRange(GetSelectedFiles(node.Children));
             }
-
-            parent = existing;
-            currentLevel = existing.Children;
+            else if (node.IsChecked) result.Add(node.FullPath);
         }
+
+        return result;
+    }
+    
+    private List<string> GetAllFiles(ArchiveNode node)
+    {
+        var result = new List<string>();
+
+        foreach (var child in node.Children)
+        {
+            if (child.IsDirectory) result.AddRange(GetAllFiles(child));
+            else result.Add(child.FullPath);
+        }
+
+        return result;
     }
 
+
+    public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> tree)
+    {
+        using var archive = ArchiveFactory.Open(archivePath);
+        var modFolderPath = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+
+        var entryLookup = archive.Entries
+            .Where(e => !e.IsDirectory && e.Key != null)
+            .ToDictionary(e => e.Key!);
+
+        var selectedFiles = GetSelectedFiles(tree);
+
+        foreach (var filePath in selectedFiles)
+        {
+            if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
+
+            string destination = Path.Combine(modFolderPath, filePath);
+
+            await entry.WriteToFileAsync(destination, new ExtractionOptions
+            {
+                ExtractFullPath = true,
+                Overwrite = true
+            });
+        }
+    }
 }
