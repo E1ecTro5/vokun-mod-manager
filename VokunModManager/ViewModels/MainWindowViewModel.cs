@@ -28,6 +28,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private string _archivePath;        // path of a selected archive
+
+    [ObservableProperty] private float _installPercentage;
+    [ObservableProperty] private float _maxPercentageValue;
+    [ObservableProperty] private string _currentInstallFile;
     
     // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
@@ -173,6 +177,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task InstallFiles()
     {
         await LogManager.Instance.Log("Installing files...");
+        InstallPercentage = 0;
         var fileM = new FileManager();
         await InstallFiles(ArchivePath);
         await LogManager.Instance.Log("Files installed.");
@@ -187,19 +192,25 @@ public partial class MainWindowViewModel : ViewModelBase
             .ToDictionary(e => e.Key!);
 
         var selectedFiles = new FileManager().GetSelectedFiles(ArchiveItems);
+        float current = 0;
+        MaxPercentageValue = selectedFiles.Count;
 
         foreach (var filePath in selectedFiles)
         {
             if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
             
             string destination = Path.Combine(GameFolderPath, "Data", filePath);
-
             string? directory = Path.GetDirectoryName(destination);
+            
+            CurrentInstallFile = filePath;
             await LogManager.Instance.Log($"Writing {filePath} to {directory}");
             // you have to check before writing
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
             await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
+            
+            current++;
+            InstallPercentage = current;
         }
     }
 
