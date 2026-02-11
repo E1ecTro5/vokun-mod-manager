@@ -11,27 +11,58 @@
         Title="Vokun Mod Manager">
     
     <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
-        <DataGrid Grid.Row="0"
-                  AutoGenerateColumns="False"
-                  CanUserSortColumns="True"
-                  CanUserResizeColumns="True"
-                  ItemsSource="{Binding ModList}"
-                  GridLinesVisibility="All"
-                  BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-            <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Mod" Width="*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid Grid.Column="0" RowDefinitions="4*,3*" RowSpacing="10">
+            <DataGrid Grid.Row="0"
+                      AutoGenerateColumns="False"
+                      CanUserSortColumns="True"
+                      CanUserResizeColumns="True"
+                      ItemsSource="{Binding ModList}"
+                      GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Mod" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid Grid.Row="1" RowDefinitions="*,Auto" RowSpacing="5">
+                <DataGrid AutoGenerateColumns="False"
+                          CanUserSortColumns="True"
+                          CanUserResizeColumns="False"
+                          ItemsSource="{Binding FoundMods}"
+                          GridLinesVisibility="All"
+                          BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Mod" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                        <StackPanel.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Include"/>
+                                            </ContextMenu>
+                                        </StackPanel.ContextMenu>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="1">
+                    <Button Content="Include" Command="{Binding IncludeModsCommand}" Padding="10,5"></Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
         <Grid Grid.Column="1">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
                 <!--one day just make style for all these boxes-->

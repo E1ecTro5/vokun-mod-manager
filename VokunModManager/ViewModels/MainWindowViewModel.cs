@@ -20,6 +20,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod> _modList;
+    [ObservableProperty] private ObservableCollection<Mod> _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
@@ -43,6 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SaveModListCommand { get; }
     public ICommand LoadArchiveCommand { get; }
     public ICommand InstallFilesCommand { get; }
+    public ICommand IncludeModsCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -53,6 +55,8 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
+
+        IncludeModsCommand = new AsyncRelayCommand(IncludeMods);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -103,6 +107,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager(PluginFilePath);
         ModList = await modListM.GetModList();
+        FoundMods = await modListM.CheckForMods(ModList);
         await LogManager.Instance.Log("Mod list updated.");
     }
     
@@ -160,6 +165,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PluginFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+    }
+
+    private async Task IncludeMods()
+    {
+        var items = FoundMods.Where(x => x.IsEnabled);
+        var modM = new ModListManager(AppConfig.Instance.PluginFilePath);
+        await modM.EnableMods(items);
+        await UpdateModList();
     }
 
     private async Task LoadArchive()
