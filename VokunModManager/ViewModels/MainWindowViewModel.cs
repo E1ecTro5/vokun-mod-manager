@@ -105,7 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task UpdateModList()
     {
         await LogManager.Instance.Log("Updating mod list...");
-        var modListM = new ModListManager(PluginFilePath);
+        var modListM = new ModListManager();
         ModList = await modListM.GetModList();
         FoundMods = await modListM.CheckForMods(ModList);
         await LogManager.Instance.Log("Mod list updated.");
@@ -114,7 +114,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task SaveModList()
     {
         await LogManager.Instance.Log("Saving current mod list state...");
-        var modListM = new ModListManager(PluginFilePath);
+        var modListM = new ModListManager();
         await modListM.SetModList(ModList);
         await LogManager.Instance.Log("Current mod list state saved...");
     }
@@ -170,7 +170,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task IncludeMods()
     {
         var items = FoundMods.Where(x => x.IsEnabled);
-        var modM = new ModListManager(AppConfig.Instance.PluginFilePath);
+        var modM = new ModListManager();
         await modM.EnableMods(items);
         await UpdateModList();
     }

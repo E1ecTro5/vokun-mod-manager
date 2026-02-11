@@ -8,11 +8,22 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class ModListManager(string modlistPath)
+public class ModListManager
 {
+    private string modlistPath = AppConfig.Instance.PluginFilePath;
+    private void CheckForExistance()
+    {
+        if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
+        {
+            LogManager.Instance.Log("Mod list file not found!");
+            throw new FileNotFoundException("Mod list file not found!", modlistPath);
+        }
+    }
+
+    // refactor unnecessary async/await
     public async Task<ObservableCollection<Mod>> GetModList()
     {
-        await LogManager.Instance.Log("Initializing mod list");
+        await LogManager.Instance.Log("Initializing mod list.");
         ObservableCollection<Mod> result = new();
 
         // change modlistpath to config reference?
@@ -36,13 +47,13 @@ public class ModListManager(string modlistPath)
             }
         }
         
-        await LogManager.Instance.Log("Mod list initialized");
+        await LogManager.Instance.Log("Mod list initialized.");
         return result;
     }
 
     public async Task SetModList(ObservableCollection<Mod> modList)
     {
-        await LogManager.Instance.Log("Setting mod list");
+        await LogManager.Instance.Log("Setting mod list.");
 
         // this will overwrite everything, including comments and null lines
         await using (StreamWriter writer = new StreamWriter(modlistPath))
@@ -53,12 +64,13 @@ public class ModListManager(string modlistPath)
             }
         }
         
-        await LogManager.Instance.Log("Mod list initialized");
+        await LogManager.Instance.Log("Mod list has been set.");
     }
     
-    // for now, I'll leave it here ; move to another class if needed
+    // move to another class if needed
     public async Task<ObservableCollection<Mod>> CheckForMods(ObservableCollection<Mod> modList)
     {
+        await LogManager.Instance.Log("Checking for mods...");
         string path = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         string[] items = Directory.GetFileSystemEntries(path, "*.esp");
 
@@ -70,6 +82,7 @@ public class ModListManager(string modlistPath)
             result.Add(mod);
         }
         
+        await LogManager.Instance.Log($"{result.Count} mods found inside the Data folder.");
         return result;
     }
 
@@ -80,6 +93,7 @@ public class ModListManager(string modlistPath)
             foreach (var mod in modList)
             {
                 await writer.WriteLineAsync(mod.ToString());
+                await LogManager.Instance.Log($"Mod included to plugin.txt: {mod.Name}");
             }
         }
     }
