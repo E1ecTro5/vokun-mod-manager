@@ -12,5 +12,8 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        
+        <!--used for drag n drop-->
+        <StyleInclude Source="avares://VokunModManager/Styles/DataGridDnd.axaml"/>
     </Application.Styles>
 </Application>

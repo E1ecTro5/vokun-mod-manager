@@ -3,6 +3,10 @@
         xmlns:vm="using:VokunModManager.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions.DragAndDrop"
+        xmlns:b="clr-namespace:VokunModManager.Behaviors"
+        xmlns:models="clr-namespace:VokunModManager.Models"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinWidth="900" MinHeight="400"
         x:Class="VokunModManager.Views.MainWindow"
@@ -10,15 +14,27 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Vokun Mod Manager">
     
+    <Window.Resources>
+        <!--used for drag n drop-->
+        <b:DataGridDnd x:Key="MyGridDndHandler" x:TypeArguments="models:Mod" />
+    </Window.Resources>
+    
     <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
         <Grid Grid.Column="0" RowDefinitions="4*,3*" RowSpacing="10">
             <DataGrid Grid.Row="0"
+                      Classes="draggable"
                       AutoGenerateColumns="False"
-                      CanUserSortColumns="True"
+                      CanUserSortColumns="False"
                       CanUserResizeColumns="True"
                       ItemsSource="{Binding ModList}"
                       GridLinesVisibility="All"
                       BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                
+                <!--Added behavior for drag n drop-->
+                <i:Interaction.Behaviors>
+                    <idd:ContextDropBehavior Handler="{StaticResource MyGridDndHandler}" />
+                </i:Interaction.Behaviors>
+                
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Mod" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
