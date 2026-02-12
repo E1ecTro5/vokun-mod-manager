@@ -122,10 +122,13 @@
                 </Border>
                 <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
                     <Button Content="Install files" Command="{Binding InstallFilesCommand}" Grid.Column="0" Padding="10,5"></Button>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0">
+                    <!--yo, make this work later ; turned off because of relocation of methods-->
+                    <!--
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0" IsVisible="False">
                         <TextBlock Text="{Binding CurrentInstallFile, StringFormat='Installing: {0}'}" FontSize="9"/>
                         <ProgressBar Value="{Binding InstallPercentage}" Maximum="{Binding MaxPercentageValue}" Minimum="0"/>
                     </StackPanel>
+                    -->
                     <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" Grid.Column="2" Padding="10,5"></Button>
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
                     <Button Content="Play" Command="{Binding PlayClickCommand}" Grid.Column="4" Padding="10,5"></Button>

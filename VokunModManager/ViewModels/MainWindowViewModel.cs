@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SharpCompress.Archives;
-using SharpCompress.Common;
 using VokunModManager.Misc;
 using VokunModManager.Models;
 
@@ -30,9 +26,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private string _archivePath;        // path of a selected archive
 
+    /*
+     Return this feature later
     [ObservableProperty] private float _installPercentage;
     [ObservableProperty] private float _maxPercentageValue;
     [ObservableProperty] private string _currentInstallFile;
+    */
     
     // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
@@ -76,6 +75,13 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task StartGame()
     {
         ulong longId = AppConfig.Instance.GameId;
+
+        if (longId == 0)
+        {
+            // I should make something like MessageBox here...
+            await LogManager.Instance.Log("GameID has not been set!", LogManager.LogType.Error);
+            return;
+        }
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
@@ -170,6 +176,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task IncludeMods()
     {
         var items = FoundMods.Where(x => x.IsEnabled);
+        if (!items.Any())
+        {
+            await LogManager.Instance.Log("No items selected from searched mods.", LogManager.LogType.Error);
+            return;
+        }
         var modM = new ModListManager();
         await modM.EnableMods(items);
         await UpdateModList();
@@ -184,49 +195,23 @@ public partial class MainWindowViewModel : ViewModelBase
         
         ArchivePath = path;
         ArchiveItems = await fileM.BuildTree(path);
+
+        await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
     }
 
-    // update logs later
     private async Task InstallFiles()
     {
-        await LogManager.Instance.Log("Installing files...");
-        InstallPercentage = 0;
-        var fileM = new FileManager();
-        await InstallFiles(ArchivePath);
-        await LogManager.Instance.Log("Files installed.");
-    }
-    
-    private async Task InstallFiles(string archivePath)
-    {
-        using var archive = ArchiveFactory.Open(archivePath);
-
-        var entryLookup = archive.Entries
-            .Where(e => !e.IsDirectory && e.Key != null)
-            .ToDictionary(e => e.Key!);
-
-        var selectedFiles = new FileManager().GetSelectedFiles(ArchiveItems);
-        float current = 0;
-        MaxPercentageValue = selectedFiles.Count;
-
-        foreach (var filePath in selectedFiles)
+        if (string.IsNullOrEmpty(ArchivePath) || ArchivePath == "Not selected")
         {
-            if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
-            
-            string destination = Path.Combine(GameFolderPath, "Data", filePath);
-            string? directory = Path.GetDirectoryName(destination);
-            
-            CurrentInstallFile = filePath;
-            await LogManager.Instance.Log($"Writing {filePath} to {directory}");
-            // you have to check before writing
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-            await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
-            
-            current++;
-            InstallPercentage = current;
+            await LogManager.Instance.Log("ArchivePath is not selected!", LogManager.LogType.Error);
+            return;
         }
-    }
+        
+        await LogManager.Instance.Log("Installing files...");
 
+        var fileM = new FileManager();
+        await fileM.InstallFiles(ArchivePath, ArchiveItems);
+    }
 
     public async Task UpdateAll()
     {

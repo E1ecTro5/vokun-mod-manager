@@ -176,30 +176,39 @@ public class FileManager
 
         return result;
     }
-
-
-    public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> tree)
+    
+    public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> archiveItems)
     {
         using var archive = ArchiveFactory.Open(archivePath);
-        var modFolderPath = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
 
         var entryLookup = archive.Entries
             .Where(e => !e.IsDirectory && e.Key != null)
             .ToDictionary(e => e.Key!);
 
-        var selectedFiles = GetSelectedFiles(tree);
+        var selectedFiles = GetSelectedFiles(archiveItems);
+        
+        if (selectedFiles.Count == 0)
+        {
+            await LogManager.Instance.Log("No items selected from archive.", LogManager.LogType.Warning);
+            return;
+        }
+        
+        var gameFolderPath = AppConfig.Instance.GameFolderPath;
 
         foreach (var filePath in selectedFiles)
         {
             if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
+            
+            string destination = Path.Combine(gameFolderPath, "Data", filePath);
+            string? directory = Path.GetDirectoryName(destination);
 
-            string destination = Path.Combine(modFolderPath, filePath);
+            await LogManager.Instance.Log($"Writing {filePath} to {directory}");
+            // you have to check before writing
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
-            await entry.WriteToFileAsync(destination, new ExtractionOptions
-            {
-                ExtractFullPath = true,
-                Overwrite = true
-            });
+            await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
         }
+        
+        await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");
     }
 }

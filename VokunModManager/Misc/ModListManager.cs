@@ -82,7 +82,7 @@ public class ModListManager
             result.Add(mod);
         }
         
-        await LogManager.Instance.Log($"{result.Count} mods found inside the Data folder.");
+        await LogManager.Instance.Log($"{result.Count} unactivated mods found inside the Data folder.");
         return result;
     }
 
