@@ -30,6 +30,7 @@ public sealed class AppConfig
         GameFolderPath,
         PluginFilePath,
         VdfConfigPath,
+        CompatdataFolder
     }
     
     public string BaseDirectory { get; private set; } // ../VokunModManager directory
@@ -39,7 +40,7 @@ public sealed class AppConfig
     public string PluginFilePath { get; private set; } // path for Plugins.txt
     public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID
     public ulong CompatdataFolderId { get; private set; } // ID of skse64 compatdata folder
-    public ulong GameId { get; private set; } // the actual game (modded version) ID
+    public ulong GameId { get; private set; } // skse64_launcher.exe ID, needed to launch from steam
 
     public async Task UpdateConfig(ConfigType key, string value)
     {
@@ -50,16 +51,17 @@ public sealed class AppConfig
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
-                CompatdataFolderId = await GetCompatdataId();   // automatically calculates while setting the gameFolderPath
-                GameId = await GetGameId(PluginFilePath);       //calculate the actual gameID
                 break;
             case ConfigType.VdfConfigPath:
                 VdfConfigPath = value;
                 break;
+            case ConfigType.CompatdataFolder:
+                CompatdataFolderId = await TryGetValueFromDirectory(value);
+                GameId = await GetGameId();
+                break;
             default: return; // return if not match
         }
         
-        // maybe you should do this in set inside the props
         await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
         await ReWriteConfig(); // don't forget to update
     }
@@ -68,8 +70,7 @@ public sealed class AppConfig
     {
         await LogManager.Instance.Log("Initializing config...");
         
-        if (!File.Exists(_appConfigPath))
-            await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
+        if (!File.Exists(_appConfigPath)) await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
 
@@ -88,6 +89,7 @@ public sealed class AppConfig
                 case "gameFolderPath": GameFolderPath = value; break;
                 case "vdfConfigPath": VdfConfigPath = value; break;
                 
+                // since you WRITE FIRST and READ ONLY THEN, we don't expect excep there
                 case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
                 case "gameId": GameId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
@@ -95,6 +97,8 @@ public sealed class AppConfig
 
             await LogManager.Instance.Log($"Path for {key} initialized with value: {value}");
         }
+
+        await CheckConfigStatus(); // just to be sure
         
         await LogManager.Instance.Log("Config initialized");
     }
@@ -111,6 +115,7 @@ public sealed class AppConfig
         }
         return startPath;
     }
+    
     private async Task ReWriteConfig()
     {
         await using (StreamWriter sw = new StreamWriter(_appConfigPath))
@@ -123,7 +128,7 @@ public sealed class AppConfig
             await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
             await sw.WriteLineAsync($"gameId={GameId}");
         }
-        await LogManager.Instance.Log("Config has been written.");
+        await LogManager.Instance.Log("Config has been rewritten.");
     }
 
     // maybe remove method from this class?
@@ -145,7 +150,7 @@ public sealed class AppConfig
         return Convert.ToUInt64(result);
     }
 
-    private async Task<ulong> GetGameId(string pluginPath)
+    private async Task<ulong> GetGameId()
     {
         string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
         ulong result = 0;
@@ -160,5 +165,20 @@ public sealed class AppConfig
         }
 
         return result;
+    }
+
+    private async Task<ulong> TryGetValueFromDirectory(string path)
+    {
+        if(ulong.TryParse(path, out ulong result)) return result;
+        return 0; // always check for 0 like you check for null or empty
+    }
+
+    private async Task CheckConfigStatus()
+    {
+        var fileM = new FileManager();
+
+        if (string.IsNullOrEmpty(GameFolderPath)) await fileM.TryGetGameFolder();
+        if (string.IsNullOrEmpty(PluginFilePath)) await fileM.TryGetPluginConfig();
+        if (string.IsNullOrEmpty(VdfConfigPath)) await fileM.TryGetVdfConfig();
     }
 }

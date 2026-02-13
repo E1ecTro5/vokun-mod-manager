@@ -211,4 +211,92 @@ public class FileManager
         
         await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");
     }
+
+    // methods for autodetecting
+    // btw, they shouldn't work on Windows since I use '/' there
+    // I'll get this done one day :)
+    
+    /// <summary>
+    /// Tries to find Skyrim's SE folder inside the Steam folder.
+    /// </summary>
+    /// <returns>True, if folder has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetGameFolder()
+    {
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/common/Skyrim Special Edition");
+
+        if (!Directory.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game directory not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, possiblePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to find game's Plugin.txt file, located in compatdata folder.
+    /// </summary>
+    /// <returns>True, if file has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetPluginConfig()
+    {
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        // ID 489830 is specifically for Skyrim Special Edition
+        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition/Plugins.txt");
+
+        if (!File.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game config file not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, possiblePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to find Steam's shortcuts.vdf file, needed for detecting the launcher ID
+    /// </summary>
+    /// <returns>True, if file has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetVdfConfig()
+    {
+        //.local/share/Steam/userdata/392653044/config/shortcuts.vdf
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        // ID 489830 is specifically for Skyrim Special Edition
+        string userdataFolder = Path.Combine(userFolder, ".local/share/Steam/userdata");
+
+        if (!Directory.Exists(userdataFolder))
+        {
+            await LogManager.Instance.Log(".local/share/Steam/userdata directory not found!", LogManager.LogType.Error);
+            return false;
+        }
+
+        var dirs = Directory.GetDirectories(userdataFolder);
+
+        if (dirs.Length == 0)
+        {
+            await LogManager.Instance.Log("No user found in userdata folder!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        // we don't exactly know which of them
+        if (dirs.Length > 1)
+        {
+            await LogManager.Instance.Log("More than one user found in userdata folder!", LogManager.LogType.Error);
+            return false;
+        }
+
+        var userId = dirs.First();
+        string possiblePath = Path.Combine(userdataFolder, userId, "config/shortcuts.vdf");
+        
+        if (!File.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game config file not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, possiblePath);
+        return true;
+    }
 }

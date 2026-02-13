@@ -11,19 +11,28 @@ namespace VokunModManager.Misc;
 public class ModListManager
 {
     private string modlistPath = AppConfig.Instance.PluginFilePath;
-    private void CheckForExistance()
+    private bool CheckForExistance()
     {
         if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
         {
             LogManager.Instance.Log("Mod list file not found!");
-            throw new FileNotFoundException("Mod list file not found!", modlistPath);
+            //throw new FileNotFoundException("Mod list file not found!", modlistPath);
+            return false;
         }
+
+        return true;
     }
 
     // refactor unnecessary async/await
     public async Task<ObservableCollection<Mod>> GetModList()
     {
-        await LogManager.Instance.Log("Initializing mod list.");
+        if (!CheckForExistance())
+        {
+            await LogManager.Instance.Log("You have to set the path before getting mod list!", LogManager.LogType.Error);
+            return null;
+        }
+        
+        await LogManager.Instance.Log("Initializing mod list...");
         ObservableCollection<Mod> result = new();
 
         // change modlistpath to config reference?

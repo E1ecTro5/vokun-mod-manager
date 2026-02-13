@@ -21,9 +21,10 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    [ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
-    [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
+    //[ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
+    [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
+    
     [ObservableProperty] private string _archivePath;        // path of a selected archive
 
     [ObservableProperty] private bool _isPlayAvailable;
@@ -43,6 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
     public ICommand SelectVdfCommand { get; }
+    public ICommand SelectLoaderCompatdataCommand { get; }
     public ICommand SaveModListCommand { get; }
     public ICommand LoadArchiveCommand { get; }
     public ICommand InstallFilesCommand { get; }
@@ -57,6 +59,7 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
+        SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
 
         IncludeModsCommand = new AsyncRelayCommand(IncludeMods);
 
@@ -98,7 +101,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log("Updating properties...");
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
+        //CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
         ArchivePath = "Not selected";
@@ -139,6 +142,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
         VdfFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, filePath);
+    }
+
+    private async Task SelectLoaderCompatdata()
+    {
+        var fileM = new FileManager();
+        var compatdataDir = await fileM.SelectDirectory();
+        
+        if (String.IsNullOrEmpty(compatdataDir))
+        {
+            // no need to throw exception here
+            await LogManager.Instance.Log("No directory selected.");
+            return;
+        }
+
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.CompatdataFolder, compatdataDir);
     }
 
     private async Task SetGamePath()

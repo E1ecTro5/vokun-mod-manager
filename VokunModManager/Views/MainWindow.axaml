@@ -83,8 +83,7 @@
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
                 <!--one day just make style for all these boxes-->
                 <StackPanel Grid.Row="0">
-                    <TextBlock Text="{Binding ModGameId, StringFormat='Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    <TextBlock Text="{Binding CompatdataFolderId, StringFormat='Compatdata ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <TextBlock Text="{Binding ModGameId, StringFormat='Launcher ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
                     <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
                     </ScrollViewer>
@@ -95,10 +94,11 @@
                         <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
                     </ScrollViewer>
                 </StackPanel>
-                <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Select Plugin.txt File" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-                    <Button Content="Select .vdf File" Command="{Binding SelectVdfCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
+                <Grid Grid.Row="1" ColumnDefinitions="2*,2*,*,2*" ColumnSpacing="10">
+                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" FontSize="11"/>
+                    <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1" FontSize="11"/>
+                    <Button Content="Select .vdf" Command="{Binding SelectVdfCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2" FontSize="11"/>
+                    <Button Content="Select loader compatdata" Command="{Binding SelectLoaderCompatdataCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="3" FontSize="11"/>
                 </Grid>
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
                     <Button Content="Update Text Blocks" Command="{Binding UpdateTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
