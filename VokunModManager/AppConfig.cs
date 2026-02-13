@@ -50,7 +50,7 @@ public sealed class AppConfig
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
-                CompatdataFolderId = await GetCompatdataId(); // automatically calculates while setting the gameFolderPath
+                CompatdataFolderId = await GetCompatdataId();   // automatically calculates while setting the gameFolderPath
                 GameId = await GetGameId(PluginFilePath);       //calculate the actual gameID
                 break;
             case ConfigType.VdfConfigPath:
@@ -148,6 +148,17 @@ public sealed class AppConfig
     private async Task<ulong> GetGameId(string pluginPath)
     {
         string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
-        return await GameIdFinder.GetLongId(path);
+        ulong result = 0;
+        
+        try
+        {
+            result = await GameIdFinder.GetLongId(path);
+        }
+        catch (Exception ex)
+        {
+            await LogManager.Instance.Log($"ERROR: {ex.Message}", LogManager.LogType.Error);
+        }
+
+        return result;
     }
 }

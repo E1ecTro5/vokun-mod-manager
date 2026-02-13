@@ -74,6 +74,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (longId == 0)
         {
             // I should make something like MessageBox here...
+            // I also added IsPlayAvailable, so I guess this will be removed soon
             await LogManager.Instance.Log("GameID has not been set!", LogManager.LogType.Error);
             return;
         }
@@ -211,11 +212,15 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         IsLoadArchiveAvailable = false;
+        IsPlayAvailable = false;
         await LogManager.Instance.Log("Installing files...");
 
         var fileM = new FileManager();
         await fileM.InstallFiles(ArchivePath, ArchiveItems);
+        
         IsLoadArchiveAvailable = true;
+        IsPlayAvailable = true;
+        
         await UpdateModList();
     }
 
