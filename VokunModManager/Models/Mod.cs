@@ -1,13 +1,10 @@
 namespace VokunModManager.Models;
 
-public class Mod
+public class Mod(ushort loadOrder ,string modName, bool isEnabled)
 {
-    public string Name { get; set; }
-    public bool IsEnabled { get; set; }
+    public ushort LoadOrder { get; set; } = loadOrder;
+    public string Name { get; set; } = modName;
+    public bool IsEnabled { get; set; } = isEnabled;
 
-    public Mod(string modName, bool isEnabled)
-    {
-        Name = modName;
-        IsEnabled = isEnabled;
-    }
+    public override string ToString() => IsEnabled ? $"*{Name}" : $"{Name}";
 }

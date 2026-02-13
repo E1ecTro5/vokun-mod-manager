@@ -1,30 +1,31 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using SharpCompress.Archives;
+using SharpCompress.Common;
+using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
 public class FileManager
 {
-    //private static Window? _mainWindow;
-
-    public FileManager()
-    {
-        //_mainWindow = mainWindow;
-        if (GetOwner().StorageProvider is null)
-            throw new InvalidOperationException("Window is not initialized yet. Call after Opened event.");
-    }
-    
     private TopLevel GetOwner()
     {
-        return (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
+        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
     }
 
-    public async Task<string> SelectFile()
+    public DirectoryInfo LoadedArchive { get; private set; }
+
+    // make it all static?
+    
+    public async Task<string?> SelectFile()
     {
         var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
 
@@ -38,14 +39,11 @@ public class FileManager
             });
         
         var file = files.FirstOrDefault();
-        if (file is null)
-            return null;
-
         // LOCALPATH because of OS
-        return file.Path.LocalPath;
+        return file?.Path.LocalPath;
     }
 
-    public async Task<string> SelectDirectory()
+    public async Task<string?> SelectDirectory()
     {
         var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
 
@@ -59,10 +57,246 @@ public class FileManager
             });
         
         var folder = folders.FirstOrDefault();
-        if (folder is null)
-            return null;
-
         // LOCALPATH because of OS
-        return folder.Path.LocalPath;
+        return folder?.Path.LocalPath;
+    }
+
+    // let's just dump all to a specific directory and work form there
+    public async Task LoadArchive(string path)
+    {
+        string destDirectory = Path.Combine(AppConfig.Instance.BaseDirectory, "temp");
+        
+        await LogManager.Instance.Log("Cleaning temp folder...");
+        if(Directory.Exists(destDirectory)) Directory.Delete(destDirectory, true); // probably the best way
+        Directory.CreateDirectory(destDirectory);
+        
+        await LogManager.Instance.Log("Getting archive's files...");
+        using var archive = ArchiveFactory.Open(path);
+
+        foreach (var entry in archive.Entries)
+        {
+            if (entry.IsDirectory) continue;
+            if (string.IsNullOrEmpty(entry.Key)) continue;
+
+            string fullPath = Path.Combine(destDirectory, entry.Key);
+
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            await entry.WriteToFileAsync(fullPath);
+        }
+
+        await LogManager.Instance.Log("Archive's files have been written to folder.");
+    }
+    
+    // research this later
+    public async Task<ObservableCollection<ArchiveNode>> BuildTree(string archivePath)
+    {
+        var roots = new ObservableCollection<ArchiveNode>();
+        var lookup = new Dictionary<string, ArchiveNode>();
+
+        await Task.Run(() =>
+        {
+            using var archive = ArchiveFactory.Open(archivePath);
+
+            foreach (var entry in archive.Entries)
+            {
+                if (string.IsNullOrEmpty(entry.Key)) continue;
+
+                var parts = entry.Key.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                string currentPath = "";
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    currentPath = currentPath == ""
+                        ? parts[i]
+                        : currentPath + "/" + parts[i];
+
+                    if (!lookup.TryGetValue(currentPath, out _))
+                    {
+                        bool isLastPart = i == parts.Length - 1;
+
+                        var node = new ArchiveNode
+                        {
+                            Name = parts[i],
+                            FullPath = currentPath,
+                            IsDirectory = !isLastPart || entry.IsDirectory
+                        };
+
+                        lookup[currentPath] = node;
+
+                        if (i == 0)
+                        {
+                            roots.Add(node);
+                        }
+                        else
+                        {
+                            var parentPath = currentPath.Substring(0, currentPath.LastIndexOf('/'));
+                            var parent = lookup[parentPath];
+
+                            node.Parent = parent;
+                            parent.Children.Add(node);
+                        }
+                    }
+                }
+            }
+        });
+
+        return roots;
+    }
+
+    
+    public List<string> GetSelectedFiles(IEnumerable<ArchiveNode> nodes)
+    {
+        var result = new List<string>();
+
+        foreach (var node in nodes)
+        {
+            if (node.IsDirectory)
+            {
+                // if Directory checked get ALL
+                if (node.IsChecked) result.AddRange(GetAllFiles(node));
+                else result.AddRange(GetSelectedFiles(node.Children));
+            }
+            else if (node.IsChecked) result.Add(node.FullPath);
+        }
+
+        return result;
+    }
+    
+    private List<string> GetAllFiles(ArchiveNode node)
+    {
+        var result = new List<string>();
+
+        foreach (var child in node.Children)
+        {
+            if (child.IsDirectory) result.AddRange(GetAllFiles(child));
+            else result.Add(child.FullPath);
+        }
+
+        return result;
+    }
+    
+    public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> archiveItems)
+    {
+        using var archive = ArchiveFactory.Open(archivePath);
+
+        var entryLookup = archive.Entries
+            .Where(e => !e.IsDirectory && e.Key != null)
+            .ToDictionary(e => e.Key!);
+
+        var selectedFiles = GetSelectedFiles(archiveItems);
+        
+        if (selectedFiles.Count == 0)
+        {
+            await LogManager.Instance.Log("No items selected from archive.", LogManager.LogType.Warning);
+            return;
+        }
+        
+        var gameFolderPath = AppConfig.Instance.GameFolderPath;
+
+        foreach (var filePath in selectedFiles)
+        {
+            if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
+            
+            string destination = Path.Combine(gameFolderPath, "Data", filePath);
+            string? directory = Path.GetDirectoryName(destination);
+
+            await LogManager.Instance.Log($"Writing {filePath} to {directory}");
+            // you have to check before writing
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+            await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
+        }
+        
+        await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");
+    }
+
+    // methods for autodetecting
+    // btw, they shouldn't work on Windows since I use '/' there
+    // I'll get this done one day :)
+    
+    /// <summary>
+    /// Tries to find Skyrim's SE folder inside the Steam folder.
+    /// </summary>
+    /// <returns>True, if folder has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetGameFolder()
+    {
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/common/Skyrim Special Edition");
+
+        if (!Directory.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game directory not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, possiblePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to find game's Plugin.txt file, located in compatdata folder.
+    /// </summary>
+    /// <returns>True, if file has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetPluginConfig()
+    {
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        // ID 489830 is specifically for Skyrim Special Edition
+        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition/Plugins.txt");
+
+        if (!File.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game config file not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, possiblePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to find Steam's shortcuts.vdf file, needed for detecting the launcher ID
+    /// </summary>
+    /// <returns>True, if file has been found and set. Otherwise, false.</returns>
+    public async Task<bool> TryGetVdfConfig()
+    {
+        //.local/share/Steam/userdata/392653044/config/shortcuts.vdf
+        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        // ID 489830 is specifically for Skyrim Special Edition
+        string userdataFolder = Path.Combine(userFolder, ".local/share/Steam/userdata");
+
+        if (!Directory.Exists(userdataFolder))
+        {
+            await LogManager.Instance.Log(".local/share/Steam/userdata directory not found!", LogManager.LogType.Error);
+            return false;
+        }
+
+        var dirs = Directory.GetDirectories(userdataFolder);
+
+        if (dirs.Length == 0)
+        {
+            await LogManager.Instance.Log("No user found in userdata folder!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        // we don't exactly know which of them
+        if (dirs.Length > 1)
+        {
+            await LogManager.Instance.Log("More than one user found in userdata folder!", LogManager.LogType.Error);
+            return false;
+        }
+
+        var userId = dirs.First();
+        string possiblePath = Path.Combine(userdataFolder, userId, "config/shortcuts.vdf");
+        
+        if (!File.Exists(possiblePath))
+        {
+            await LogManager.Instance.Log("Game config file not found automatically!", LogManager.LogType.Error);
+            return false;
+        }
+        
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, possiblePath);
+        return true;
     }
 }

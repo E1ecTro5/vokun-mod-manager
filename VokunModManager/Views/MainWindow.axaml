@@ -3,56 +3,136 @@
         xmlns:vm="using:VokunModManager.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions.DragAndDrop"
+        xmlns:b="clr-namespace:VokunModManager.Behaviors"
+        xmlns:models="clr-namespace:VokunModManager.Models"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        MinWidth="900" MinHeight="400"
         x:Class="VokunModManager.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="VokunModManager">
+        Icon="/Assets/vokunIcon.ico"
+        Title="Vokun Mod Manager">
     
-    <Grid RowDefinitions="Auto,*"
-          Margin="10"
-          RowSpacing="10">
-        
-        <StackPanel Grid.Row="0" Orientation="Vertical" Spacing="5">
-            <StackPanel Orientation="Horizontal" Spacing="5">
-                <Button Content="Select Game Directory" Padding="1" Command="{Binding SelectDirectoryCommand}"/>
-                <Button Content="Select Plugin.txt File" Padding="1" Command="{Binding SelectFileCommand}"/>
-                <Button Content="Update TextBlocks" Padding="1" Command="{Binding UpdateTextBlocksCommand}"/>
-                <Button Content="Update ModList" Padding="1" Command="{Binding UpdateModListCommand}"/>
-                <Button Content="Select .vdf File" Padding="1" Command="{Binding SelectVdfCommand}"/>
-            </StackPanel>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ConfigFilePath}" VerticalAlignment="Center" Background="RosyBrown" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding OrigGamePath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ModListPath}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding ModGameId}" VerticalAlignment="Center" Background="Bisque" TextWrapping="NoWrap"/>
-            </ScrollViewer>
-        </StackPanel>
-        
-        <Grid Grid.Row="1" ColumnDefinitions="*,*">
-            <Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="10">
-                <DataGrid Grid.Row="0"
-                          AutoGenerateColumns="False"
+    <Window.Resources>
+        <!--used for drag n drop-->
+        <b:DataGridDnd x:Key="MyGridDndHandler" x:TypeArguments="models:Mod" />
+    </Window.Resources>
+    
+    <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
+        <Grid Grid.Column="0" RowDefinitions="4*,3*" RowSpacing="10">
+            <DataGrid Grid.Row="0"
+                      Classes="draggable"
+                      AutoGenerateColumns="False"
+                      CanUserSortColumns="False"
+                      CanUserResizeColumns="True"
+                      ItemsSource="{Binding ModList}"
+                      GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                
+                <!--Added behavior for drag n drop-->
+                <i:Interaction.Behaviors>
+                    <idd:ContextDropBehavior Handler="{StaticResource MyGridDndHandler}" />
+                </i:Interaction.Behaviors>
+                
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Mod" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid Grid.Row="1" RowDefinitions="*,Auto" RowSpacing="5">
+                <DataGrid AutoGenerateColumns="False"
                           CanUserSortColumns="True"
-                          ItemsSource="{Binding ModList}"
-                          IsReadOnly="True"
+                          CanUserResizeColumns="False"
+                          ItemsSource="{Binding FoundMods}"
                           GridLinesVisibility="All"
                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ModName" Width="Auto"  Binding="{Binding Name}"/>
-                        <DataGridCheckBoxColumn Header="IsActive" Width="Auto"  Binding="{Binding IsEnabled}"/>
+                        <DataGridTemplateColumn Header="Mod" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                        <StackPanel.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Include"/>
+                                            </ContextMenu>
+                                        </StackPanel.ContextMenu>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-                    <Button Content="Play" Command="{Binding PlayClickCommand}" Padding="10,1"></Button>
-                    <Button Content="Save" Padding="10,1"></Button>
+                <StackPanel Grid.Row="1">
+                    <Button Content="Include" Command="{Binding IncludeModsCommand}" Padding="10,5"></Button>
                 </StackPanel>
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
+                <!--one day just make style for all these boxes-->
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="{Binding ModGameId, StringFormat='Launcher ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+                    </ScrollViewer>
+                </StackPanel>
+                <Grid Grid.Row="1" ColumnDefinitions="2*,2*,*,2*" ColumnSpacing="10">
+                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" FontSize="11"/>
+                    <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1" FontSize="11"/>
+                    <Button Content="Select .vdf" Command="{Binding SelectVdfCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2" FontSize="11"/>
+                    <Button Content="Select loader compatdata" Command="{Binding SelectLoaderCompatdataCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="3" FontSize="11"/>
+                </Grid>
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Content="Update Text Blocks" Command="{Binding UpdateTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
+                </Grid>
+                <StackPanel Grid.Row="3">
+                    <TextBlock Text="{Binding ArchivePath, StringFormat='Selected archive: {0}'}" FontSize="11"/>
+                </StackPanel>
+                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
+                    <TreeView ItemsSource="{Binding ArchiveItems}">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="2">
+                                    <!-- add check all the children of the parent feature -->
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsThreeState="False" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+                <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
+                    <Button Content="Install files" Command="{Binding InstallFilesCommand}" Grid.Column="0" Padding="10,5"></Button>
+                    <!--yo, make this work later ; turned off because of relocation of methods-->
+                    <!--
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0" IsVisible="False">
+                        <TextBlock Text="{Binding CurrentInstallFile, StringFormat='Installing: {0}'}" FontSize="9"/>
+                        <ProgressBar Value="{Binding InstallPercentage}" Maximum="{Binding MaxPercentageValue}" Minimum="0"/>
+                    </StackPanel>
+                    -->
+                    <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" IsEnabled="{Binding IsLoadArchiveAvailable}" Grid.Column="2" Padding="10,5"></Button>
+                    <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
+                    <Button Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" Padding="10,5"></Button>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

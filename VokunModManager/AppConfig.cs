@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Animation;
 using VokunModManager.Misc;
 
 namespace VokunModManager;
 
-public class AppConfig
+public sealed class AppConfig
 {
     private static AppConfig? _instance;
     public static AppConfig Instance
@@ -23,48 +22,57 @@ public class AppConfig
     private AppConfig()
     {
         BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
-        configPath = Path.Combine(BaseDirectory, "config.txt");
+        _appConfigPath = Path.Combine(BaseDirectory, "config.txt");
+    }
+
+    public enum ConfigType
+    {
+        GameFolderPath,
+        PluginFilePath,
+        VdfConfigPath,
+        CompatdataFolder
     }
     
-    public string BaseDirectory { get; private set; }
-    
-    private readonly string configPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
-    
-    // change get set props soon, pls
-    public string GameFolderPath; // Skyrim Steam folder ; INDEX 0
-    public string ModFilePath; // path for Plugins.txt ; INDEX 1 
-    public ulong ModGameSteamId; // ID for skse64_launch.exe located in steam library ; INDEX 2
-    public string VdfConfigPath; // shortcuts.vdf file path ; this is used to get non-steam game ID ; INDEX 3?
+    public string BaseDirectory { get; private set; } // ../VokunModManager directory
+    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
 
-    public async Task UpdateConfig(string key, string value)
+    public string GameFolderPath { get; private set; } // Skyrim Steam folder
+    public string PluginFilePath { get; private set; } // path for Plugins.txt
+    public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID
+    public ulong CompatdataFolderId { get; private set; } // ID of skse64 compatdata folder
+    public ulong GameId { get; private set; } // skse64_launcher.exe ID, needed to launch from steam
+
+    public async Task UpdateConfig(ConfigType key, string value)
     {
         switch (key)
         {
-            case "modFilePath":
-                ModFilePath = value;
-                ModGameSteamId = await GetModGameID();   // automatically calculates while setting the gameFolderPath
-                break;
-            case "gameFolderPath":
+            case ConfigType.GameFolderPath:
                 GameFolderPath = value;
                 break;
-            case "vdfConfigPath":
+            case ConfigType.PluginFilePath:
+                PluginFilePath = value;
+                break;
+            case ConfigType.VdfConfigPath:
                 VdfConfigPath = value;
+                break;
+            case ConfigType.CompatdataFolder:
+                CompatdataFolderId = await TryGetValueFromDirectory(value);
+                GameId = await GetGameId();
                 break;
             default: return; // return if not match
         }
         
-        // maybe you should do this in set inside the props
         await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
         await ReWriteConfig(); // don't forget to update
     }
     
     public async Task InitConfig()
     {
-        if (!File.Exists(configPath))
-            await using (File.Create(configPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
+        await LogManager.Instance.Log("Initializing config...");
+        
+        if (!File.Exists(_appConfigPath)) await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
 
-        var lines = await File.ReadAllLinesAsync(configPath);
-        Dictionary<string,string> dict = new();
+        var lines = await File.ReadAllLinesAsync(_appConfigPath);
 
         foreach (var line in lines)
         {
@@ -77,15 +85,20 @@ public class AppConfig
             // I guess this is better, because we don't need a lot of strings
             switch (key)
             {
-                case "modFilePath": ModFilePath = value; break;
+                case "pluginFilePath": PluginFilePath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
-                case "modGameSteamId": ModGameSteamId = Convert.ToUInt64(value); break;
                 case "vdfConfigPath": VdfConfigPath = value; break;
+                
+                // since you WRITE FIRST and READ ONLY THEN, we don't expect excep there
+                case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
+                case "gameId": GameId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
             }
 
             await LogManager.Instance.Log($"Path for {key} initialized with value: {value}");
         }
+
+        await CheckConfigStatus(); // just to be sure
         
         await LogManager.Instance.Log("Config initialized");
     }
@@ -102,23 +115,26 @@ public class AppConfig
         }
         return startPath;
     }
+    
     private async Task ReWriteConfig()
     {
-        await using (StreamWriter sw = new StreamWriter(configPath))
+        await using (StreamWriter sw = new StreamWriter(_appConfigPath))
         {
             // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
-            await sw.WriteLineAsync($"modFilePath={ModFilePath}");
-            await sw.WriteLineAsync($"modGameSteamId={ModGameSteamId}");
+            await sw.WriteLineAsync($"pluginFilePath={PluginFilePath}");
             await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
+            
+            await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
+            await sw.WriteLineAsync($"gameId={GameId}");
         }
-        await LogManager.Instance.Log("Config has been written.");
+        await LogManager.Instance.Log("Config has been rewritten.");
     }
 
     // maybe remove method from this class?
-    private async Task<ulong> GetModGameID()
+    private async Task<ulong> GetCompatdataId()
     {
-        DirectoryInfo dir = new DirectoryInfo(ModFilePath);
+        DirectoryInfo dir = new DirectoryInfo(PluginFilePath);
         
         // find the pfx dir and get its ID
         while (!dir.Name.Equals("pfx"))
@@ -126,11 +142,43 @@ public class AppConfig
             dir = dir.Parent;
         }
 
-        // we expect to get an ID -> ../{ID}/pfx/...
+        // we expect to get an ID -> ../{ID}/pfx/... improvements 
         //modGameSteamId = Convert.ToUInt64(dir.Parent.Name);
         // bad practice?
         string result = dir.Parent.Name;
         await LogManager.Instance.Log($"Updated config for GameID with value: {result}");
         return Convert.ToUInt64(result);
+    }
+
+    private async Task<ulong> GetGameId()
+    {
+        string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
+        ulong result = 0;
+        
+        try
+        {
+            result = await GameIdFinder.GetLongId(path);
+        }
+        catch (Exception ex)
+        {
+            await LogManager.Instance.Log($"ERROR: {ex.Message}", LogManager.LogType.Error);
+        }
+
+        return result;
+    }
+
+    private async Task<ulong> TryGetValueFromDirectory(string path)
+    {
+        if(ulong.TryParse(path, out ulong result)) return result;
+        return 0; // always check for 0 like you check for null or empty
+    }
+
+    private async Task CheckConfigStatus()
+    {
+        var fileM = new FileManager();
+
+        if (string.IsNullOrEmpty(GameFolderPath)) await fileM.TryGetGameFolder();
+        if (string.IsNullOrEmpty(PluginFilePath)) await fileM.TryGetPluginConfig();
+        if (string.IsNullOrEmpty(VdfConfigPath)) await fileM.TryGetVdfConfig();
     }
 }

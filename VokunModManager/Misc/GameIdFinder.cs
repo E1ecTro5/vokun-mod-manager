@@ -1,25 +1,23 @@
 using System;
 using System.IO;
-using System.Text;
-using System.IO.Hashing;
-
+using System.Threading.Tasks;
 using SteamKit2;
 
 namespace VokunModManager.Misc;
 
-public class GameIdFinder
+public static class GameIdFinder
 {
-    public uint GetShortIdFromVdf(string vdfPath, string targetExePath)
+    private static async Task<uint> GetShortIdFromVdf(string vdfPath, string targetExePath)
     {
-        if (!File.Exists(vdfPath)) return 0; // throw exep?
+        if (!File.Exists(vdfPath)) throw new FileNotFoundException("vdfPath is null or empty!", vdfPath);
         
-        using var fs = File.OpenRead(vdfPath);
+        await using var fs = File.OpenRead(vdfPath);
         var kv = new KeyValue();
 
         if (!kv.TryReadAsBinary(fs))
             return 0;
 
-        // there goes some Valve shi, I'll doc here later..
+        // there goes some Valve shi, I'll doc here later...
         foreach (var shortcut in kv.Children)
         {
             var exe = shortcut["exe"].Value;
@@ -39,10 +37,14 @@ public class GameIdFinder
         return 0;
     }
     
-    public ulong GetLongId(string exePath)
+    public static async Task<ulong> GetLongId(string exePath)
     {
         string vdfPath = AppConfig.Instance.VdfConfigPath;
-        uint num = GetShortIdFromVdf(vdfPath, exePath);
+        
+        if(vdfPath == null) throw new NullReferenceException("vdfPath is null!");
+        if(exePath == null) throw new NullReferenceException("exePath is null!");
+        
+        uint num = await GetShortIdFromVdf(vdfPath, exePath);
 
         // according to Valve rules, this is how it should be
         // 0x02000000 — "Non-Steam Game" flag
