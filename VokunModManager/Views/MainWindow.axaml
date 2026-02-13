@@ -129,9 +129,9 @@
                         <ProgressBar Value="{Binding InstallPercentage}" Maximum="{Binding MaxPercentageValue}" Minimum="0"/>
                     </StackPanel>
                     -->
-                    <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" Grid.Column="2" Padding="10,5"></Button>
+                    <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" IsEnabled="{Binding IsLoadArchiveAvailable}" Grid.Column="2" Padding="10,5"></Button>
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
-                    <Button Content="Play" Command="{Binding PlayClickCommand}" Grid.Column="4" Padding="10,5"></Button>
+                    <Button Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" Padding="10,5"></Button>
                 </Grid>
             </Grid>
         </Grid>

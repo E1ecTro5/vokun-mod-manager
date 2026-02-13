@@ -72,12 +72,36 @@ public class ModListManager
     {
         await LogManager.Instance.Log("Checking for mods...");
         string path = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        string[] items = Directory.GetFileSystemEntries(path, "*.esp");
+        
+        // so, before .esp you should also include .esm and .esl files ; they shouldn't count as mod itself, but they are needed for it to be working
+        // I'll refactor this later ; for now, just manual handling
+        string[] eslItems = Directory.GetFileSystemEntries(path, "*.esl");
+        string[] esmItems = Directory.GetFileSystemEntries(path, "*.esm");
+        string[] espItems = Directory.GetFileSystemEntries(path, "*.esp");
 
         ObservableCollection<Mod> result = new ObservableCollection<Mod>();
-        foreach (var item in items)
+        // 3 loops ; bad practice
+        foreach (var item in eslItems)
         {
-            var mod = new Mod(0, Path.GetFileName(item), false); {}
+            var mod = new Mod(0, Path.GetFileName(item), false);
+            // ignore basic game files ; they'll be included anyway
+            if(mod.Name is "ccBGSSSE037-Curios.esl" or "ccQDRSSE001-SurvivalMode.esl" or "_ResourcePack.esl") continue; 
+            if(modList.Any(m => m.Name == mod.Name)) continue; // check if it's activated
+            result.Add(mod);
+        }
+        
+        foreach (var item in esmItems)
+        {
+            var mod = new Mod(0, Path.GetFileName(item), false);
+            // ignore basic game files ; they'll be included anyway
+            if(mod.Name is "Skyrim.esm" or "Update.esm" or "HearthFires.esm" or "Dragonborn.esm" or "Dawnguard.esm" or "ccBGSSSE001-Fish.esm" or "ccBGSSSE025-AdvDSGS.esm") continue;  
+            if(modList.Any(m => m.Name == mod.Name)) continue;
+            result.Add(mod);
+        }
+        
+        foreach (var item in espItems)
+        {
+            var mod = new Mod(0, Path.GetFileName(item), false);
             if(modList.Any(m => m.Name == mod.Name)) continue;
             result.Add(mod);
         }

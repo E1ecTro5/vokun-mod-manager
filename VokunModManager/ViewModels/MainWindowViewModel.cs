@@ -26,6 +26,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private string _archivePath;        // path of a selected archive
 
+    [ObservableProperty] private bool _isPlayAvailable;
+    [ObservableProperty] private bool _isLoadArchiveAvailable;
+
     /*
      Return this feature later
     [ObservableProperty] private float _installPercentage;
@@ -51,7 +54,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
-        UpdateTextBlocksCommand = new AsyncRelayCommand(UpdateTextBlocks);
+        UpdateTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
 
@@ -62,14 +65,6 @@ public partial class MainWindowViewModel : ViewModelBase
         LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
         
         InstallFilesCommand = new AsyncRelayCommand(InstallFiles);
-
-        // ConfigFilePath = "AppConfig Path: " + AppConfig.Instance.BaseDirectory;
-        GameFolderPath = AppConfig.Instance.GameFolderPath;
-        PluginFilePath = AppConfig.Instance.PluginFilePath;
-        ModGameId = AppConfig.Instance.GameId;
-        VdfFilePath = AppConfig.Instance.VdfConfigPath;
-
-        ArchivePath = "Not selected";
     }
 
     private async Task StartGame()
@@ -97,15 +92,18 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
     
-    private async Task UpdateTextBlocks()
+    private async Task LateInit()
     {
-        await LogManager.Instance.Log("Updating text blocks...");
+        await LogManager.Instance.Log("Updating properties...");
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
-        await LogManager.Instance.Log("TextBlocks updated.");
+        ArchivePath = "Not selected";
+        IsPlayAvailable = AppConfig.Instance.GameId != 0;
+        IsLoadArchiveAvailable = true;
+        await LogManager.Instance.Log("Properties updated.");
     }
 
     private async Task UpdateModList()
@@ -122,6 +120,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log("Saving current mod list state...");
         var modListM = new ModListManager();
         await modListM.SetModList(ModList);
+        await UpdateModList();
         await LogManager.Instance.Log("Current mod list state saved...");
     }
 
@@ -193,10 +192,14 @@ public partial class MainWindowViewModel : ViewModelBase
         
         if(string.IsNullOrEmpty(path)) return;
         
+        IsLoadArchiveAvailable = false;
+        
         ArchivePath = path;
         ArchiveItems = await fileM.BuildTree(path);
 
         await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
+        
+        IsLoadArchiveAvailable = true;
     }
 
     private async Task InstallFiles()
@@ -206,16 +209,19 @@ public partial class MainWindowViewModel : ViewModelBase
             await LogManager.Instance.Log("ArchivePath is not selected!", LogManager.LogType.Error);
             return;
         }
-        
+
+        IsLoadArchiveAvailable = false;
         await LogManager.Instance.Log("Installing files...");
 
         var fileM = new FileManager();
         await fileM.InstallFiles(ArchivePath, ArchiveItems);
+        IsLoadArchiveAvailable = true;
+        await UpdateModList();
     }
 
     public async Task UpdateAll()
     {
-        await UpdateTextBlocks();
-        await UpdateModList();
+        await LateInit();
+        await UpdateModList(); // maybe you should include this in LateInit()
     }
 }
