@@ -145,45 +145,46 @@ public class FileManager
         return roots;
     }
 
-    
-    public List<string> GetSelectedFiles(IEnumerable<ArchiveNode> nodes)
+    private List<string> GetSelectedFiles(IEnumerable<ArchiveNode> nodes)
     {
         var result = new List<string>();
-
+        CollectSelectedFiles(nodes, result);
+        return result;
+    }
+    
+    private void CollectSelectedFiles(IEnumerable<ArchiveNode> nodes, List<string> result)
+    {
         foreach (var node in nodes)
         {
             if (node.IsDirectory)
             {
                 // if Directory checked get ALL
-                if (node.IsChecked) result.AddRange(GetAllFiles(node));
+                if (node.IsChecked) CollectAllFiles(node, result);
                 else result.AddRange(GetSelectedFiles(node.Children));
             }
             else if (node.IsChecked) result.Add(node.FullPath);
         }
-
-        return result;
     }
     
-    private List<string> GetAllFiles(ArchiveNode node)
+    private void CollectAllFiles(ArchiveNode node, List<string> list)
     {
-        var result = new List<string>();
-
         foreach (var child in node.Children)
         {
-            if (child.IsDirectory) result.AddRange(GetAllFiles(child));
-            else result.Add(child.FullPath);
+            if (child.IsDirectory) CollectAllFiles(child, list);
+            else list.Add(child.FullPath);
         }
-
-        return result;
     }
     
     public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> archiveItems)
     {
         using var archive = ArchiveFactory.Open(archivePath);
+        Dictionary<string, IArchiveEntry> lookup = new Dictionary<string, IArchiveEntry>();
 
-        var entryLookup = archive.Entries
-            .Where(e => !e.IsDirectory && e.Key != null)
-            .ToDictionary(e => e.Key!);
+        foreach (var entry in archive.Entries)
+        {
+            if(entry.IsDirectory || string.IsNullOrEmpty(entry.Key)) continue;
+            lookup[entry.Key] = entry;
+        }
 
         var selectedFiles = GetSelectedFiles(archiveItems);
         
@@ -194,19 +195,22 @@ public class FileManager
         }
         
         var gameFolderPath = AppConfig.Instance.GameFolderPath;
+        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
 
         foreach (var filePath in selectedFiles)
         {
-            if (!entryLookup.TryGetValue(filePath, out var entry)) continue;
+            if (!lookup.TryGetValue(filePath, out var entry))
+            {   
+                await LogManager.Instance.Log($"Entry not found! Filepath: {filePath}", LogManager.LogType.Warning);
+                continue;
+            }
             
             string destination = Path.Combine(gameFolderPath, "Data", filePath);
             string? directory = Path.GetDirectoryName(destination);
 
-            await LogManager.Instance.Log($"Writing {filePath} to {directory}");
-            // you have to check before writing
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-            await entry.WriteToFileAsync(destination, new ExtractionOptions { Overwrite = true, ExtractFullPath = false });
+            // you have to check before writing ; acording to code abive, dir shouldn't be null
+            Directory.CreateDirectory(directory);
+            await entry.WriteToFileAsync(destination, options);
         }
         
         await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");

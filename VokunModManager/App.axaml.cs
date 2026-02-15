@@ -30,7 +30,7 @@ public partial class App : Application
             };
             
             // just to avoid some UI blocks
-            await LogManager.Instance.InitLogs();   // logs ; should come first to detect following inits
+            _ = LogManager.Instance;   // logs ; should come first to detect following inits
             await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
             await vm.UpdateAll();
         }
