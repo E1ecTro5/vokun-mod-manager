@@ -20,6 +20,28 @@ public class FomodManager
     public async Task InstallFromConfig()
     {
         var fomodConfig = ReadConfig();
+
+        var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+
+        foreach (var file in fomodConfig.RequiredFiles)
+        {
+            // make method in filemanager
+            
+            // unzip from file.Source
+            // install to Path.Combine(defaultDestination, file.Destination);
+        }
+        
+        foreach (var file in fomodConfig.RequiredFolders)
+        {
+            // make method in filemanager
+            // extract FILES inside folder INTO DESTINATION
+            
+            // unzip from file.Source
+            // install to Path.Combine(defaultDestination, file.Destination);
+        }
+
+        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
+        // pass this to another installer with InstallWindow
     }
 
     /*
