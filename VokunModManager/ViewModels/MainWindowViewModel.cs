@@ -49,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand LoadArchiveCommand { get; }
     public ICommand InstallFilesCommand { get; }
     public ICommand IncludeModsCommand { get; }
+    public ICommand ReadFomodCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -62,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
 
         IncludeModsCommand = new AsyncRelayCommand(IncludeMods);
+        ReadFomodCommand = new AsyncRelayCommand(ReadFomod);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -202,6 +204,15 @@ public partial class MainWindowViewModel : ViewModelBase
         var modM = new ModListManager();
         await modM.EnableMods(items);
         await UpdateModList();
+    }
+
+    private async Task ReadFomod()
+    {
+        var fileM = new FileManager();
+        var file = await fileM.SelectFile();
+        if(string.IsNullOrEmpty(file)) return;
+        var fomodReader = new FomodManager(file);
+        await fomodReader.InstallFromConfig();
     }
 
     private async Task LoadArchive()

@@ -122,6 +122,7 @@
                 </Border>
                 <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
                     <Button Content="Install files" Command="{Binding InstallFilesCommand}" Grid.Column="0" Padding="10,5"></Button>
+                    <Button Content="Fomod" Command="{Binding ReadFomodCommand}" Grid.Column="1" Padding="10,5"></Button>
                     <!--yo, make this work later ; turned off because of relocation of methods-->
                     <!--
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0" IsVisible="False">
