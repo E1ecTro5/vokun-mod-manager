@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="VokunModManager.Views.InstallWindow"
+        Title="InstallWindow"
+        xmlns:vm="using:VokunModManager.ViewModels"
+        x:DataType="vm:InstallWindowViewModel">
+    
+    <StackPanel x:Name="MainStackPanel" Margin="20">
+        <!--just for existence, I'll rewrite this soon with bindings and etc-->
+        <TextBlock Text="Select one"/>
+        <!--radiobuttons will be added here through the code-->
+    </StackPanel>
+</Window>
