@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Controls;
+using SharpCompress.Archives;
 using SteamKit2.Internal;
 using VokunModManager.Models;
 
@@ -10,16 +13,37 @@ namespace VokunModManager.Misc;
 
 public class FomodManager
 {
-    private readonly string _fomodFilePath;
+    private string _archivePath;
+    private string _fomodFilePath;
     
-    public FomodManager(string filePath)
+    // make this ctor method soon
+    public async Task SetArchive(string path)
     {
-        _fomodFilePath = filePath;
+        _archivePath = path;
     }
 
-    public async Task InstallFromConfig()
+    public async Task InstallMod()
+    {
+        /*
+        
+        if (!string.IsNullOrEmpty(_fomodFilePath))
+        {
+            // await SetArchive(); ? maybe ?
+            await InstallFromConfig();
+        }
+        else await InstallWithoutConfig(); // just dump all to Data
+        
+        */
+        
+        // for test
+        await InstallFromConfig();
+    }
+    
+    private async Task InstallFromConfig()
     {
         var fomodConfig = ReadConfig();
+
+        using var archive = ArchiveFactory.Open(_archivePath);
 
         var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
 
@@ -35,13 +59,32 @@ public class FomodManager
         {
             // make method in filemanager
             // extract FILES inside folder INTO DESTINATION
-            
+
+            var source = Path.Combine(fomodConfig.ModuleName, file.Source);
+            var destination = Path.Combine(defaultDestination, file.Destination);
+
+            foreach (var item in archive.Entries.Where(x => x.Key.StartsWith(source)))
+            {
+                var i = item.Key;
+            }
+
             // unzip from file.Source
             // install to Path.Combine(defaultDestination, file.Destination);
         }
 
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         // pass this to another installer with InstallWindow
+    }
+
+    private void Extract(IArchive archive, string source, string destination)
+    {
+        
+    }
+
+    // I'll handle it later
+    private async Task InstallWithoutConfig()
+    {
+        return;
     }
 
     /*
@@ -71,7 +114,11 @@ public class FomodManager
     
     private FomodConfig ReadConfig()
     {
-        var doc = XDocument.Load(_fomodFilePath);
+        using var archive = ArchiveFactory.Open(_archivePath);
+        var entry = archive.Entries.FirstOrDefault(x => x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
+        using var stream = entry.OpenEntryStream();
+        
+        var doc = XDocument.Load(stream);
         var root = doc.Root;
 
         if (root == null) return null;

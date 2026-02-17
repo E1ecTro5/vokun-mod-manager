@@ -208,11 +208,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task ReadFomod()
     {
+        var fomod = new FomodManager();
         var fileM = new FileManager();
-        var file = await fileM.SelectFile();
-        if(string.IsNullOrEmpty(file)) return;
-        var fomodReader = new FomodManager(file);
-        await fomodReader.InstallFromConfig();
+        var filePath = await fileM.SelectFile();
+        if(string.IsNullOrEmpty(filePath)) return;
+        await fomod.SetArchive(filePath);
+        await fomod.InstallMod();
+        /*await fomodReader.InstallFromConfig();*/
     }
 
     private async Task LoadArchive()

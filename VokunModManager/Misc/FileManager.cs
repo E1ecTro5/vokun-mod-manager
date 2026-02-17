@@ -216,6 +216,30 @@ public class FileManager
         await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");
     }
 
+    public async Task<IArchive?> OpenArchive(string archivePath)
+    {
+        return ArchiveFactory.Open(archivePath);
+    }
+
+    public async Task TryGetFomodConfig(string archivePath)
+    {
+        using var archive = ArchiveFactory.Open(archivePath);
+        //var configPath = 
+        if (!archive.Entries.Select(x => x.Key).Contains("fomod/ModuleConfig.xml")) return;
+    }
+    
+    // I'll rewrite everything later, for now just make this work
+    public async Task FomodInstallFile()
+    {
+        
+    }
+
+    // for required files/folders
+    public async Task FomodStraightInstall()
+    {
+        
+    }
+
     // methods for autodetecting
     // btw, they shouldn't work on Windows since I use '/' there
     // I'll get this done one day :)
