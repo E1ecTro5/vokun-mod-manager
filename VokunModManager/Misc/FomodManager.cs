@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Controls;
 using SharpCompress.Archives;
+using SharpCompress.Common;
 using SteamKit2.Internal;
 using VokunModManager.Models;
 
@@ -44,6 +45,7 @@ public class FomodManager
         var fomodConfig = ReadConfig();
 
         using var archive = ArchiveFactory.Open(_archivePath);
+        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
 
         var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
 
@@ -60,12 +62,19 @@ public class FomodManager
             // make method in filemanager
             // extract FILES inside folder INTO DESTINATION
 
-            var source = Path.Combine(fomodConfig.ModuleName, file.Source);
+            var fomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
+
+            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, fomodString),file.Source);
             var destination = Path.Combine(defaultDestination, file.Destination);
 
-            foreach (var item in archive.Entries.Where(x => x.Key.StartsWith(source)))
+            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
             {
-                var i = item.Key;
+                var lines = item.Key.Split(file.Source);
+                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
+                var parentDir = Directory.GetParent(fileDestination).FullName;
+                
+                Directory.CreateDirectory(parentDir);
+                await item.WriteToFileAsync(fileDestination, options);
             }
 
             // unzip from file.Source
