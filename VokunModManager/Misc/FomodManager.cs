@@ -46,24 +46,14 @@ public class FomodManager
 
         using var archive = ArchiveFactory.Open(_archivePath);
         var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
-
+        
+        const string fomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
         var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
 
+        // check this one day, because I couldn't find archive with requredFiles
+        // also maybe just put in method
         foreach (var file in fomodConfig.RequiredFiles)
         {
-            // make method in filemanager
-            
-            // unzip from file.Source
-            // install to Path.Combine(defaultDestination, file.Destination);
-        }
-        
-        foreach (var file in fomodConfig.RequiredFolders)
-        {
-            // make method in filemanager
-            // extract FILES inside folder INTO DESTINATION
-
-            var fomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
-
             var source = Path.Combine(string.Concat(fomodConfig.ModuleName, fomodString),file.Source);
             var destination = Path.Combine(defaultDestination, file.Destination);
 
@@ -76,18 +66,28 @@ public class FomodManager
                 Directory.CreateDirectory(parentDir);
                 await item.WriteToFileAsync(fileDestination, options);
             }
+        }
+        
+        // this works good)
+        foreach (var file in fomodConfig.RequiredFolders)
+        {
+            // extract FILES inside folder INTO DESTINATION
+            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, fomodString),file.Source);
+            var destination = Path.Combine(defaultDestination, file.Destination);
 
-            // unzip from file.Source
-            // install to Path.Combine(defaultDestination, file.Destination);
+            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
+            {
+                var lines = item.Key.Split(file.Source);
+                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
+                var parentDir = Directory.GetParent(fileDestination).FullName;
+                
+                Directory.CreateDirectory(parentDir);
+                await item.WriteToFileAsync(fileDestination, options);
+            }
         }
 
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         // pass this to another installer with InstallWindow
-    }
-
-    private void Extract(IArchive archive, string source, string destination)
-    {
-        
     }
 
     // I'll handle it later
@@ -120,6 +120,8 @@ public class FomodManager
            </installSteps>
        </config>
      */
+    
+    // don't touch these methods until you know what you're doing
     
     private FomodConfig ReadConfig()
     {
