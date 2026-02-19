@@ -10,6 +10,5 @@ public partial class InstallWindow : Window
     public InstallWindow()
     {
         InitializeComponent();
-        DataContext = new InstallWindowViewModel(this);
     }
 }

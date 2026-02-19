@@ -9,6 +9,8 @@ using SharpCompress.Archives;
 using SharpCompress.Common;
 using SteamKit2.Internal;
 using VokunModManager.Models;
+using VokunModManager.ViewModels;
+using VokunModManager.Views;
 
 namespace VokunModManager.Misc;
 
@@ -16,6 +18,9 @@ public class FomodManager
 {
     private string _archivePath;
     private string _fomodFilePath;
+    
+    private string _fomodConfigName;
+    private const string FomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
     
     // make this ctor method soon
     public async Task SetArchive(string path)
@@ -43,18 +48,18 @@ public class FomodManager
     private async Task InstallFromConfig()
     {
         var fomodConfig = ReadConfig();
+        _fomodConfigName = fomodConfig.ModuleName;
 
         using var archive = ArchiveFactory.Open(_archivePath);
         var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
         
-        const string fomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
         var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
 
         // check this one day, because I couldn't find archive with requredFiles
         // also maybe just put in method
         foreach (var file in fomodConfig.RequiredFiles)
         {
-            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, fomodString),file.Source);
+            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, FomodString),file.Source);
             var destination = Path.Combine(defaultDestination, file.Destination);
 
             foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
@@ -72,7 +77,7 @@ public class FomodManager
         foreach (var file in fomodConfig.RequiredFolders)
         {
             // extract FILES inside folder INTO DESTINATION
-            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, fomodString),file.Source);
+            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, FomodString),file.Source);
             var destination = Path.Combine(defaultDestination, file.Destination);
 
             foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
@@ -86,8 +91,82 @@ public class FomodManager
             }
         }
 
-        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
+        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps; // these steps contains plugins with files/folders to install, so just make a separated method for installing
         // pass this to another installer with InstallWindow
+        foreach (var file in steps)
+        {
+            foreach (var fileGroup in file.Groups)
+            {
+                var type = fileGroup.Type;
+
+                switch (type)
+                {
+                    case "SelectExactlyOne":
+                        await ShowSelectWindow(fileGroup.Plugins);
+                        break;
+                }
+            }
+        }
+    }
+
+    private async Task<PluginOption?> ShowSelectWindow(IEnumerable<PluginOption> plugins)
+    {
+        var window = new InstallWindow();
+        var tcs = new TaskCompletionSource<PluginOption?>();
+        
+        var vm = new InstallWindowViewModel(window, plugins, tcs);
+        window.DataContext = vm;
+
+        window.Show();
+
+        // waiting for result
+        var result = await tcs.Task;
+        
+        if(result != null)
+            await InstallSelectedPlugin(result);
+        
+        window.Close();
+        return result;
+    }
+
+    private async Task InstallSelectedPlugin(PluginOption plugin)
+    {
+        var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        
+        using var archive = ArchiveFactory.Open(_archivePath);
+        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
+        
+        foreach (var file in plugin.Files)
+        {
+            var source = Path.Combine(string.Concat(_fomodConfigName, FomodString),file.Source);
+            var destination = Path.Combine(defaultDestination, file.Destination);
+
+            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
+            {
+                var lines = item.Key.Split(file.Source);
+                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
+                var parentDir = Directory.GetParent(fileDestination).FullName;
+                
+                Directory.CreateDirectory(parentDir);
+                await item.WriteToFileAsync(fileDestination, options);
+            }
+        }
+        
+        foreach (var file in plugin.Folders)
+        {
+            var source = Path.Combine(string.Concat(_fomodConfigName, FomodString),file.Source);
+            var destination = Path.Combine(defaultDestination, file.Destination);
+
+            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
+            {
+                var lines = item.Key.Split(file.Source);
+                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
+                var parentDir = Directory.GetParent(fileDestination).FullName;
+                
+                Directory.CreateDirectory(parentDir);
+                await item.WriteToFileAsync(fileDestination, options);
+            }
+        }
     }
 
     // I'll handle it later
