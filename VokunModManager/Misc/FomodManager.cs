@@ -16,11 +16,10 @@ namespace VokunModManager.Misc;
 public class FomodManager
 {
     private string _archivePath;
-    private string _fomodFilePath;
-    
+
+    private string _moduleName;
     private string _fomodConfigName;
-    private const string FomodString = " FOMOD Installer"; // CHANGE THIS ; I TESTED AND DIFFERENT MODS HAVE DIFFERENT FOMOD names
-    private string defaultDestination;
+    private string _defaultDestination;
     
     // make this ctor method soon
     public async Task SetArchive(string path)
@@ -30,18 +29,18 @@ public class FomodManager
 
     public async Task InstallMod()
     {
-        defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         await InstallFromConfig();
     }
     
     private async Task InstallFromConfig()
     {
-        var fomodConfig = ReadConfig();
-        _fomodConfigName = fomodConfig.ModuleName;
-
         using var archive = ArchiveFactory.Open(_archivePath);
- 
-        // check this one day, because I couldn't find archive with requredFiles
+        
+        var fomodConfig = ReadConfig();
+        await SearchForFomodFolder(archive);
+        
+        // check this one day, because I couldn't find archive with requiredFiles
         // also maybe just put in method
         foreach (var file in fomodConfig.RequiredFiles)
         {
@@ -55,7 +54,7 @@ public class FomodManager
             await HandleFile(file, archive);
         }
 
-        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps; // these steps contains plugins with files/folders to install, so just make a separated method for installing
+        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps; // these steps contain plugins with files/folders to install, so just make a separated method for installing
         // pass this to another installer with InstallWindow
         foreach (var file in steps)
         {
@@ -66,9 +65,10 @@ public class FomodManager
                 switch (type)
                 {
                     case "SelectExactlyOne":
-                        await ShowSelectWindow(fileGroup.Plugins);
+                        await ShowInstallWindow(fileGroup.Plugins, archive, InstallWindowViewModel.InstallType.SelectExactlyOne);
                         break;
                     case "SelectAny":
+                        await ShowInstallWindow(fileGroup.Plugins, archive, InstallWindowViewModel.InstallType.SelectAny);
                         break;
                     // handle other types later
                 }
@@ -76,45 +76,55 @@ public class FomodManager
         }
     }
 
-    private async Task<PluginOption?> ShowSelectWindow(IEnumerable<PluginOption> plugins)
+    private async Task SearchForFomodFolder(IArchive archive)
+    {
+        var lines = archive.Entries.First(x => x.Key.EndsWith("ModuleConfig.xml")).Key.Split(Path.DirectorySeparatorChar);
+        _moduleName = lines[0]; // first is the head node
+    }
+
+    private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, IArchive archive, InstallWindowViewModel.InstallType type)
     {
         var window = new InstallWindow();
-        var tcs = new TaskCompletionSource<PluginOption?>();
+        var tcs = new TaskCompletionSource<List<PluginOption?>>();
         
-        var vm = new InstallWindowViewModel(window, plugins, tcs);
-        window.DataContext = vm;
+        var vm = new InstallWindowViewModel(type, plugins, tcs, window);
 
+        await vm.Init();
+        
+        window.DataContext = vm;
         window.Show();
 
         // waiting for result
         var result = await tcs.Task;
         
         if(result != null)
-            await InstallSelectedPlugin(result);
+            await InstallSelectedPlugins(result, archive);
         
         window.Close();
         return result;
     }
 
-    private async Task InstallSelectedPlugin(PluginOption plugin)
+    private async Task InstallSelectedPlugins(List<PluginOption> plugins, IArchive archive)
     {
-        using var archive = ArchiveFactory.Open(_archivePath);
-        
-        foreach (var file in plugin.Files)
+        foreach (var plugin in plugins)
         {
-            await HandleFile(file, archive);
-        }
-        
-        foreach (var file in plugin.Folders)
-        {
-            await HandleFile(file, archive);
+            foreach (var file in plugin.Files)
+            {
+                await HandleFile(file, archive);
+            }
+            foreach (var file in plugin.Folders)
+            {
+                await HandleFile(file, archive);
+            }
         }
     }
 
     private async Task HandleFile(IMapping mapping, IArchive archive)
     {
-        var source = Path.Combine(string.Concat(_fomodConfigName, FomodString), mapping.Source);
-        var destination = Path.Combine(defaultDestination, mapping.Destination);
+        var lines = archive.Entries;
+        var moduleIsTheParent = lines.All(x => x.Key.StartsWith(_moduleName));
+        var source = moduleIsTheParent ? Path.Combine(_moduleName, mapping.Source): mapping.Source;
+        var destination = Path.Combine(_defaultDestination, mapping.Destination);
 
         foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
         {
