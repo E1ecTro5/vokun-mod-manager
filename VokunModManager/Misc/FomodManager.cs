@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Avalonia.Controls;
 using SharpCompress.Archives;
 using SharpCompress.Common;
-using SteamKit2.Internal;
+using VokunModManager.Interfaces;
 using VokunModManager.Models;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
@@ -20,7 +19,8 @@ public class FomodManager
     private string _fomodFilePath;
     
     private string _fomodConfigName;
-    private const string FomodString = " FOMOD Installer"; // this is commonly used in most archives that have fomod ; NEED TO CHECK on other packages
+    private const string FomodString = " FOMOD Installer"; // CHANGE THIS ; I TESTED AND DIFFERENT MODS HAVE DIFFERENT FOMOD names
+    private string defaultDestination;
     
     // make this ctor method soon
     public async Task SetArchive(string path)
@@ -30,18 +30,7 @@ public class FomodManager
 
     public async Task InstallMod()
     {
-        /*
-        
-        if (!string.IsNullOrEmpty(_fomodFilePath))
-        {
-            // await SetArchive(); ? maybe ?
-            await InstallFromConfig();
-        }
-        else await InstallWithoutConfig(); // just dump all to Data
-        
-        */
-        
-        // for test
+        defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         await InstallFromConfig();
     }
     
@@ -51,44 +40,19 @@ public class FomodManager
         _fomodConfigName = fomodConfig.ModuleName;
 
         using var archive = ArchiveFactory.Open(_archivePath);
-        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
-        
-        var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-
+ 
         // check this one day, because I couldn't find archive with requredFiles
         // also maybe just put in method
         foreach (var file in fomodConfig.RequiredFiles)
         {
-            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, FomodString),file.Source);
-            var destination = Path.Combine(defaultDestination, file.Destination);
-
-            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
-            {
-                var lines = item.Key.Split(file.Source);
-                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
-                var parentDir = Directory.GetParent(fileDestination).FullName;
-                
-                Directory.CreateDirectory(parentDir);
-                await item.WriteToFileAsync(fileDestination, options);
-            }
+            await HandleFile(file, archive);
         }
         
         // this works good)
         foreach (var file in fomodConfig.RequiredFolders)
         {
             // extract FILES inside folder INTO DESTINATION
-            var source = Path.Combine(string.Concat(fomodConfig.ModuleName, FomodString),file.Source);
-            var destination = Path.Combine(defaultDestination, file.Destination);
-
-            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
-            {
-                var lines = item.Key.Split(file.Source);
-                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
-                var parentDir = Directory.GetParent(fileDestination).FullName;
-                
-                Directory.CreateDirectory(parentDir);
-                await item.WriteToFileAsync(fileDestination, options);
-            }
+            await HandleFile(file, archive);
         }
 
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps; // these steps contains plugins with files/folders to install, so just make a separated method for installing
@@ -104,6 +68,9 @@ public class FomodManager
                     case "SelectExactlyOne":
                         await ShowSelectWindow(fileGroup.Plugins);
                         break;
+                    case "SelectAny":
+                        break;
+                    // handle other types later
                 }
             }
         }
@@ -131,42 +98,38 @@ public class FomodManager
 
     private async Task InstallSelectedPlugin(PluginOption plugin)
     {
-        var defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        
         using var archive = ArchiveFactory.Open(_archivePath);
-        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
         
         foreach (var file in plugin.Files)
         {
-            var source = Path.Combine(string.Concat(_fomodConfigName, FomodString),file.Source);
-            var destination = Path.Combine(defaultDestination, file.Destination);
-
-            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
-            {
-                var lines = item.Key.Split(file.Source);
-                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
-                var parentDir = Directory.GetParent(fileDestination).FullName;
-                
-                Directory.CreateDirectory(parentDir);
-                await item.WriteToFileAsync(fileDestination, options);
-            }
+            await HandleFile(file, archive);
         }
         
         foreach (var file in plugin.Folders)
         {
-            var source = Path.Combine(string.Concat(_fomodConfigName, FomodString),file.Source);
-            var destination = Path.Combine(defaultDestination, file.Destination);
-
-            foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
-            {
-                var lines = item.Key.Split(file.Source);
-                var fileDestination = string.Concat(destination, lines[1]); // should always come after 'Required'
-                var parentDir = Directory.GetParent(fileDestination).FullName;
-                
-                Directory.CreateDirectory(parentDir);
-                await item.WriteToFileAsync(fileDestination, options);
-            }
+            await HandleFile(file, archive);
         }
+    }
+
+    private async Task HandleFile(IMapping mapping, IArchive archive)
+    {
+        var source = Path.Combine(string.Concat(_fomodConfigName, FomodString), mapping.Source);
+        var destination = Path.Combine(defaultDestination, mapping.Destination);
+
+        foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
+        {
+            var fileDestination = string.Concat(destination, item.Key.Split(mapping.Source)[1]); // should always come after 'Required'
+            await Extract(item, fileDestination);
+        }
+    }
+    
+    private async Task Extract(IArchiveEntry item, string destination)
+    {
+        var parentDir = Directory.GetParent(destination).FullName;
+        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
+                
+        Directory.CreateDirectory(parentDir);
+        await item.WriteToFileAsync(destination, options);
     }
 
     // I'll handle it later

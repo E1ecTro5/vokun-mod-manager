@@ -30,6 +30,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
 
+    private readonly FileManager _fileManager = new FileManager();
+
     /*
      Return this feature later
     [ObservableProperty] private float _installPercentage;
@@ -132,8 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SelectVdf()
     {
-        var fileM = new  FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
         
         if (String.IsNullOrEmpty(filePath))
         {
@@ -148,8 +149,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SelectLoaderCompatdata()
     {
-        var fileM = new FileManager();
-        var compatdataDir = await fileM.SelectDirectory();
+        var compatdataDir = await _fileManager.SelectDirectory();
         
         if (String.IsNullOrEmpty(compatdataDir))
         {
@@ -163,8 +163,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetGamePath()
     {
-        var fileM = new FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
 
         if (String.IsNullOrEmpty(filePath))
         {
@@ -179,8 +178,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetModListPath()
     {
-        var fileM = new FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
 
         if (String.IsNullOrEmpty(filePath))
         {
@@ -209,8 +207,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task ReadFomod()
     {
         var fomod = new FomodManager();
-        var fileM = new FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
         if(string.IsNullOrEmpty(filePath)) return;
         await fomod.SetArchive(filePath);
         await fomod.InstallMod();
@@ -219,15 +216,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task LoadArchive()
     {
-        var fileM = new FileManager();
-        var path =  await fileM.SelectFile();
+        var path =  await _fileManager.SelectFile();
         
         if(string.IsNullOrEmpty(path)) return;
         
         IsLoadArchiveAvailable = false;
         
         ArchivePath = path;
-        ArchiveItems = await fileM.BuildTree(path);
+        ArchiveItems = await _fileManager.BuildTree(path);
 
         await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
         
@@ -245,9 +241,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLoadArchiveAvailable = false;
         IsPlayAvailable = false;
         await LogManager.Instance.Log("Installing files...");
-
-        var fileM = new FileManager();
-        await fileM.InstallFiles(ArchivePath, ArchiveItems);
+        
+        await _fileManager.InstallFiles(ArchivePath, ArchiveItems);
         
         IsLoadArchiveAvailable = true;
         IsPlayAvailable = true;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VokunModManager.Interfaces;
 
 namespace VokunModManager.Models;
 
@@ -34,14 +35,14 @@ public class PluginOption
     public List<FileMapping> Files { get; set; }
 }
 
-public class FolderMapping
+public class FolderMapping : IMapping
 {
     public string Source { get; set; }
     public string Destination { get; set; }
     public int Priority { get; set; } = 0;
 }
 
-public class FileMapping
+public class FileMapping : IMapping
 {
     public string Source { get; set; }
     public string Destination { get; set; }
