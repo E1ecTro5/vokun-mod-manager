@@ -30,13 +30,16 @@ public class FomodManager
     public async Task InstallMod()
     {
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        await InstallFromConfig();
+        using var archive = ArchiveFactory.Open(_archivePath);
+
+        if (await SearchForFomodFolder(archive))
+            await InstallFromConfig(archive);
+        else
+            await InstallWithoutConfig(archive);
     }
     
-    private async Task InstallFromConfig()
+    private async Task InstallFromConfig(IArchive archive)
     {
-        using var archive = ArchiveFactory.Open(_archivePath);
-        
         var fomodConfig = ReadConfig();
         await SearchForFomodFolder(archive);
         
@@ -76,10 +79,12 @@ public class FomodManager
         }
     }
 
-    private async Task SearchForFomodFolder(IArchive archive)
+    private async Task<bool> SearchForFomodFolder(IArchive archive)
     {
-        var lines = archive.Entries.First(x => x.Key.EndsWith("ModuleConfig.xml")).Key.Split(Path.DirectorySeparatorChar);
-        _moduleName = lines[0]; // first is the head node
+        string? lines = archive.Entries.FirstOrDefault(x => (bool)x.Key?.EndsWith("ModuleConfig.xml"))?.Key?.Split(Path.DirectorySeparatorChar).FirstOrDefault();
+        if (string.IsNullOrEmpty(lines)) return false;
+        _moduleName = lines; // first is the head node
+        return true;
     }
 
     private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, IArchive archive, InstallWindowViewModel.InstallType type)
@@ -137,15 +142,27 @@ public class FomodManager
     {
         var parentDir = Directory.GetParent(destination).FullName;
         var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
-                
+        
         Directory.CreateDirectory(parentDir);
         await item.WriteToFileAsync(destination, options);
     }
 
     // I'll handle it later
-    private async Task InstallWithoutConfig()
+    private async Task InstallWithoutConfig(IArchive archive)
     {
-        return;
+        //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
+        // some mods have 'data' folder as the first node.
+        //maybe you just need to Replace('data', string.Empty)?
+        var destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        
+        // ignore fomod and data folders
+        foreach (var entry in archive.Entries)
+        {
+            var currentDestination = Path.Combine(destination, entry.Key);
+            if(entry.Key.ToLower().Contains("fomod")) continue;
+            if (entry.Key.ToLower().StartsWith("data")) currentDestination = currentDestination.Remove(0,4);
+            await Extract(entry, currentDestination);
+        }
     }
 
     /*

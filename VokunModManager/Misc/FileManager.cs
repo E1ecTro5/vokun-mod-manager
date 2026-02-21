@@ -177,7 +177,7 @@ public class FileManager
     
     public async Task InstallFiles(string archivePath, IEnumerable<ArchiveNode> archiveItems)
     {
-        using var archive = ArchiveFactory.Open(archivePath);
+        /*using var archive = ArchiveFactory.Open(archivePath);
         Dictionary<string, IArchiveEntry> lookup = new Dictionary<string, IArchiveEntry>();
 
         foreach (var entry in archive.Entries)
@@ -193,27 +193,14 @@ public class FileManager
             await LogManager.Instance.Log("No items selected from archive.", LogManager.LogType.Warning);
             return;
         }
-        
-        var gameFolderPath = AppConfig.Instance.GameFolderPath;
-        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
 
-        foreach (var filePath in selectedFiles)
-        {
-            if (!lookup.TryGetValue(filePath, out var entry))
-            {   
-                await LogManager.Instance.Log($"Entry not found! Filepath: {filePath}", LogManager.LogType.Warning);
-                continue;
-            }
-            
-            string destination = Path.Combine(gameFolderPath, "Data", filePath);
-            string? directory = Path.GetDirectoryName(destination);
-
-            // you have to check before writing ; acording to code abive, dir shouldn't be null
-            Directory.CreateDirectory(directory);
-            await entry.WriteToFileAsync(destination, options);
-        }
+        await new FomodManager().InstallMod(selectedFiles);
         
-        await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");
+        await LogManager.Instance.Log($"{selectedFiles.Count} files installed.");*/
+
+        var fm = new FomodManager();
+        await fm.SetArchive(archivePath);
+        await fm.InstallMod();
     }
 
     public async Task<IArchive?> OpenArchive(string archivePath)
