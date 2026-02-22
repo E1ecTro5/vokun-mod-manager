@@ -62,14 +62,11 @@ public sealed class AppConfig
             default: return; // return if not match
         }
         
-        await LogManager.Instance.Log($"Updated config for {key} with value: {value}");
         await ReWriteConfig(); // don't forget to update
     }
     
     public async Task InitConfig()
     {
-        await LogManager.Instance.Log("Initializing config...");
-        
         if (!File.Exists(_appConfigPath)) await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
@@ -94,13 +91,9 @@ public sealed class AppConfig
                 case "gameId": GameId = Convert.ToUInt64(value); break;
                 default: continue; // skip if not match
             }
-
-            await LogManager.Instance.Log($"Path for {key} initialized with value: {value}");
         }
 
         await CheckConfigStatus(); // just to be sure
-        
-        await LogManager.Instance.Log("Config initialized");
     }
 
     // this should be activated only once per startup
@@ -128,7 +121,6 @@ public sealed class AppConfig
             await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
             await sw.WriteLineAsync($"gameId={GameId}");
         }
-        await LogManager.Instance.Log("Config has been rewritten.");
     }
 
     // maybe remove method from this class?
@@ -146,7 +138,6 @@ public sealed class AppConfig
         //modGameSteamId = Convert.ToUInt64(dir.Parent.Name);
         // bad practice?
         string result = dir.Parent.Name;
-        await LogManager.Instance.Log($"Updated config for GameID with value: {result}");
         return Convert.ToUInt64(result);
     }
 
@@ -161,7 +152,7 @@ public sealed class AppConfig
         }
         catch (Exception ex)
         {
-            await LogManager.Instance.Log($"ERROR: {ex.Message}", LogManager.LogType.Error);
+            Console.WriteLine(ex.Message);
         }
 
         return result;

@@ -48,7 +48,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SelectVdfCommand { get; }
     public ICommand SelectLoaderCompatdataCommand { get; }
     public ICommand SaveModListCommand { get; }
-    public ICommand LoadArchiveCommand { get; }
     public ICommand InstallModCommand { get; }
     
     public MainWindowViewModel()
@@ -64,7 +63,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
-        LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
     }
@@ -77,14 +75,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             // I should make something like MessageBox here...
             // I also added IsPlayAvailable, so I guess this will be removed soon
-            await LogManager.Instance.Log("GameID has not been set!", LogManager.LogType.Error);
             return;
         }
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
-        
-        await LogManager.Instance.Log($"Starting the game... ID:{longId}");
         
         // this variant should work on Linux;
         Process.Start(new ProcessStartInfo
@@ -97,7 +92,6 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task LateInit()
     {
-        await LogManager.Instance.Log("Updating properties...");
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         //CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
@@ -106,25 +100,20 @@ public partial class MainWindowViewModel : ViewModelBase
         ArchivePath = "Not selected";
         IsPlayAvailable = AppConfig.Instance.GameId != 0;
         IsLoadArchiveAvailable = true;
-        await LogManager.Instance.Log("Properties updated.");
     }
 
     private async Task UpdateModList()
     {
-        await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager();
         ModList = await modListM.GetModList();
         FoundMods = await modListM.CheckForMods(ModList);
-        await LogManager.Instance.Log("Mod list updated.");
     }
     
     private async Task SaveModList()
     {
-        await LogManager.Instance.Log("Saving current mod list state...");
         var modListM = new ModListManager();
         await modListM.SetModList(ModList);
         await UpdateModList();
-        await LogManager.Instance.Log("Current mod list state saved...");
     }
 
     private async Task SelectVdf()
@@ -134,7 +123,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (String.IsNullOrEmpty(filePath))
         {
             // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
             return;
         }
 
@@ -149,7 +137,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (String.IsNullOrEmpty(compatdataDir))
         {
             // no need to throw exception here
-            await LogManager.Instance.Log("No directory selected.");
             return;
         }
 
@@ -163,7 +150,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (String.IsNullOrEmpty(filePath))
         {
             // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
             return;
         }
         
@@ -178,7 +164,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (String.IsNullOrEmpty(filePath))
         {
             // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
             return;
         }
 
@@ -201,22 +186,6 @@ public partial class MainWindowViewModel : ViewModelBase
         IsPlayAvailable = true;
         
         await UpdateModList();
-    }
-
-    private async Task LoadArchive()
-    {
-        var path =  await _fileManager.SelectFile();
-        
-        if(string.IsNullOrEmpty(path)) return;
-        
-        IsLoadArchiveAvailable = false;
-        
-        ArchivePath = path;
-        ArchiveItems = await _fileManager.BuildTree(path);
-
-        await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
-        
-        IsLoadArchiveAvailable = true;
     }
 
     public async Task UpdateAll()
