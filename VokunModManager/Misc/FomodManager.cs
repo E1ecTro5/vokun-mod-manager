@@ -156,11 +156,23 @@ public class FomodManager
         var destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
         // ignore fomod and data folders
-        foreach (var entry in archive.Entries)
+        // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
+        foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
         {
             var currentDestination = Path.Combine(destination, entry.Key);
+            
             if(entry.Key.ToLower().Contains("fomod")) continue;
-            if (entry.Key.ToLower().StartsWith("data")) currentDestination = currentDestination.Remove(0,4);
+            if (entry.Key.ToLower().Contains("data"))
+            {
+                var currentKey = entry.Key.ToLower();
+                var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
+                var indexOfData = keyFolders.IndexOf("data");
+                var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
+                var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
+                currentDestination = Path.Combine(destination, newKey);
+            }
+            // don't forget to handle files that are at the same level as data folder
+            
             await Extract(entry, currentDestination);
         }
     }

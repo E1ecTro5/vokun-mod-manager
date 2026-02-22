@@ -212,6 +212,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await fomod.SetArchive(filePath);
         await fomod.InstallMod();
         /*await fomodReader.InstallFromConfig();*/
+        await UpdateModList();
     }
 
     private async Task LoadArchive()
