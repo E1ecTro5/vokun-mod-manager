@@ -49,9 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SelectLoaderCompatdataCommand { get; }
     public ICommand SaveModListCommand { get; }
     public ICommand LoadArchiveCommand { get; }
-    public ICommand InstallFilesCommand { get; }
-    public ICommand IncludeModsCommand { get; }
-    public ICommand ReadFomodCommand { get; }
+    public ICommand InstallModCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -64,14 +62,11 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
 
-        IncludeModsCommand = new AsyncRelayCommand(IncludeMods);
-        ReadFomodCommand = new AsyncRelayCommand(ReadFomod);
-
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
         LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
-        
-        InstallFilesCommand = new AsyncRelayCommand(InstallFiles);
+
+        InstallModCommand = new AsyncRelayCommand(InstallMod);
     }
 
     private async Task StartGame()
@@ -191,27 +186,20 @@ public partial class MainWindowViewModel : ViewModelBase
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
     }
 
-    private async Task IncludeMods()
-    {
-        var items = FoundMods.Where(x => x.IsEnabled);
-        if (!items.Any())
-        {
-            await LogManager.Instance.Log("No items selected from searched mods.", LogManager.LogType.Error);
-            return;
-        }
-        var modM = new ModListManager();
-        await modM.EnableMods(items);
-        await UpdateModList();
-    }
-
-    private async Task ReadFomod()
+    private async Task InstallMod()
     {
         var fomod = new FomodManager();
         var filePath = await _fileManager.SelectFile();
+
+        IsPlayAvailable = false;
+        
         if(string.IsNullOrEmpty(filePath)) return;
+        
         await fomod.SetArchive(filePath);
         await fomod.InstallMod();
-        /*await fomodReader.InstallFromConfig();*/
+
+        IsPlayAvailable = true;
+        
         await UpdateModList();
     }
 
@@ -229,26 +217,6 @@ public partial class MainWindowViewModel : ViewModelBase
         await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
         
         IsLoadArchiveAvailable = true;
-    }
-
-    private async Task InstallFiles()
-    {
-        if (string.IsNullOrEmpty(ArchivePath) || ArchivePath == "Not selected")
-        {
-            await LogManager.Instance.Log("ArchivePath is not selected!", LogManager.LogType.Error);
-            return;
-        }
-
-        IsLoadArchiveAvailable = false;
-        IsPlayAvailable = false;
-        await LogManager.Instance.Log("Installing files...");
-        
-        await _fileManager.InstallFiles(ArchivePath, ArchiveItems);
-        
-        IsLoadArchiveAvailable = true;
-        IsPlayAvailable = true;
-        
-        await UpdateModList();
     }
 
     public async Task UpdateAll()

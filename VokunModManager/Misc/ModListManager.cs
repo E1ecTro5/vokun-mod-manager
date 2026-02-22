@@ -116,10 +116,11 @@ public class ModListManager
         }
         
         await LogManager.Instance.Log($"{result.Count} unactivated mods found inside the Data folder.");
+        await EnableMods(result);
         return result;
     }
 
-    public async Task EnableMods(IEnumerable<Mod> modList)
+    private async Task EnableMods(IEnumerable<Mod> modList)
     {
         using (StreamWriter writer = new StreamWriter(modlistPath, true))
         {
