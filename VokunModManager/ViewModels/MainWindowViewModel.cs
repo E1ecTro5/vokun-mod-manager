@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,7 +19,6 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    //[ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
     
@@ -30,14 +27,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
 
-    /*
-     Return this feature later
-    [ObservableProperty] private float _installPercentage;
-    [ObservableProperty] private float _maxPercentageValue;
-    [ObservableProperty] private string _currentInstallFile;
-    */
+    private readonly FileManager _fileManager = new FileManager();
     
-    // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
     public ICommand UpdateTextBlocksCommand { get; }
@@ -46,9 +37,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SelectVdfCommand { get; }
     public ICommand SelectLoaderCompatdataCommand { get; }
     public ICommand SaveModListCommand { get; }
-    public ICommand LoadArchiveCommand { get; }
-    public ICommand InstallFilesCommand { get; }
-    public ICommand IncludeModsCommand { get; }
+    public ICommand InstallModCommand { get; }
+    
+    public ICommand OpenDataFolderCommand { get; }
+    public ICommand OpenPluginFileCommand { get; }
+    public ICommand OpenGameConfigCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -60,32 +53,23 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
-
-        IncludeModsCommand = new AsyncRelayCommand(IncludeMods);
+        
+        OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
+        OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
+        OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
-        LoadArchiveCommand = new AsyncRelayCommand(LoadArchive);
-        
-        InstallFilesCommand = new AsyncRelayCommand(InstallFiles);
+
+        InstallModCommand = new AsyncRelayCommand(InstallMod);
     }
 
     private async Task StartGame()
     {
         ulong longId = AppConfig.Instance.GameId;
-
-        if (longId == 0)
-        {
-            // I should make something like MessageBox here...
-            // I also added IsPlayAvailable, so I guess this will be removed soon
-            await LogManager.Instance.Log("GameID has not been set!", LogManager.LogType.Error);
-            return;
-        }
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
-        
-        await LogManager.Instance.Log($"Starting the game... ID:{longId}");
         
         // this variant should work on Linux;
         Process.Start(new ProcessStartInfo
@@ -98,45 +82,36 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task LateInit()
     {
-        await LogManager.Instance.Log("Updating properties...");
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        //CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
         ArchivePath = "Not selected";
         IsPlayAvailable = AppConfig.Instance.GameId != 0;
         IsLoadArchiveAvailable = true;
-        await LogManager.Instance.Log("Properties updated.");
     }
 
     private async Task UpdateModList()
     {
-        await LogManager.Instance.Log("Updating mod list...");
         var modListM = new ModListManager();
         ModList = await modListM.GetModList();
         FoundMods = await modListM.CheckForMods(ModList);
-        await LogManager.Instance.Log("Mod list updated.");
     }
     
     private async Task SaveModList()
     {
-        await LogManager.Instance.Log("Saving current mod list state...");
         var modListM = new ModListManager();
         await modListM.SetModList(ModList);
         await UpdateModList();
-        await LogManager.Instance.Log("Current mod list state saved...");
     }
 
     private async Task SelectVdf()
     {
-        var fileM = new  FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
         
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
+            await MsgBoxManager.ShowWarning("Vdf file path not selected!");
             return;
         }
 
@@ -146,13 +121,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SelectLoaderCompatdata()
     {
-        var fileM = new FileManager();
-        var compatdataDir = await fileM.SelectDirectory();
+        var compatdataDir = await _fileManager.SelectDirectory();
         
-        if (String.IsNullOrEmpty(compatdataDir))
+        if (string.IsNullOrEmpty(compatdataDir))
         {
-            // no need to throw exception here
-            await LogManager.Instance.Log("No directory selected.");
+            await MsgBoxManager.ShowWarning("Compatdata folder path not selected!");
             return;
         }
 
@@ -161,13 +134,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetGamePath()
     {
-        var fileM = new FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectDirectory();
 
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
+            await MsgBoxManager.ShowWarning("Game path not selected!");
             return;
         }
         
@@ -177,13 +148,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetModListPath()
     {
-        var fileM = new FileManager();
-        var filePath = await fileM.SelectFile();
+        var filePath = await _fileManager.SelectFile();
 
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
-            await LogManager.Instance.Log("No file selected.");
+            await MsgBoxManager.ShowWarning("Mod file path not selected!");
             return;
         }
 
@@ -191,52 +160,47 @@ public partial class MainWindowViewModel : ViewModelBase
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
     }
 
-    private async Task IncludeMods()
+    private async Task OpenDataFolder()
     {
-        var items = FoundMods.Where(x => x.IsEnabled);
-        if (!items.Any())
-        {
-            await LogManager.Instance.Log("No items selected from searched mods.", LogManager.LogType.Error);
-            return;
-        }
-        var modM = new ModListManager();
-        await modM.EnableMods(items);
-        await UpdateModList();
+        await OpenFileDirectory(GameFolderPath);
+    }
+    
+    private async Task OpenPluginFile()
+    {
+        await OpenFileDirectory(PluginFilePath);
+    }
+    
+    private async Task OpenGameConfig()
+    {
+        await OpenFileDirectory(AppConfig.Instance.SkyrimPrefsFilePath);
     }
 
-    private async Task LoadArchive()
+    private async Task OpenFileDirectory(string path)
     {
-        var fileM = new FileManager();
-        var path =  await fileM.SelectFile();
-        
-        if(string.IsNullOrEmpty(path)) return;
-        
-        IsLoadArchiveAvailable = false;
-        
-        ArchivePath = path;
-        ArchiveItems = await fileM.BuildTree(path);
+        var psi = new ProcessStartInfo
+        {
+            FileName = "xdg-open", // this should work only on Linux
+            Arguments = $"\"{path}\"",
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
 
-        await LogManager.Instance.Log($"Archive {ArchivePath} has been loaded.");
-        
-        IsLoadArchiveAvailable = true;
+        Process.Start(psi);
     }
 
-    private async Task InstallFiles()
+    private async Task InstallMod()
     {
-        if (string.IsNullOrEmpty(ArchivePath) || ArchivePath == "Not selected")
-        {
-            await LogManager.Instance.Log("ArchivePath is not selected!", LogManager.LogType.Error);
-            return;
-        }
+        var fomod = new FomodManager();
+        var filePath = await _fileManager.SelectFile();
 
-        IsLoadArchiveAvailable = false;
         IsPlayAvailable = false;
-        await LogManager.Instance.Log("Installing files...");
-
-        var fileM = new FileManager();
-        await fileM.InstallFiles(ArchivePath, ArchiveItems);
         
-        IsLoadArchiveAvailable = true;
+        if(string.IsNullOrEmpty(filePath)) return;
+        
+        await fomod.SetArchive(filePath);
+        await fomod.InstallMod();
+
         IsPlayAvailable = true;
         
         await UpdateModList();

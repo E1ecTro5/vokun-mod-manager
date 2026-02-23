@@ -20,9 +20,8 @@
     </Window.Resources>
     
     <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
-        <Grid Grid.Column="0" RowDefinitions="4*,3*" RowSpacing="10">
-            <DataGrid Grid.Row="0"
-                      Classes="draggable"
+        <Grid Grid.Column="0">
+            <DataGrid Classes="draggable"
                       AutoGenerateColumns="False"
                       CanUserSortColumns="False"
                       CanUserResizeColumns="True"
@@ -49,35 +48,6 @@
                     <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <Grid Grid.Row="1" RowDefinitions="*,Auto" RowSpacing="5">
-                <DataGrid AutoGenerateColumns="False"
-                          CanUserSortColumns="True"
-                          CanUserResizeColumns="False"
-                          ItemsSource="{Binding FoundMods}"
-                          GridLinesVisibility="All"
-                          BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Mod" Width="*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                                        <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                        <StackPanel.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Include"/>
-                                            </ContextMenu>
-                                        </StackPanel.ContextMenu>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <StackPanel Grid.Row="1">
-                    <Button Content="Include" Command="{Binding IncludeModsCommand}" Padding="10,5"></Button>
-                </StackPanel>
-            </Grid>
         </Grid>
         <Grid Grid.Column="1">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
@@ -104,7 +74,12 @@
                     <Button Content="Update Text Blocks" Command="{Binding UpdateTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                     <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
                 </Grid>
-                <StackPanel Grid.Row="3">
+                <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                    <Button Content="Open Data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+                    <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
+                </Grid>
+                <!--<StackPanel Grid.Row="3">
                     <TextBlock Text="{Binding ArchivePath, StringFormat='Selected archive: {0}'}" FontSize="11"/>
                 </StackPanel>
                 <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
@@ -112,16 +87,16 @@
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="2">
-                                    <!-- add check all the children of the parent feature -->
+                                    ~1~ add check all the children of the parent feature @1@
                                     <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsThreeState="False" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
-                </Border>
+                </Border>-->
                 <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
-                    <Button Content="Install files" Command="{Binding InstallFilesCommand}" Grid.Column="0" Padding="10,5"></Button>
+                    <Button Content="Install mod" Command="{Binding InstallModCommand}" Grid.Column="0" Padding="10,5"></Button>
                     <!--yo, make this work later ; turned off because of relocation of methods-->
                     <!--
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0" IsVisible="False">
@@ -129,7 +104,6 @@
                         <ProgressBar Value="{Binding InstallPercentage}" Maximum="{Binding MaxPercentageValue}" Minimum="0"/>
                     </StackPanel>
                     -->
-                    <Button Content="LoadArchive" Command="{Binding LoadArchiveCommand}" IsEnabled="{Binding IsLoadArchiveAvailable}" Grid.Column="2" Padding="10,5"></Button>
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
                     <Button Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" Padding="10,5"></Button>
                 </Grid>
