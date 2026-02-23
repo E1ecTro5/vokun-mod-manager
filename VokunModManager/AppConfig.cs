@@ -40,6 +40,7 @@ public sealed class AppConfig
     public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID
     public ulong CompatdataFolderId { get; private set; } // ID of skse64 compatdata folder
     public ulong GameId { get; private set; } // skse64_launcher.exe ID, needed to launch from steam
+    public string SkyrimPrefsFilePath { get; private set; } // settings for the game 
 
     public async Task UpdateConfig(ConfigType key, string value)
     {
@@ -47,6 +48,7 @@ public sealed class AppConfig
         {
             case ConfigType.GameFolderPath:
                 GameFolderPath = value;
+                SkyrimPrefsFilePath = await GetGameConfig();
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
@@ -89,6 +91,7 @@ public sealed class AppConfig
                 // since you WRITE FIRST and READ ONLY THEN, we don't expect exception there
                 case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
                 case "gameId": GameId = Convert.ToUInt64(value); break;
+                case "skyrimPrefsFilePath": SkyrimPrefsFilePath = value; break;
                 default:
                     await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while initializing the config.");
                     continue; // skip if not match
@@ -122,6 +125,7 @@ public sealed class AppConfig
             await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
             await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
             await sw.WriteLineAsync($"gameId={GameId}");
+            await sw.WriteLineAsync($"skyrimPrefsFilePath={SkyrimPrefsFilePath}");
         }
     }
 
@@ -146,6 +150,14 @@ public sealed class AppConfig
     {
         if(ulong.TryParse(path, out ulong result)) return result;
         return 0; // always check for 0 like you check for null or empty
+    }
+
+    private async Task<string> GetGameConfig()
+    {
+        var loc = ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/My Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini";
+        string possibleLoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), loc);
+        if(File.Exists(possibleLoc)) return possibleLoc;
+        return null;
     }
 
     private async Task CheckConfigStatus()

@@ -39,6 +39,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SaveModListCommand { get; }
     public ICommand InstallModCommand { get; }
     
+    public ICommand OpenDataFolderCommand { get; }
+    public ICommand OpenPluginFileCommand { get; }
+    public ICommand OpenGameConfigCommand { get; }
+    
     public MainWindowViewModel()
     {
         ModList = new ObservableCollection<Mod>();
@@ -49,6 +53,10 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
+        
+        OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
+        OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
+        OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -126,7 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetGamePath()
     {
-        var filePath = await _fileManager.SelectFile();
+        var filePath = await _fileManager.SelectDirectory();
 
         if (string.IsNullOrEmpty(filePath))
         {
@@ -150,6 +158,35 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PluginFilePath = filePath;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+    }
+
+    private async Task OpenDataFolder()
+    {
+        await OpenFileDirectory(GameFolderPath);
+    }
+    
+    private async Task OpenPluginFile()
+    {
+        await OpenFileDirectory(PluginFilePath);
+    }
+    
+    private async Task OpenGameConfig()
+    {
+        await OpenFileDirectory(AppConfig.Instance.SkyrimPrefsFilePath);
+    }
+
+    private async Task OpenFileDirectory(string path)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = "xdg-open", // this should work only on Linux
+            Arguments = $"\"{path}\"",
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        Process.Start(psi);
     }
 
     private async Task InstallMod()
