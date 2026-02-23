@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,7 +19,6 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    //[ObservableProperty] private ulong _compatdataFolderId;  // compatdata ID for skse64_loader.exe
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
     
@@ -31,15 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isLoadArchiveAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
-
-    /*
-     Return this feature later
-    [ObservableProperty] private float _installPercentage;
-    [ObservableProperty] private float _maxPercentageValue;
-    [ObservableProperty] private string _currentInstallFile;
-    */
     
-    // these bad boys should be refactored ; their names doesn't match well with functions
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
     public ICommand UpdateTextBlocksCommand { get; }
@@ -70,13 +59,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task StartGame()
     {
         ulong longId = AppConfig.Instance.GameId;
-
-        if (longId == 0)
-        {
-            // I should make something like MessageBox here...
-            // I also added IsPlayAvailable, so I guess this will be removed soon
-            return;
-        }
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
@@ -94,7 +76,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        //CompatdataFolderId = AppConfig.Instance.CompatdataFolderId;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
         ArchivePath = "Not selected";
@@ -120,9 +101,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var filePath = await _fileManager.SelectFile();
         
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
+            await MsgBoxManager.ShowWarning("Vdf file path not selected!");
             return;
         }
 
@@ -134,9 +115,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var compatdataDir = await _fileManager.SelectDirectory();
         
-        if (String.IsNullOrEmpty(compatdataDir))
+        if (string.IsNullOrEmpty(compatdataDir))
         {
-            // no need to throw exception here
+            await MsgBoxManager.ShowWarning("Compatdata folder path not selected!");
             return;
         }
 
@@ -147,9 +128,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var filePath = await _fileManager.SelectFile();
 
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
+            await MsgBoxManager.ShowWarning("Game path not selected!");
             return;
         }
         
@@ -161,9 +142,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var filePath = await _fileManager.SelectFile();
 
-        if (String.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath))
         {
-            // no need to throw exception here
+            await MsgBoxManager.ShowWarning("Mod file path not selected!");
             return;
         }
 

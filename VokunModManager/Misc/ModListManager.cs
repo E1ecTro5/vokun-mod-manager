@@ -11,11 +11,11 @@ namespace VokunModManager.Misc;
 public class ModListManager
 {
     private string modlistPath = AppConfig.Instance.PluginFilePath;
-    private bool CheckForExistance()
+    private async Task<bool> CheckForExistance()
     {
         if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
         {
-            //throw new FileNotFoundException("Mod list file not found!", modlistPath);
+            await MsgBoxManager.ShowWarning($"Couldn't find the mod list path.");
             return false;
         }
 
@@ -23,9 +23,9 @@ public class ModListManager
     }
 
     // refactor unnecessary async/await
-    public async Task<ObservableCollection<Mod>> GetModList()
+    public async Task<ObservableCollection<Mod>?> GetModList()
     {
-        if (!CheckForExistance()) return null;
+        if (!await CheckForExistance()) return null;
         
         ObservableCollection<Mod> result = new();
 
@@ -35,33 +35,31 @@ public class ModListManager
             ushort currentIndex = 0;
             while (!reader.EndOfStream)
             {
-                string line = await reader.ReadLineAsync();
-                
+                string? line = await reader.ReadLineAsync();
+
                 // ignore comments and empty lines
-                if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
+                if (string.IsNullOrEmpty(line) || line.StartsWith('#')) continue;
 
                 ushort loadOrder = 0;
                 bool isActive = line.StartsWith('*');
-                if(!isActive) loadOrder = 0; // don't mention offed mods
+                if (!isActive) loadOrder = 0; // don't mention offed mods
                 else loadOrder = ++currentIndex;
                 string name = line.TrimStart('*');
                 var mod = new Mod(loadOrder, name, isActive);
                 result.Add(mod);
             }
         }
-        
+
         return result;
     }
 
     public async Task SetModList(ObservableCollection<Mod> modList)
     {
         // this will overwrite everything, including comments and null lines
-        await using (StreamWriter writer = new StreamWriter(modlistPath))
+        await using StreamWriter writer = new StreamWriter(modlistPath);
+        foreach (Mod mod in modList)
         {
-            foreach (Mod mod in modList)
-            {
-                await writer.WriteLineAsync(mod.ToString());
-            }
+            await writer.WriteLineAsync(mod.ToString());
         }
     }
     
@@ -109,12 +107,10 @@ public class ModListManager
 
     private async Task EnableMods(IEnumerable<Mod> modList)
     {
-        using (StreamWriter writer = new StreamWriter(modlistPath, true))
+        await using StreamWriter writer = new StreamWriter(modlistPath, true);
+        foreach (var mod in modList)
         {
-            foreach (var mod in modList)
-            {
-                await writer.WriteLineAsync(mod.ToString());
-            }
+            await writer.WriteLineAsync(mod.ToString());
         }
     }
 }

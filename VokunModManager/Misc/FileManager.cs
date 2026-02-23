@@ -54,12 +54,12 @@ public class FileManager
         return folder?.Path.LocalPath;
     }
     
-    // methods for autodetecting
+    // methods for auto-detecting
     // btw, they shouldn't work on Windows since I use '/' there
-    // I'll get this done one day :)
+    // I'll get this done one day
     
     /// <summary>
-    /// Tries to find Skyrim's SE folder inside the Steam folder.
+    /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder.
     /// </summary>
     /// <returns>True, if folder has been found and set. Otherwise, false.</returns>
     public async Task<bool> TryGetGameFolder()

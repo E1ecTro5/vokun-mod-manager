@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -59,7 +58,9 @@ public sealed class AppConfig
                 CompatdataFolderId = await TryGetValueFromDirectory(value);
                 GameId = await GetGameId();
                 break;
-            default: return; // return if not match
+            default:
+                await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while updating the config.");
+                return; // return if not match
         }
         
         await ReWriteConfig(); // don't forget to update
@@ -85,11 +86,12 @@ public sealed class AppConfig
                 case "pluginFilePath": PluginFilePath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
                 case "vdfConfigPath": VdfConfigPath = value; break;
-                
-                // since you WRITE FIRST and READ ONLY THEN, we don't expect excep there
+                // since you WRITE FIRST and READ ONLY THEN, we don't expect exception there
                 case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
                 case "gameId": GameId = Convert.ToUInt64(value); break;
-                default: continue; // skip if not match
+                default:
+                    await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while initializing the config.");
+                    continue; // skip if not match
             }
         }
 
@@ -102,6 +104,7 @@ public sealed class AppConfig
         var dir = new DirectoryInfo(startPath);
         while (dir != null)
         {
+            // since I build in one folder, root will be on the same level with a bunch of library files.
             if (dir.GetFiles("VokunModManager.sln").Any()) 
                 return dir.FullName;
             dir = dir.Parent;
@@ -117,28 +120,9 @@ public sealed class AppConfig
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
             await sw.WriteLineAsync($"pluginFilePath={PluginFilePath}");
             await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
-            
             await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
             await sw.WriteLineAsync($"gameId={GameId}");
         }
-    }
-
-    // maybe remove method from this class?
-    private async Task<ulong> GetCompatdataId()
-    {
-        DirectoryInfo dir = new DirectoryInfo(PluginFilePath);
-        
-        // find the pfx dir and get its ID
-        while (!dir.Name.Equals("pfx"))
-        {
-            dir = dir.Parent;
-        }
-
-        // we expect to get an ID -> ../{ID}/pfx/... improvements 
-        //modGameSteamId = Convert.ToUInt64(dir.Parent.Name);
-        // bad practice?
-        string result = dir.Parent.Name;
-        return Convert.ToUInt64(result);
     }
 
     private async Task<ulong> GetGameId()
@@ -152,7 +136,7 @@ public sealed class AppConfig
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            await MsgBoxManager.ShowWarning($"Couldn't identify GameID. Exception message: {ex.Message}");
         }
 
         return result;
