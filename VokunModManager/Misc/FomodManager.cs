@@ -210,7 +210,15 @@ public class FomodManager
         var entry = archive.Entries.FirstOrDefault(x => x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
         using var stream = entry.OpenEntryStream();
         
-        var doc = XDocument.Load(stream);
+        using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
+        string text = reader.ReadToEnd();
+
+        if (text.Contains('\0')) 
+        {
+            text = text.Replace("\0", "");
+        }
+        
+        var doc = XDocument.Parse(text);
         var root = doc.Root;
 
         if (root == null) return null;
