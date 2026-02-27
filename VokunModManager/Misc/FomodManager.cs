@@ -138,6 +138,7 @@ public class FomodManager
         }
     }
     
+    // pls optimize this, it takes too much time
     private async Task Extract(IArchiveEntry item, string destination)
     {
         var parentDir = Directory.GetParent(destination).FullName;
@@ -146,26 +147,36 @@ public class FomodManager
         Directory.CreateDirectory(parentDir);
         await item.WriteToFileAsync(destination, options);
     }
-
-    // I'll handle it later
+    
     private async Task InstallWithoutConfig(IArchive archive)
     {
         //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
         // some mods have 'data' folder as the first node.
         //maybe you just need to Replace('data', string.Empty)?
         var destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        
+
+        var containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
         // ignore fomod and data folders
         // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
         foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
         {
             var currentDestination = Path.Combine(destination, entry.Key);
+            //check for parent-node
+            var currentKey = entry.Key.ToLower();
+            var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
+            
+            if (containsBsa)
+            {
+                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa")));
+                if (indexOfBsa == 0) continue;
+                var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
+                var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
+                currentDestination = Path.Combine(destination, newKey);
+            }
             
             if(entry.Key.ToLower().Contains("fomod")) continue;
             if (entry.Key.ToLower().Contains("data"))
             {
-                var currentKey = entry.Key.ToLower();
-                var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
                 var indexOfData = keyFolders.IndexOf("data");
                 var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
                 var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
