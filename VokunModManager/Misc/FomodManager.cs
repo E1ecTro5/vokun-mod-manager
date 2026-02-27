@@ -153,36 +153,38 @@ public class FomodManager
         //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
         // some mods have 'data' folder as the first node.
         //maybe you just need to Replace('data', string.Empty)?
-        var destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-
-        var containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
+        string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        bool containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
+        
         // ignore fomod and data folders
         // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
         foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
         {
+            // it shouldn't be null
+            if(entry.Key.ToLower().Contains("fomod")) continue; // ignore fomod folder
+            
             var currentDestination = Path.Combine(destination, entry.Key);
-            //check for parent-node
             var currentKey = entry.Key.ToLower();
             var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
             
             if (containsBsa)
             {
                 var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa")));
-                if (indexOfBsa == 0) continue;
-                var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
-                var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
-                currentDestination = Path.Combine(destination, newKey);
+                if (indexOfBsa != 0)
+                {
+                    var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
+                    var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
+                    currentDestination = Path.Combine(destination, newKey);
+                }
             }
             
-            if(entry.Key.ToLower().Contains("fomod")) continue;
-            if (entry.Key.ToLower().Contains("data"))
+            else if (entry.Key.ToLower().Contains("data"))
             {
                 var indexOfData = keyFolders.IndexOf("data");
                 var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
                 var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
                 currentDestination = Path.Combine(destination, newKey);
             }
-            // don't forget to handle files that are at the same level as data folder
             
             await Extract(entry, currentDestination);
         }
