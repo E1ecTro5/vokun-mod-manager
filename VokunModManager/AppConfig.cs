@@ -22,6 +22,7 @@ public sealed class AppConfig
     {
         BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
         _appConfigPath = Path.Combine(BaseDirectory, "config.txt");
+        TempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
     }
 
     public enum ConfigType
@@ -32,8 +33,9 @@ public sealed class AppConfig
         CompatdataFolder
     }
     
-    public string BaseDirectory { get; private set; } // ../VokunModManager directory
+    public string BaseDirectory { get; } // ../VokunModManager directory
     private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
+    public string TempFolder { get; }
 
     public string GameFolderPath { get; private set; } // Skyrim Steam folder
     public string PluginFilePath { get; private set; } // path for Plugins.txt
@@ -71,6 +73,7 @@ public sealed class AppConfig
     public async Task InitConfig()
     {
         if (!File.Exists(_appConfigPath)) await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
+        if (!Directory.Exists(TempFolder)) Directory.CreateDirectory(TempFolder);
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
 

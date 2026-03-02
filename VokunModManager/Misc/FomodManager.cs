@@ -150,6 +150,11 @@ public class FomodManager
     
     private async Task InstallWithoutConfig(IArchive archive)
     {
+        // this works better than I expected
+        await SevenZipInstaller.PrepareDirectory();
+        await SevenZipInstaller.ExtractAll(_archivePath);
+        return;
+        
         //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
         // some mods have 'data' folder as the first node.
         //maybe you just need to Replace('data', string.Empty)?
@@ -161,15 +166,14 @@ public class FomodManager
         foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
         {
             // it shouldn't be null
-            if(entry.Key.ToLower().Contains("fomod")) continue; // ignore fomod folder
+            if(entry.Key.StartsWith("fomod/", StringComparison.OrdinalIgnoreCase)) continue; // ignore fomod folder
             
             var currentDestination = Path.Combine(destination, entry.Key);
-            var currentKey = entry.Key.ToLower();
-            var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
+            var keyFolders = entry.Key.Split(Path.DirectorySeparatorChar);
             
             if (containsBsa)
             {
-                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa")));
+                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa", StringComparison.OrdinalIgnoreCase)));
                 if (indexOfBsa != 0)
                 {
                     var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
@@ -178,13 +182,16 @@ public class FomodManager
                 }
             }
             
-            else if (entry.Key.ToLower().Contains("data"))
+            else if (entry.Key.StartsWith("data/", StringComparison.OrdinalIgnoreCase))
             {
-                var indexOfData = keyFolders.IndexOf("data");
+                var indexOfData = keyFolders.IndexOf("data/");
                 var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
                 var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
                 currentDestination = Path.Combine(destination, newKey);
             }
+
+            // try to handle it
+            // await SevenZipInstaller.ExtractMods(entry., destination);
             
             await Extract(entry, currentDestination);
         }
