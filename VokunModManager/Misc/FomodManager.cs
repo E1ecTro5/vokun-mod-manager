@@ -15,7 +15,14 @@ namespace VokunModManager.Misc;
 
 public class FomodManager
 {
+    private enum ArchiveType
+    {
+        Default,
+        SevenZip,
+    }
+    
     private string _archivePath;
+    private ArchiveType _archiveType;
 
     private string _moduleName;
     private string _fomodConfigName;
@@ -25,6 +32,7 @@ public class FomodManager
     public async Task SetArchive(string path)
     {
         _archivePath = path;
+        _archiveType = path.EndsWith("7z") ? ArchiveType.SevenZip : ArchiveType.Default;
     }
 
     public async Task InstallMod()
@@ -150,16 +158,37 @@ public class FomodManager
     
     private async Task InstallWithoutConfig(IArchive archive)
     {
-        // this works better than I expected
-        await SevenZipInstaller.PrepareDirectory();
-        await SevenZipInstaller.ExtractAll(_archivePath);
-        return;
-        
         //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
         // some mods have 'data' folder as the first node.
         //maybe you just need to Replace('data', string.Empty)?
         string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         bool containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
+        
+        bool doesStartWithData = archive.Entries.All(x => x.Key!.StartsWith("data", StringComparison.OrdinalIgnoreCase));
+        
+        if (_archiveType == ArchiveType.SevenZip)
+        {
+            var szInst = new SevenZipInstaller();
+            // this works better than I expected
+            // maybe you'll need to switch to interfaces, but for now this should be fine
+            await szInst.ExtractAll(_archivePath);
+            if (doesStartWithData)
+            {
+                var dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
+                await szInst.MoveModFiles(dirName);
+            }
+            else if (containsBsa)
+            {
+                var bsaFile = archive.Entries.First(x => x.Key!.EndsWith(".bsa"));
+                var onStartPos = bsaFile.Key!.Split(Path.DirectorySeparatorChar).Length == 1;
+                if (!onStartPos)
+                {
+                    var dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
+                    await szInst.MoveModFiles(dirName);
+                }
+            }
+            return;
+        }
         
         // ignore fomod and data folders
         // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
