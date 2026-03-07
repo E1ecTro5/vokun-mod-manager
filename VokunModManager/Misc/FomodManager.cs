@@ -21,15 +21,13 @@ public class FomodManager
         SevenZip,
     }
     
-    private string _archivePath;
-    private ArchiveType _archiveType;
+    private readonly string _archivePath;
+    private readonly ArchiveType _archiveType;
 
     private string _moduleName;
-    private string _fomodConfigName;
     private string _defaultDestination;
-    
-    // make this ctor method soon
-    public async Task SetArchive(string path)
+
+    public FomodManager(string path)
     {
         _archivePath = path;
         _archiveType = path.EndsWith("7z") ? ArchiveType.SevenZip : ArchiveType.Default;
@@ -49,7 +47,6 @@ public class FomodManager
     private async Task InstallFromConfig(IArchive archive)
     {
         var fomodConfig = ReadConfig();
-        await SearchForFomodFolder(archive);
         
         // check this one day, because I couldn't find archive with requiredFiles
         // also maybe just put in method
@@ -149,7 +146,7 @@ public class FomodManager
     // pls optimize this, it takes too much time
     private async Task Extract(IArchiveEntry item, string destination)
     {
-        var parentDir = Directory.GetParent(destination).FullName;
+        var parentDir = Directory.GetParent(destination)!.FullName;
         var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
         
         Directory.CreateDirectory(parentDir);
@@ -166,15 +163,18 @@ public class FomodManager
         
         bool doesStartWithData = archive.Entries.All(x => x.Key!.StartsWith("data", StringComparison.OrdinalIgnoreCase));
         
+        // for 7z this works well ; for other types use other type of optimiztion idk
         if (_archiveType == ArchiveType.SevenZip)
         {
             var szInst = new SevenZipInstaller();
+            string? dirName = null;
             // this works better than I expected
             // maybe you'll need to switch to interfaces, but for now this should be fine
-            await szInst.ExtractAll(_archivePath);
+            await szInst.ExtractAll(_archivePath); 
+            
             if (doesStartWithData)
             {
-                var dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
+                dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
                 await szInst.MoveModFiles(dirName);
             }
             else if (containsBsa)
@@ -183,10 +183,11 @@ public class FomodManager
                 var onStartPos = bsaFile.Key!.Split(Path.DirectorySeparatorChar).Length == 1;
                 if (!onStartPos)
                 {
-                    var dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
-                    await szInst.MoveModFiles(dirName);
+                    dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
                 }
             }
+            
+            await szInst.MoveModFiles(dirName);
             return;
         }
         
@@ -256,8 +257,8 @@ public class FomodManager
     private FomodConfig ReadConfig()
     {
         using var archive = ArchiveFactory.Open(_archivePath);
-        var entry = archive.Entries.FirstOrDefault(x => x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
-        using var stream = entry.OpenEntryStream();
+        var entry = archive.Entries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
+        using var stream = entry!.OpenEntryStream();
         
         using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
         string text = reader.ReadToEnd();

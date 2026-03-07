@@ -41,7 +41,7 @@ public class SevenZipInstaller
         }
     }
 
-    public async Task PrepareDirectory()
+    private async Task PrepareDirectory()
     {
         _tempFolder = AppConfig.Instance.TempFolder;
         Directory.Delete(_tempFolder, true);
