@@ -179,7 +179,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var psi = new ProcessStartInfo
         {
-            FileName = "xdg-open", // this should work only on Linux
+            FileName = "xdg-open", // this should work only on Linux (Wayland?)
             Arguments = $"\"{path}\"",
             RedirectStandardOutput = true,
             UseShellExecute = false,
@@ -191,16 +191,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task InstallMod()
     {
-        var fomod = new FomodManager();
         var filePath = await _fileManager.SelectFile();
-
+        if (string.IsNullOrEmpty(filePath))
+        {
+            await MsgBoxManager.ShowWarning("Mod archive not selected!");
+            return;
+        }
+        
+        var fomod = new FomodManager(filePath);
         IsPlayAvailable = false;
-        
-        if(string.IsNullOrEmpty(filePath)) return;
-        
-        await fomod.SetArchive(filePath);
         await fomod.InstallMod();
-
         IsPlayAvailable = true;
         
         await UpdateModList();

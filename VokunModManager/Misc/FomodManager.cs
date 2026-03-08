@@ -15,16 +15,22 @@ namespace VokunModManager.Misc;
 
 public class FomodManager
 {
-    private string _archivePath;
+    private enum ArchiveType
+    {
+        Default,
+        SevenZip,
+    }
+    
+    private readonly string _archivePath;
+    private readonly ArchiveType _archiveType;
 
     private string _moduleName;
-    private string _fomodConfigName;
     private string _defaultDestination;
-    
-    // make this ctor method soon
-    public async Task SetArchive(string path)
+
+    public FomodManager(string path)
     {
         _archivePath = path;
+        _archiveType = path.EndsWith("7z") ? ArchiveType.SevenZip : ArchiveType.Default;
     }
 
     public async Task InstallMod()
@@ -41,7 +47,6 @@ public class FomodManager
     private async Task InstallFromConfig(IArchive archive)
     {
         var fomodConfig = ReadConfig();
-        await SearchForFomodFolder(archive);
         
         // check this one day, because I couldn't find archive with requiredFiles
         // also maybe just put in method
@@ -138,40 +143,85 @@ public class FomodManager
         }
     }
     
+    // pls optimize this, it takes too much time
     private async Task Extract(IArchiveEntry item, string destination)
     {
-        var parentDir = Directory.GetParent(destination).FullName;
+        var parentDir = Directory.GetParent(destination)!.FullName;
         var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
         
         Directory.CreateDirectory(parentDir);
         await item.WriteToFileAsync(destination, options);
     }
-
-    // I'll handle it later
+    
     private async Task InstallWithoutConfig(IArchive archive)
     {
         //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
         // some mods have 'data' folder as the first node.
         //maybe you just need to Replace('data', string.Empty)?
-        var destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        bool containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
+        
+        bool doesStartWithData = archive.Entries.All(x => x.Key!.StartsWith("data", StringComparison.OrdinalIgnoreCase));
+        
+        // for 7z this works well ; for other types use other type of optimiztion idk
+        if (_archiveType == ArchiveType.SevenZip)
+        {
+            var szInst = new SevenZipInstaller();
+            string? dirName = null;
+            // this works better than I expected
+            // maybe you'll need to switch to interfaces, but for now this should be fine
+            await szInst.ExtractAll(_archivePath); 
+            
+            if (doesStartWithData)
+            {
+                dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
+                await szInst.MoveModFiles(dirName);
+            }
+            else if (containsBsa)
+            {
+                var bsaFile = archive.Entries.First(x => x.Key!.EndsWith(".bsa"));
+                var onStartPos = bsaFile.Key!.Split(Path.DirectorySeparatorChar).Length == 1;
+                if (!onStartPos)
+                {
+                    dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
+                }
+            }
+            
+            await szInst.MoveModFiles(dirName);
+            return;
+        }
         
         // ignore fomod and data folders
         // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
         foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
         {
-            var currentDestination = Path.Combine(destination, entry.Key);
+            // it shouldn't be null
+            if(entry.Key.StartsWith("fomod/", StringComparison.OrdinalIgnoreCase)) continue; // ignore fomod folder
             
-            if(entry.Key.ToLower().Contains("fomod")) continue;
-            if (entry.Key.ToLower().Contains("data"))
+            var currentDestination = Path.Combine(destination, entry.Key);
+            var keyFolders = entry.Key.Split(Path.DirectorySeparatorChar);
+            
+            if (containsBsa)
             {
-                var currentKey = entry.Key.ToLower();
-                var keyFolders = currentKey.Split(Path.DirectorySeparatorChar);
-                var indexOfData = keyFolders.IndexOf("data");
+                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa", StringComparison.OrdinalIgnoreCase)));
+                if (indexOfBsa != 0)
+                {
+                    var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
+                    var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
+                    currentDestination = Path.Combine(destination, newKey);
+                }
+            }
+            
+            else if (entry.Key.StartsWith("data/", StringComparison.OrdinalIgnoreCase))
+            {
+                var indexOfData = keyFolders.IndexOf("data/");
                 var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
                 var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
                 currentDestination = Path.Combine(destination, newKey);
             }
-            // don't forget to handle files that are at the same level as data folder
+
+            // try to handle it
+            // await SevenZipInstaller.ExtractMods(entry., destination);
             
             await Extract(entry, currentDestination);
         }
@@ -207,10 +257,18 @@ public class FomodManager
     private FomodConfig ReadConfig()
     {
         using var archive = ArchiveFactory.Open(_archivePath);
-        var entry = archive.Entries.FirstOrDefault(x => x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
-        using var stream = entry.OpenEntryStream();
+        var entry = archive.Entries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
+        using var stream = entry!.OpenEntryStream();
         
-        var doc = XDocument.Load(stream);
+        using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
+        string text = reader.ReadToEnd();
+
+        if (text.Contains('\0')) 
+        {
+            text = text.Replace("\0", "");
+        }
+        
+        var doc = XDocument.Parse(text);
         var root = doc.Root;
 
         if (root == null) return null;
