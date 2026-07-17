@@ -430,3 +430,4 @@ publish/
 artifacts/
 *.log
 *~
+VokunModManager\config.txt

@@ -66,7 +66,15 @@ public class ModListManager
     // move to another class if needed
     public async Task<ObservableCollection<Mod>> CheckForMods(ObservableCollection<Mod> modList)
     {
-        string path = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        // checked on Windows first launch; needed to fix this
+        string gameFolderPath = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            Console.WriteLine("GAMEPATH NOT FOUND");
+            return null;
+        }
+        
+        string path = Path.Combine(gameFolderPath, "Data");
         
         // so, before .esp you should also include .esm and .esl files ; they shouldn't count as mod itself, but they are needed for it to be working
         // I'll refactor this later ; for now, just manual handling
@@ -100,6 +108,10 @@ public class ModListManager
             if(modList.Any(m => m.Name == mod.Name)) continue;
             result.Add(mod);
         }
+        
+        // avoid the exception
+        if(result.Count == 0)
+            return null; // it's fine
         
         await EnableMods(result);
         return result;

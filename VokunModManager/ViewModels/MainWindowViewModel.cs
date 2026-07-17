@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -82,11 +84,13 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task LateInit()
     {
+        // may be null/default if Skyrim not installed, or you're launching for the first time.
+        // please, make sure they're initialized before using
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         ModGameId = AppConfig.Instance.GameId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
-        ArchivePath = "Not selected";
+        ArchivePath = "Not selected"; // default
         IsPlayAvailable = AppConfig.Instance.GameId != 0;
         IsLoadArchiveAvailable = true;
     }
@@ -162,6 +166,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenDataFolder()
     {
+        if (string.IsNullOrEmpty(GameFolderPath))
+        {
+            await MsgBoxManager.ShowWarning("Game folder path not selected!");
+            return;
+        }
         await OpenFileDirectory(GameFolderPath);
     }
     
@@ -177,16 +186,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenFileDirectory(string path)
     {
-        var psi = new ProcessStartInfo
+        // on Windows;
+        // still need to refactor for dirs/apps
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            FileName = "xdg-open", // this should work only on Linux (Wayland?)
-            Arguments = $"\"{path}\"",
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            Console.WriteLine("Running on Windows");
+            Process.Start("explorer.exe", path);
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "xdg-open", // this should work only on Linux (Wayland?)
+                Arguments = $"\"{path}\"",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-        Process.Start(psi);
+            Process.Start(psi);
+        }
     }
 
     private async Task InstallMod()
