@@ -68,7 +68,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        ulong longId = AppConfig.Instance.GameId;
+        ulong longId = AppConfig.Instance.LauncherId;
         
         // just uri command to run the game
         string uri = $"steam://rungameid/{longId}";
@@ -88,10 +88,10 @@ public partial class MainWindowViewModel : ViewModelBase
         // please, make sure they're initialized before using
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        ModGameId = AppConfig.Instance.GameId;
+        ModGameId = AppConfig.Instance.LauncherId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
         ArchivePath = "Not selected"; // default
-        IsPlayAvailable = AppConfig.Instance.GameId != 0;
+        IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
         IsLoadArchiveAvailable = true;
     }
 
