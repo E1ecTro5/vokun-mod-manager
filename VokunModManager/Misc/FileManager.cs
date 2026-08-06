@@ -64,8 +64,18 @@ public class FileManager
     /// <returns>True, if folder has been found and set. Otherwise, false.</returns>
     public async Task<bool> TryGetGameFolder()
     {
-        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/common/Skyrim Special Edition");
+        string possiblePath = string.Empty;
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/common/Skyrim Special Edition");
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            possiblePath = Path.Combine(programFilesPath, @"Steam\steamapps\common\Skyrim Special Edition");
+        }
 
         if (!Directory.Exists(possiblePath)) return false;
         
