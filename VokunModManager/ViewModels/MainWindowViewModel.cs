@@ -186,6 +186,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenFileDirectory(string path)
     {
+        if(string.IsNullOrEmpty(path)) return;
+        
         // on Windows;
         // still need to refactor for dirs/apps
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

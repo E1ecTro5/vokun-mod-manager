@@ -138,7 +138,7 @@ public sealed class AppConfig
         }
     }
 
-    // possbile relocation of the method in future
+    // possibile relocation of the method in future
     private async Task<ulong> GetGameId()
     {
         if (string.IsNullOrEmpty(GameFolderPath))
@@ -162,19 +162,31 @@ public sealed class AppConfig
         return result;
     }
 
-    // possbile relocation of the method in future
+    // possibile relocation of the method in future
     private async Task<ulong> TryGetValueFromDirectory(string path)
     {
         if(ulong.TryParse(path, out ulong result)) return result;
         return 0; // always check for 0 like you check for null or empty
     }
 
-    // possbile relocation of the method in future
+    // possibile relocation of the method in future
     private async Task<string?> GetGameConfig()
     {
-        var loc = ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/My Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini";
-        string possibleLoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), loc);
-        if(File.Exists(possibleLoc)) return possibleLoc;
+        string pathToDocs = string.Empty;
+        string possibleLocation = string.Empty;
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            pathToDocs = ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/My Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini";
+            string possibleLoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), pathToDocs);
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            pathToDocs = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            possibleLocation = Path.Combine(pathToDocs, @"Documents\My Games\Skyrim Special Edition\SkyrimPrefs.ini");
+        }
+
+        if(File.Exists(possibleLocation)) return possibleLocation;
         return null;
     }
 
