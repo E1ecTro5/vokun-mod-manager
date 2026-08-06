@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -19,10 +20,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<Mod> _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
     
+    // they all need to be displayed just to make it easier for me
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
+    [ObservableProperty] private ulong _compatdataFolder;
+    [ObservableProperty] private ulong _launcherId;
+    [ObservableProperty] private string _skyrimPrefsFilePath;
     
     [ObservableProperty] private string _archivePath;        // path of a selected archive
 
@@ -33,7 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
-    public ICommand UpdateTextBlocksCommand { get; }
+    public ICommand ReInitTextBlocksCommand { get; }
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
     public ICommand SelectVdfCommand { get; }
@@ -51,7 +56,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
-        UpdateTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
+        ReInitTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
@@ -68,18 +73,33 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        ulong longId = AppConfig.Instance.LauncherId;
-        
-        // just uri command to run the game
-        string uri = $"steam://rungameid/{longId}";
-        
-        // this variant should work on Linux;
-        Process.Start(new ProcessStartInfo
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
-            FileName = uri,
-            UseShellExecute = true,
-            CreateNoWindow = true
-        });
+            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToLauncher,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
+        }
+        else
+        {
+            ulong longId = AppConfig.Instance.LauncherId;
+
+            // just uri command to run the game
+            string uri = $"steam://rungameid/{longId}";
+
+            // this variant should work on Linux;
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = uri,
+                UseShellExecute = true,
+                CreateNoWindow = true
+            });
+        }
     }
     
     private async Task LateInit()
@@ -90,9 +110,20 @@ public partial class MainWindowViewModel : ViewModelBase
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         ModGameId = AppConfig.Instance.LauncherId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
+
+        CompatdataFolder = AppConfig.Instance.CompatdataFolderId;
+        LauncherId = AppConfig.Instance.LauncherId;
+        SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+        
         ArchivePath = "Not selected"; // default
-        IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
+        //IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
+        IsPlayAvailable = true; // fix
         IsLoadArchiveAvailable = true;
+    }
+
+    private async Task ReInitValues()
+    {
+        await AppConfig.Instance.CheckConfigStatus();
     }
 
     private async Task UpdateModList()

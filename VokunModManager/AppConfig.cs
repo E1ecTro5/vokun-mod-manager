@@ -138,7 +138,7 @@ public sealed class AppConfig
         }
     }
 
-    // possibile relocation of the method in future
+    // possible relocation of the method in future
     private async Task<ulong> GetGameId()
     {
         if (string.IsNullOrEmpty(GameFolderPath))
@@ -162,14 +162,14 @@ public sealed class AppConfig
         return result;
     }
 
-    // possibile relocation of the method in future
+    // possible relocation of the method in future
     private async Task<ulong> TryGetValueFromDirectory(string path)
     {
         if(ulong.TryParse(path, out ulong result)) return result;
         return 0; // always check for 0 like you check for null or empty
     }
 
-    // possibile relocation of the method in future
+    // possible relocation of the method in future
     private async Task<string?> GetGameConfig()
     {
         string pathToDocs = string.Empty;
@@ -190,7 +190,7 @@ public sealed class AppConfig
         return null;
     }
 
-    private async Task CheckConfigStatus()
+    public async Task CheckConfigStatus()
     {
         var fileM = new FileManager();
 

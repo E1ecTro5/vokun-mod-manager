@@ -89,13 +89,22 @@ public class FileManager
     /// <returns>True, if file has been found and set. Otherwise, false.</returns>
     public async Task<bool> TryGetPluginConfig()
     {
-        string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        // ID 489830 is specifically for Skyrim Special Edition
-        string possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition/Plugins.txt");
+        string appdataFolder = string.Empty;
+        string possibleLocation = string.Empty;
 
-        if (!File.Exists(possiblePath)) return false;
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            appdataFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            possibleLocation = Path.Combine(possibleLocation, ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition/Plugins.txt");
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            appdataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            possibleLocation = Path.Combine(appdataFolder, @"Local\Skyrim Special Edition\Plugins.txt");
+        }
+        if (!File.Exists(possibleLocation)) return false;
         
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, possiblePath);
+        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, possibleLocation);
         return true;
     }
 

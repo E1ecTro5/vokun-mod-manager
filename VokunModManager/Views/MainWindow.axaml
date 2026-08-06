@@ -53,15 +53,24 @@
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
                 <!--one day just make style for all these boxes-->
                 <StackPanel Grid.Row="0">
-                    <TextBlock Text="{Binding ModGameId, StringFormat='Launcher ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
                     <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
                     </ScrollViewer>
                     <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    </ScrollViewer>
+                    <TextBlock Text="{Binding ModGameId, StringFormat='Launcher ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding CompatdataFolder, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding LauncherId, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+                    </ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <TextBlock Text="{Binding SkyrimPrefsFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
                     </ScrollViewer>
                 </StackPanel>
                 <Grid Grid.Row="1" ColumnDefinitions="2*,2*,*,2*" ColumnSpacing="10">
@@ -71,7 +80,7 @@
                     <Button Content="Select loader compatdata" Command="{Binding SelectLoaderCompatdataCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="3" FontSize="11"/>
                 </Grid>
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button Content="Update Text Blocks" Command="{Binding UpdateTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                     <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
                 </Grid>
                 <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="10">
