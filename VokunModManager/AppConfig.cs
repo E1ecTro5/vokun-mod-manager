@@ -66,11 +66,13 @@ public sealed class AppConfig
 
     public async Task UpdateConfig(ConfigType key, string value)
     {
+        FileManager fm = new FileManager();
+        
         switch (key)
         {
             case ConfigType.GameFolderPath:
                 GameFolderPath = value;
-                SkyrimPrefsFilePath = await GetGameConfig();
+                SkyrimPrefsFilePath = await fm.GetGameConfig();
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
@@ -79,8 +81,8 @@ public sealed class AppConfig
                 VdfConfigPath = value;
                 break;
             case ConfigType.CompatdataFolder:
-                CompatdataFolderId = await TryGetValueFromDirectory(value);
-                LauncherId = await GetGameId();
+                CompatdataFolderId = await fm.TryGetValueFromDirectory(value);
+                LauncherId = await fm.GetGameId(GameFolderPath);
                 break;
             default:
                 await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while updating the config.");
@@ -137,59 +139,7 @@ public sealed class AppConfig
             await sw.WriteLineAsync($"skyrimPrefsFilePath={SkyrimPrefsFilePath}");
         }
     }
-
-    // possible relocation of the method in future
-    private async Task<ulong> GetGameId()
-    {
-        if (string.IsNullOrEmpty(GameFolderPath))
-        {
-            await MsgBoxManager.ShowWarning("GameFolderPath is missing!");
-            return 0;
-        }
-        
-        string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
-        ulong result = 0;
-        
-        try
-        {
-            result = await GameIdFinder.GetLongId(path);
-        }
-        catch (Exception ex)
-        {
-            await MsgBoxManager.ShowWarning($"Couldn't identify GameID. Exception message: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    // possible relocation of the method in future
-    private async Task<ulong> TryGetValueFromDirectory(string path)
-    {
-        if(ulong.TryParse(path, out ulong result)) return result;
-        return 0; // always check for 0 like you check for null or empty
-    }
-
-    // possible relocation of the method in future
-    private async Task<string?> GetGameConfig()
-    {
-        string pathToDocs = string.Empty;
-        string possibleLocation = string.Empty;
-
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            pathToDocs = ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/My Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini";
-            string possibleLoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), pathToDocs);
-        }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            pathToDocs = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            possibleLocation = Path.Combine(pathToDocs, @"Documents\My Games\Skyrim Special Edition\SkyrimPrefs.ini");
-        }
-
-        if(File.Exists(possibleLocation)) return possibleLocation;
-        return null;
-    }
-
+    
     public async Task CheckConfigStatus()
     {
         var fileM = new FileManager();

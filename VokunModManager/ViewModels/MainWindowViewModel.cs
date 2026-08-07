@@ -116,8 +116,12 @@ public partial class MainWindowViewModel : ViewModelBase
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
         
         ArchivePath = "Not selected"; // default
-        //IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
-        IsPlayAvailable = true; // fix
+
+         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+             IsPlayAvailable = true;
+         else
+             IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
+        
         IsLoadArchiveAvailable = true;
     }
 
