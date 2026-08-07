@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SharpCompress.Archives;
-using SharpCompress.Readers;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 using VokunModManager.ViewModels;
@@ -72,14 +71,10 @@ public class FomodManager(string archivePath)
     
     private void ExtractAllStreamlined(IArchive archive, Dictionary<string, string> extractionMap)
     {
-        // read the entire archive
-        using var stream = File.OpenRead(archivePath);
-        using var reader = ReaderFactory.Open(stream);
-
-        while (reader.MoveToNextEntry())
+        foreach (var entry in archive.Entries)
         {
-            if (reader.Entry.IsDirectory) continue;
-            string normalizedKey = reader.Entry.Key.Replace('\\', '/');
+            if (entry.IsDirectory) continue;
+            string normalizedKey = entry.Key.Replace('\\', '/');
 
             // chech if we need the file
             if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
@@ -91,8 +86,9 @@ public class FomodManager(string archivePath)
                     Directory.CreateDirectory(parentDir);
                 }
                 
+                // Stream of a specific FILE inside the archive
                 using var fileStream = File.Create(destinationPath);
-                reader.WriteEntryTo(fileStream);
+                entry.WriteTo(fileStream);
             }
         }
     }
