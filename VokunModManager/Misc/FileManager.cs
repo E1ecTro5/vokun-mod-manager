@@ -32,6 +32,9 @@ public class FileManager
             });
         
         var file = files.FirstOrDefault();
+        
+        (file as IDisposable)?.Dispose();
+        
         // LOCALPATH because of OS
         return file?.Path.LocalPath;
     }
