@@ -155,76 +155,65 @@ public class FomodManager
     
     private async Task InstallWithoutConfig(IArchive archive)
     {
-        //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
-        // some mods have 'data' folder as the first node.
-        //maybe you just need to Replace('data', string.Empty)?
         string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        bool containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
-        
-        bool doesStartWithData = archive.Entries.All(x => x.Key!.StartsWith("data", StringComparison.OrdinalIgnoreCase));
-        
-        // for 7z this works well ; for other types use other type of optimiztion idk
-        if (_archiveType == ArchiveType.SevenZip)
-        {
-            var szInst = new SevenZipInstaller();
-            string? dirName = null;
-            // this works better than I expected
-            // maybe you'll need to switch to interfaces, but for now this should be fine
-            await szInst.ExtractAll(_archivePath); 
-            
-            if (doesStartWithData)
-            {
-                dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
-                await szInst.MoveModFiles(dirName);
-            }
-            else if (containsBsa)
-            {
-                var bsaFile = archive.Entries.First(x => x.Key!.EndsWith(".bsa"));
-                var onStartPos = bsaFile.Key!.Split(Path.DirectorySeparatorChar).Length == 1;
-                if (!onStartPos)
-                {
-                    dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
-                }
-            }
-            
-            await szInst.MoveModFiles(dirName);
-            return;
-        }
-        
-        // ignore fomod and data folders
-        // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
-        foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
-        {
-            // it shouldn't be null
-            if(entry.Key.StartsWith("fomod/", StringComparison.OrdinalIgnoreCase)) continue; // ignore fomod folder
-            
-            var currentDestination = Path.Combine(destination, entry.Key);
-            var keyFolders = entry.Key.Split(Path.DirectorySeparatorChar);
-            
-            if (containsBsa)
-            {
-                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa", StringComparison.OrdinalIgnoreCase)));
-                if (indexOfBsa != 0)
-                {
-                    var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
-                    var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
-                    currentDestination = Path.Combine(destination, newKey);
-                }
-            }
-            
-            else if (entry.Key.StartsWith("data/", StringComparison.OrdinalIgnoreCase))
-            {
-                var indexOfData = keyFolders.IndexOf("data/");
-                var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
-                var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
-                currentDestination = Path.Combine(destination, newKey);
-            }
+        var entries = archive.Entries.Where(x => !x.IsDirectory).ToList();
 
-            // try to handle it
-            // await SevenZipInstaller.ExtractMods(entry., destination);
+        // skipping folders until the needed ones...
+        int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
+
+        foreach (var entry in entries)
+        {
+            string normalizedKey = entry.Key.Replace('\\', '/'); // make sure the all follow the standard
+            if (normalizedKey.StartsWith("fomod/", StringComparison.OrdinalIgnoreCase)) continue;
             
+            var segments = normalizedKey.Split('/');
+
+            // ignore everything before "data/"
+            int dataIndex = Array.FindIndex(segments, s => s.Equals("data", StringComparison.OrdinalIgnoreCase));
+            
+            string relativePath; // the second path for Extract().
+            
+            // take EVERYTHING after "Data/"
+            if (dataIndex != -1) 
+                relativePath = string.Join(Path.DirectorySeparatorChar, segments.Skip(dataIndex + 1));
+            
+            // skip unnecessary folders
+            else if (prefixSegmentsToSkip > 0 && segments.Length > prefixSegmentsToSkip) 
+                relativePath = string.Join(Path.DirectorySeparatorChar, segments.Skip(prefixSegmentsToSkip));
+            
+            else
+                relativePath = string.Join(Path.DirectorySeparatorChar, segments);
+
+            string currentDestination = Path.Combine(destination, relativePath); // full path to mod inside the game's folder
+
             await Extract(entry, currentDestination);
         }
+    }
+
+    private int DeterminePrefixSegmentsToSkip(IEnumerable<IArchiveEntry> entries)
+    {
+        // extensions and folders that identify the root of "Data" folder.
+        var rootMarkers = new[] { ".bsa", ".ba2", ".esp", ".esm", ".esl" };
+        var rootDirectories = new[] { "textures", "meshes", "interface", "sound", "music", "scripts", "skse" };
+
+        foreach (var entry in entries)
+        {
+            string path = entry.Key.Replace('\\', '/');
+            var parts = path.Split('/');
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+
+                // check if ends with one of the rootMarkers
+                if (rootMarkers.Any(ext => part.EndsWith(ext, StringComparison.OrdinalIgnoreCase))) return i; // number of dirs before this file
+
+                // check if ends with one of the rootDirectories
+                if (rootDirectories.Any(dir => part.Equals(dir, StringComparison.OrdinalIgnoreCase))) return i; // number of dirs before this dir
+            }
+        }
+
+        return 0; // Data is the root
     }
 
     /*
