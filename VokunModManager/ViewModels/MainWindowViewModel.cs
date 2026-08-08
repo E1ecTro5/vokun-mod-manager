@@ -133,14 +133,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task UpdateModList()
     {
         var modListM = new ModListManager();
-        ModList = await modListM.GetModList();
-        FoundMods = await modListM.CheckForMods(ModList);
+        var updated = await modListM.UpdateModList();
+        ModList = updated;
     }
     
     private async Task SaveModList()
     {
         var modListM = new ModListManager();
-        await modListM.SetModList(ModList);
+        // save current state
+        await modListM.SaveCurrentModListState(ModList);
         await UpdateModList();
     }
 
