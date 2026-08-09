@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SharpCompress.Archives;
-using SharpCompress.Common;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 using VokunModManager.ViewModels;
@@ -13,218 +15,239 @@ using VokunModManager.Views;
 
 namespace VokunModManager.Misc;
 
-public class FomodManager
+public class FomodManager(string archivePath)
 {
-    private enum ArchiveType
-    {
-        Default,
-        SevenZip,
-    }
-    
-    private readonly string _archivePath;
-    private readonly ArchiveType _archiveType;
+    private string? _moduleName;
+    private string? _defaultDestination;
 
-    private string _moduleName;
-    private string _defaultDestination;
-
-    public FomodManager(string path)
-    {
-        _archivePath = path;
-        _archiveType = path.EndsWith("7z") ? ArchiveType.SevenZip : ArchiveType.Default;
-    }
+    // cache
+    private readonly HashSet<string> _createdDirectories = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task InstallMod()
     {
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        using var archive = ArchiveFactory.Open(_archivePath);
+        
+        // NormalizedKeyInArchive -> FullDestinationPathOnDisk
+        var extractionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        if (await SearchForFomodFolder(archive))
-            await InstallFromConfig(archive);
-        else
-            await InstallWithoutConfig(archive);
+        try
+        {
+            using (var archive = ArchiveFactory.Open(archivePath))
+            {
+                // caching entries
+                var entries = archive.Entries.Where(x => !x.IsDirectory).ToList();
+
+                if (await SearchForFomodFolder(entries))
+                    //await InstallFromConfig(entries);
+                    await PrepareFromConfig(entries, extractionMap);
+                else
+                    //await InstallWithoutConfig(entries);
+                    PrepareWithoutConfig(entries, extractionMap);
+
+                if (extractionMap.Count > 0) ExtractAllStreamlined(archive, extractionMap);
+
+                entries.Clear();
+            }
+        }
+        finally
+        {
+            extractionMap.Clear();
+            _createdDirectories.Clear();
+
+            // dispose and give the memory back to the OS
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            TrimProcessMemory();
+        }
+        
+        _createdDirectories.Clear();
+
+        // DISPOSE everything once finished
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
     }
     
-    private async Task InstallFromConfig(IArchive archive)
+    private void ExtractAllStreamlined(IArchive archive, Dictionary<string, string> extractionMap)
+    {
+        foreach (var entry in archive.Entries)
+        {
+            if (entry.IsDirectory) continue;
+            string normalizedKey = entry.Key.Replace('\\', '/');
+
+            // chech if we need the file
+            if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
+            {
+                string? parentDir = Path.GetDirectoryName(destinationPath);
+                
+                if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir))
+                {
+                    Directory.CreateDirectory(parentDir);
+                }
+                
+                // Stream of a specific FILE inside the archive
+                using var fileStream = File.Create(destinationPath);
+                entry.WriteTo(fileStream);
+            }
+        }
+    }
+
+    private async Task<bool> SearchForFomodFolder(List<IArchiveEntry> entries)
+    {
+        var configEntry = entries.FirstOrDefault(x => x.Key != null && x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
+        if (configEntry?.Key == null) return false;
+
+        // normalize the slashes
+        string normalizedKey = configEntry.Key.Replace('\\', '/');
+        _moduleName = normalizedKey.Split('/').FirstOrDefault() ?? "";
+        
+        return !string.IsNullOrEmpty(_moduleName);
+    }
+    
+    private async Task PrepareFromConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
         var fomodConfig = ReadConfig();
         
-        // check this one day, because I couldn't find archive with requiredFiles
-        // also maybe just put in method
         foreach (var file in fomodConfig.RequiredFiles)
         {
-            await HandleFile(file, archive);
+            MapFile(file, entries, extractionMap);
         }
         
-        // this works good)
         foreach (var file in fomodConfig.RequiredFolders)
         {
-            // extract FILES inside folder INTO DESTINATION
-            await HandleFile(file, archive);
+            MapFile(file, entries, extractionMap);
         }
 
-        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps; // these steps contain plugins with files/folders to install, so just make a separated method for installing
-        // pass this to another installer with InstallWindow
-        foreach (var file in steps)
+        IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
+        foreach (var step in steps)
         {
-            foreach (var fileGroup in file.Groups)
+            foreach (var fileGroup in step.Groups)
             {
                 var type = fileGroup.Type;
 
                 switch (type)
                 {
                     case "SelectExactlyOne":
-                        await ShowInstallWindow(fileGroup.Plugins, archive, InstallWindowViewModel.InstallType.SelectExactlyOne);
+                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectExactlyOne);
                         break;
                     case "SelectAny":
-                        await ShowInstallWindow(fileGroup.Plugins, archive, InstallWindowViewModel.InstallType.SelectAny);
+                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectAny);
                         break;
-                    // handle other types later
                 }
             }
         }
     }
 
-    private async Task<bool> SearchForFomodFolder(IArchive archive)
-    {
-        string? lines = archive.Entries.FirstOrDefault(x => (bool)x.Key?.EndsWith("ModuleConfig.xml"))?.Key?.Split(Path.DirectorySeparatorChar).FirstOrDefault();
-        if (string.IsNullOrEmpty(lines)) return false;
-        _moduleName = lines; // first is the head node
-        return true;
-    }
-
-    private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, IArchive archive, InstallWindowViewModel.InstallType type)
+    private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap, InstallWindowViewModel.InstallType type)
     {
         var window = new InstallWindow();
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
-        
         var vm = new InstallWindowViewModel(type, plugins, tcs, window);
 
         await vm.Init();
-        
         window.DataContext = vm;
         window.Show();
 
         // waiting for result
         var result = await tcs.Task;
         
-        if(result != null)
-            await InstallSelectedPlugins(result, archive);
+        foreach (var plugin in result.Where(p => p != null))
+        {
+            foreach (var file in plugin!.Files) MapFile(file, entries, extractionMap);
+            foreach (var folder in plugin.Folders) MapFile(folder, entries, extractionMap);
+        }
         
-        window.Close();
         return result;
     }
 
-    private async Task InstallSelectedPlugins(List<PluginOption> plugins, IArchive archive)
+    private void MapFile(IMapping mapping, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        foreach (var plugin in plugins)
-        {
-            foreach (var file in plugin.Files)
-            {
-                await HandleFile(file, archive);
-            }
-            foreach (var file in plugin.Folders)
-            {
-                await HandleFile(file, archive);
-            }
-        }
-    }
-
-    private async Task HandleFile(IMapping mapping, IArchive archive)
-    {
-        var lines = archive.Entries;
-        var moduleIsTheParent = lines.All(x => x.Key.StartsWith(_moduleName));
-        var source = moduleIsTheParent ? Path.Combine(_moduleName, mapping.Source): mapping.Source;
-        var destination = Path.Combine(_defaultDestination, mapping.Destination);
-
-        foreach (var item in archive.Entries.Where(x => !x.IsDirectory && x.Key.StartsWith(source)))
-        {
-            var fileDestination = string.Concat(destination, item.Key.Split(mapping.Source)[1]); // should always come after 'Required'
-            await Extract(item, fileDestination);
-        }
-    }
-    
-    // pls optimize this, it takes too much time
-    private async Task Extract(IArchiveEntry item, string destination)
-    {
-        var parentDir = Directory.GetParent(destination)!.FullName;
-        var options = new ExtractionOptions { Overwrite = true, ExtractFullPath = false }; 
+        string normModuleName = _moduleName?.Replace('\\', '/') ?? "";
+        string normSource = mapping.Source.Replace('\\', '/').TrimStart('/');
         
-        Directory.CreateDirectory(parentDir);
-        await item.WriteToFileAsync(destination, options);
+        bool moduleIsTheParent = entries.All(x => x.Key.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
+        string fullSource = moduleIsTheParent && !string.IsNullOrEmpty(normModuleName) ? $"{normModuleName}/{normSource}" : normSource;
+        fullSource = fullSource.TrimEnd('/');
+        string destinationFolder = Path.Combine(_defaultDestination!, mapping.Destination);
+
+        foreach (var item in entries)
+        {
+            string itemKeyNormalized = item.Key.Replace('\\', '/');
+            
+            if (itemKeyNormalized.StartsWith(fullSource, StringComparison.OrdinalIgnoreCase))
+            {
+                string relativeTail = itemKeyNormalized.Substring(fullSource.Length).TrimStart('/');
+                string fileDestination = Path.Combine(destinationFolder, relativeTail);
+                
+                // Запоминаем путь распаковки в карте
+                extractionMap[itemKeyNormalized] = fileDestination;
+            }
+        }
     }
     
-    private async Task InstallWithoutConfig(IArchive archive)
+    private void PrepareWithoutConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        //var isNodeTheParent = files.All(x => x.Key.StartsWith(files.FirstOrDefault().Key));
-        // some mods have 'data' folder as the first node.
-        //maybe you just need to Replace('data', string.Empty)?
         string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
-        bool containsBsa = archive.Entries.Any(x => x.Key.EndsWith(".bsa"));
-        
-        bool doesStartWithData = archive.Entries.All(x => x.Key!.StartsWith("data", StringComparison.OrdinalIgnoreCase));
-        
-        // for 7z this works well ; for other types use other type of optimiztion idk
-        if (_archiveType == ArchiveType.SevenZip)
-        {
-            var szInst = new SevenZipInstaller();
-            string? dirName = null;
-            // this works better than I expected
-            // maybe you'll need to switch to interfaces, but for now this should be fine
-            await szInst.ExtractAll(_archivePath); 
-            
-            if (doesStartWithData)
-            {
-                dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
-                await szInst.MoveModFiles(dirName);
-            }
-            else if (containsBsa)
-            {
-                var bsaFile = archive.Entries.First(x => x.Key!.EndsWith(".bsa"));
-                var onStartPos = bsaFile.Key!.Split(Path.DirectorySeparatorChar).Length == 1;
-                if (!onStartPos)
-                {
-                    dirName = Directory.GetDirectories(AppConfig.Instance.TempFolder).FirstOrDefault();
-                }
-            }
-            
-            await szInst.MoveModFiles(dirName);
-            return;
-        }
-        
-        // ignore fomod and data folders
-        // also check out FNIS (or similar mods) which have fnis/Data/.. and some files alongside the data folder
-        foreach (var entry in archive.Entries.Where(x => !x.IsDirectory))
-        {
-            // it shouldn't be null
-            if(entry.Key.StartsWith("fomod/", StringComparison.OrdinalIgnoreCase)) continue; // ignore fomod folder
-            
-            var currentDestination = Path.Combine(destination, entry.Key);
-            var keyFolders = entry.Key.Split(Path.DirectorySeparatorChar);
-            
-            if (containsBsa)
-            {
-                var indexOfBsa = keyFolders.IndexOf(keyFolders.First(x => x.EndsWith(".bsa", StringComparison.OrdinalIgnoreCase)));
-                if (indexOfBsa != 0)
-                {
-                    var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(1);
-                    var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
-                    currentDestination = Path.Combine(destination, newKey);
-                }
-            }
-            
-            else if (entry.Key.StartsWith("data/", StringComparison.OrdinalIgnoreCase))
-            {
-                var indexOfData = keyFolders.IndexOf("data/");
-                var newArr = entry.Key.Split(Path.DirectorySeparatorChar).Skip(indexOfData + 1);
-                var newKey = string.Join(Path.DirectorySeparatorChar, newArr);
-                currentDestination = Path.Combine(destination, newKey);
-            }
+        int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
 
-            // try to handle it
-            // await SevenZipInstaller.ExtractMods(entry., destination);
+        foreach (var entry in entries)
+        {
+            string normalizedKey = entry.Key.Replace('\\', '/');
             
-            await Extract(entry, currentDestination);
+            var segments = normalizedKey.Split('/');
+            if (segments.Any(s => s.Equals("fomod", StringComparison.OrdinalIgnoreCase))) continue;
+
+            int dataIndex = Array.FindIndex(segments, s => s.Equals("data", StringComparison.OrdinalIgnoreCase));
+            
+            string relativePath;
+            
+            if (dataIndex != -1) 
+                relativePath = Path.Combine(segments.Skip(dataIndex + 1).ToArray());
+            else if (prefixSegmentsToSkip > 0 && segments.Length > prefixSegmentsToSkip) 
+                relativePath = Path.Combine(segments.Skip(prefixSegmentsToSkip).ToArray());
+            else
+                relativePath = Path.Combine(segments);
+
+            string currentDestination = Path.Combine(destination, relativePath);
+
+            extractionMap[normalizedKey] = currentDestination;
         }
+    }
+
+    private int DeterminePrefixSegmentsToSkip(IEnumerable<IArchiveEntry> entries)
+    {
+        // extensions and folders that identify the root of "Data" folder.
+        var rootMarkers = new[] { ".bsa", ".ba2", ".esp", ".esm", ".esl" };
+        var rootDirectories = new[] { "textures", "meshes", "interface", "sound", "music", "scripts", "skse" };
+
+        int minSkip = int.MaxValue;
+        
+        foreach (var entry in entries)
+        {
+            string path = entry.Key.Replace('\\', '/');
+            var parts = path.Split('/');
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+
+                bool isMarkerFile = rootMarkers.Any(ext => part.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+                bool isMarkerDir = rootDirectories.Any(dir => part.Equals(dir, StringComparison.OrdinalIgnoreCase));
+
+                if (isMarkerFile || isMarkerDir)
+                {
+                    // Запоминаем минимальную глубину, на которой встретили маркер
+                    if (i < minSkip)
+                    {
+                        minSkip = i;
+                    }
+                    break; // Для этого файла дальше глубже не смотрим, берем наивысший совпавший маркер
+                }
+            }
+        }
+
+        return minSkip == int.MaxValue ? 0 : minSkip;; // Data is the root
     }
 
     /*
@@ -256,7 +279,7 @@ public class FomodManager
     
     private FomodConfig ReadConfig()
     {
-        using var archive = ArchiveFactory.Open(_archivePath);
+        using var archive = ArchiveFactory.Open(archivePath);
         var entry = archive.Entries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
         using var stream = entry!.OpenEntryStream();
         
@@ -374,4 +397,20 @@ public class FomodManager
             Priority = (int?)element.Attribute("priority") ?? 0
         };
     }
+    
+    private static void TrimProcessMemory()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            try
+            {
+                using var process = Process.GetCurrentProcess();
+                EmptyWorkingSet(process.Handle);
+            }
+            catch { /* Игнорируем на случай ограничений прав */ }
+        }
+    }
+
+    [DllImport("psapi.dll")]
+    private static extern bool EmptyWorkingSet(IntPtr hProcess);
 }

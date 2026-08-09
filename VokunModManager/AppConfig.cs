@@ -8,21 +8,15 @@ namespace VokunModManager;
 
 public sealed class AppConfig
 {
-    private static AppConfig? _instance;
-    public static AppConfig Instance
-    {
-        get
-        {
-            _instance ??= new AppConfig();
-            return _instance;
-        }
-    }
+    private static readonly Lazy<AppConfig> Lazy = new(() => new AppConfig());
+    public static AppConfig Instance => Lazy.Value;
 
     private AppConfig()
     {
-        BaseDirectory = GetRootByFile(AppDomain.CurrentDomain.BaseDirectory);
-        _appConfigPath = Path.Combine(BaseDirectory, "config.txt");
-        TempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+        var baseDirectory = AppContext.BaseDirectory; // path of the folder which contains the executable / binary
+    
+        _appConfigPath = Path.Combine(baseDirectory, "config.txt");
+        TempFolder = Path.Combine(baseDirectory, "temp");
     }
 
     public enum ConfigType
@@ -32,25 +26,53 @@ public sealed class AppConfig
         VdfConfigPath,
         CompatdataFolder
     }
-    
-    public string BaseDirectory { get; } // ../VokunModManager directory
-    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
-    public string TempFolder { get; }
 
-    public string GameFolderPath { get; private set; } // Skyrim Steam folder
-    public string PluginFilePath { get; private set; } // path for Plugins.txt
-    public string VdfConfigPath { get; private set; } // shortcuts.vdf file path ; this is used to get non-steam game ID
-    public ulong CompatdataFolderId { get; private set; } // ID of skse64 compatdata folder
-    public ulong GameId { get; private set; } // skse64_launcher.exe ID, needed to launch from steam
-    public string SkyrimPrefsFilePath { get; private set; } // settings for the game 
+    // private readonly string _baseDirectory; // ../VokunModManager directory
+    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
+
+    // ======== PROPS ========
+    
+    /// <summary>
+    /// Path to the "...steamapps/common/Skyrim Special Edition" folder.
+    /// </summary>
+    public string? GameFolderPath { get; private set; }
+    /// <summary>
+    /// Path for "...AppData/Local/Skyrim Special Edition/Plugins.txt" file.
+    /// </summary>
+    public string? PluginFilePath { get; private set; }
+    /// <summary>
+    /// Path to "...Steam/userdata/.../config/shortcuts.vdf" file. This is needed in order to get a non-steam game ID.
+    /// </summary>
+    public string? VdfConfigPath { get; private set; }
+    /// <summary>
+    /// [Linux ONLY] ID of "skse64" compatdata folder.
+    /// </summary>
+    public ulong CompatdataFolderId { get; private set; }
+    /// <summary>
+    /// ID of the "skse64_launcher.exe". This is the file, that will be launcher from steam.
+    /// </summary>
+    public ulong LauncherId { get; private set; }
+    /// <summary>
+    /// Path to "SkyrimPrefs" file. Basically, the in-game settings config.
+    /// </summary>
+    public string? SkyrimPrefsFilePath { get; private set; }
+    /// <summary>
+    /// Path to "temp" folder. Used to extract archive files directly in there, then move to Data folder of the game.
+    /// It's a faster way of installing.
+    /// </summary>
+    public string TempFolder { get; }
+    
+    // ======== ===== ========
 
     public async Task UpdateConfig(ConfigType key, string value)
     {
+        FileManager fm = new FileManager();
+        
         switch (key)
         {
             case ConfigType.GameFolderPath:
                 GameFolderPath = value;
-                SkyrimPrefsFilePath = await GetGameConfig();
+                SkyrimPrefsFilePath = await fm.GetGameConfig();
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
@@ -59,8 +81,8 @@ public sealed class AppConfig
                 VdfConfigPath = value;
                 break;
             case ConfigType.CompatdataFolder:
-                CompatdataFolderId = await TryGetValueFromDirectory(value);
-                GameId = await GetGameId();
+                CompatdataFolderId = await fm.TryGetValueFromDirectory(value);
+                LauncherId = await fm.GetGameId(GameFolderPath);
                 break;
             default:
                 await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while updating the config.");
@@ -72,8 +94,8 @@ public sealed class AppConfig
     
     public async Task InitConfig()
     {
-        if (!File.Exists(_appConfigPath)) await using (File.Create(_appConfigPath)) { } // DON'T FORGET TO CLOSE THE STREAM! USE using
-        if (!Directory.Exists(TempFolder)) Directory.CreateDirectory(TempFolder);
+        if (!File.Exists(_appConfigPath)) await File.WriteAllTextAsync(_appConfigPath, string.Empty);
+        if (!Directory.Exists(TempFolder)) Directory.CreateDirectory(TempFolder);       // It just HAS to exist
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
 
@@ -91,9 +113,9 @@ public sealed class AppConfig
                 case "pluginFilePath": PluginFilePath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
                 case "vdfConfigPath": VdfConfigPath = value; break;
-                // since you WRITE FIRST and READ ONLY THEN, we don't expect exception there
+                // since you WRITE FIRST and READ LATER, we don't expect exception there ; may be just empty
                 case "compatdataFolderId": CompatdataFolderId = Convert.ToUInt64(value); break;
-                case "gameId": GameId = Convert.ToUInt64(value); break;
+                case "gameId": LauncherId = Convert.ToUInt64(value); break;
                 case "skyrimPrefsFilePath": SkyrimPrefsFilePath = value; break;
                 default:
                     await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while initializing the config.");
@@ -103,67 +125,22 @@ public sealed class AppConfig
 
         await CheckConfigStatus(); // just to be sure
     }
-
-    // this should be activated only once per startup
-    private static string GetRootByFile(string startPath)
-    {
-        var dir = new DirectoryInfo(startPath);
-        while (dir != null)
-        {
-            // since I build in one folder, root will be on the same level with a bunch of library files.
-            if (dir.GetFiles("VokunModManager.sln").Any()) 
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-        return startPath;
-    }
     
     private async Task ReWriteConfig()
     {
         await using (StreamWriter sw = new StreamWriter(_appConfigPath))
         {
-            // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND
+            // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND and so on... it's hardcoded.
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
             await sw.WriteLineAsync($"pluginFilePath={PluginFilePath}");
             await sw.WriteLineAsync($"vdfConfigPath={VdfConfigPath}");
             await sw.WriteLineAsync($"compatdataFolderId={CompatdataFolderId}");
-            await sw.WriteLineAsync($"gameId={GameId}");
+            await sw.WriteLineAsync($"gameId={LauncherId}");
             await sw.WriteLineAsync($"skyrimPrefsFilePath={SkyrimPrefsFilePath}");
         }
     }
-
-    private async Task<ulong> GetGameId()
-    {
-        string path = Path.Combine(GameFolderPath, "skse64_loader.exe");
-        ulong result = 0;
-        
-        try
-        {
-            result = await GameIdFinder.GetLongId(path);
-        }
-        catch (Exception ex)
-        {
-            await MsgBoxManager.ShowWarning($"Couldn't identify GameID. Exception message: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    private async Task<ulong> TryGetValueFromDirectory(string path)
-    {
-        if(ulong.TryParse(path, out ulong result)) return result;
-        return 0; // always check for 0 like you check for null or empty
-    }
-
-    private async Task<string> GetGameConfig()
-    {
-        var loc = ".local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/My Documents/My Games/Skyrim Special Edition/SkyrimPrefs.ini";
-        string possibleLoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), loc);
-        if(File.Exists(possibleLoc)) return possibleLoc;
-        return null;
-    }
-
-    private async Task CheckConfigStatus()
+    
+    public async Task CheckConfigStatus()
     {
         var fileM = new FileManager();
 

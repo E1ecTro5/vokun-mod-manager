@@ -1,5 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,10 +20,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<Mod> _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
     
+    // they all need to be displayed just to make it easier for me
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
     [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
+    [ObservableProperty] private ulong _compatdataFolder;
+    [ObservableProperty] private ulong _launcherId;
+    [ObservableProperty] private string _skyrimPrefsFilePath;
     
     [ObservableProperty] private string _archivePath;        // path of a selected archive
 
@@ -31,7 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
-    public ICommand UpdateTextBlocksCommand { get; }
+    public ICommand ReInitTextBlocksCommand { get; }
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
     public ICommand SelectVdfCommand { get; }
@@ -49,7 +56,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
-        UpdateTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
+        ReInitTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
         SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
         SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
@@ -66,42 +73,75 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        ulong longId = AppConfig.Instance.GameId;
-        
-        // just uri command to run the game
-        string uri = $"steam://rungameid/{longId}";
-        
-        // this variant should work on Linux;
-        Process.Start(new ProcessStartInfo
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
-            FileName = uri,
-            UseShellExecute = true,
-            CreateNoWindow = true
-        });
+            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToLauncher,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
+        }
+        else
+        {
+            ulong longId = AppConfig.Instance.LauncherId;
+
+            // just uri command to run the game
+            string uri = $"steam://rungameid/{longId}";
+
+            // this variant should work on Linux;
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = uri,
+                UseShellExecute = true,
+                CreateNoWindow = true
+            });
+        }
     }
     
     private async Task LateInit()
     {
+        // may be null/default if Skyrim not installed, or you're launching for the first time.
+        // please, make sure they're initialized before using
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        ModGameId = AppConfig.Instance.GameId;
+        ModGameId = AppConfig.Instance.LauncherId;
         VdfFilePath = AppConfig.Instance.VdfConfigPath;
-        ArchivePath = "Not selected";
-        IsPlayAvailable = AppConfig.Instance.GameId != 0;
+
+        CompatdataFolder = AppConfig.Instance.CompatdataFolderId;
+        LauncherId = AppConfig.Instance.LauncherId;
+        SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+        
+        ArchivePath = "Not selected"; // default
+
+         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+             IsPlayAvailable = true;
+         else
+             IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
+        
         IsLoadArchiveAvailable = true;
+    }
+
+    private async Task ReInitValues()
+    {
+        await AppConfig.Instance.CheckConfigStatus();
     }
 
     private async Task UpdateModList()
     {
         var modListM = new ModListManager();
-        ModList = await modListM.GetModList();
-        FoundMods = await modListM.CheckForMods(ModList);
+        var updated = await modListM.UpdateModList();
+        ModList = updated;
     }
     
     private async Task SaveModList()
     {
         var modListM = new ModListManager();
-        await modListM.SetModList(ModList);
+        // save current state
+        await modListM.SaveCurrentModListState(ModList);
         await UpdateModList();
     }
 
@@ -162,6 +202,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenDataFolder()
     {
+        if (string.IsNullOrEmpty(GameFolderPath))
+        {
+            await MsgBoxManager.ShowWarning("Game folder path not selected!");
+            return;
+        }
         await OpenFileDirectory(GameFolderPath);
     }
     
@@ -177,16 +222,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenFileDirectory(string path)
     {
-        var psi = new ProcessStartInfo
+        if(string.IsNullOrEmpty(path)) return;
+        
+        // on Windows;
+        // still need to refactor for dirs/apps
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            FileName = "xdg-open", // this should work only on Linux (Wayland?)
-            Arguments = $"\"{path}\"",
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            Console.WriteLine("Running on Windows");
+            Process.Start("explorer.exe", path);
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "xdg-open", // this should work only on Linux (Wayland?)
+                Arguments = $"\"{path}\"",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-        Process.Start(psi);
+            Process.Start(psi);
+        }
     }
 
     private async Task InstallMod()
