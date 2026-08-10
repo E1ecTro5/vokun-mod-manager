@@ -44,4 +44,9 @@ public partial class InstallWindowViewModel : ViewModelBase
         
         _tcs?.TrySetResult(selectedOptions);
     }
+    
+    public void HandleWindowClosed()
+    {
+        _tcs?.TrySetCanceled(); 
+    }
 }

@@ -49,6 +49,10 @@ public class FomodManager(string archivePath)
                 entries.Clear();
             }
         }
+        catch (TaskCanceledException)
+        {
+            await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
+        }
         finally
         {
             extractionMap.Clear();
@@ -130,7 +134,7 @@ public class FomodManager(string archivePath)
         }
     }
 
-    private async Task<List<PluginOption?>> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
+    private async Task<List<PluginOption?>?> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
         
@@ -138,8 +142,10 @@ public class FomodManager(string archivePath)
         var window = new InstallWindow { DataContext = vm };
         window.Show();
 
+        List<PluginOption?> result;
+        
         // wait till the result
-        var result = await tcs.Task;
+        result = await tcs.Task;
         window.Close();
 
         // map the files
