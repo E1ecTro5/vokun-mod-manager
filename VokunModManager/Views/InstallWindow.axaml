@@ -7,19 +7,57 @@
         Title="InstallWindow"
         xmlns:vm="using:VokunModManager.ViewModels"
         x:DataType="vm:InstallWindowViewModel"
-        Width="400" Height="350">
-    
-    <Grid RowDefinitions="*, Auto" Margin="10">
-        <StackPanel x:Name="MainStackPanel" Margin="10">
-            <!--just for existence, I'll rewrite this soon with bindings and etc-->
-            <TextBlock Text="{Binding TextBlockContent}"/>
-            <!--radiobuttons will be added here through the code-->
-            <RadioButton IsChecked="True">
-                <TextBlock>dadada</TextBlock>
-            </RadioButton>
+        SizeToContent="WidthAndHeight" 
+        MaxWidth="1280"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto, Auto" Margin="10">
+
+        <ScrollViewer Grid.Row="0" MaxHeight="600" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10" x:Name="RootContainer" Orientation="Vertical">
+                
+                <!-- just GroupName -->
+                <TextBlock Text="{Binding GroupName}" 
+                           FontWeight="Bold" 
+                           Margin="0,10,0,0"/>
+
+                <!-- dynamic list -->
+                <ItemsControl ItemsSource="{Binding Options}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,12" Orientation="Vertical">
+                                
+                                <!-- if IsSingleSelect == true -->
+                                <RadioButton Content="{Binding Name}" 
+                                             GroupName="PluginOptionsGroup"
+                                             IsChecked="{Binding IsSelected}"
+                                             IsVisible="{Binding $parent[Window].((vm:InstallWindowViewModel)DataContext).IsSingleSelect}"/>
+
+                                <!-- if IsMultiSelect == true -->
+                                <CheckBox Content="{Binding Name}" 
+                                          IsChecked="{Binding IsSelected}"
+                                          IsVisible="{Binding $parent[Window].((vm:InstallWindowViewModel)DataContext).IsMultiSelect}"/>
+
+                                <!-- Description for both cases -->
+                                <TextBlock Text="{Binding Description}" 
+                                           Margin="0" 
+                                           TextWrapping="Wrap"
+                                           Opacity="0.8"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Select Button -->
+        <StackPanel Grid.Row="1" Margin="0,15,0,0">
+            <Button Content="Select" 
+                    Command="{Binding SelectCommand}" 
+                    HorizontalAlignment="Right" 
+                    Padding="20,6"/>
         </StackPanel>
-        <StackPanel Grid.Row="1">
-            <Button Content="Select" Command="{Binding SelectCommand}" HorizontalAlignment="Right"/>
-        </StackPanel>
+
     </Grid>
 </Window>

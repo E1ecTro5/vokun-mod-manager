@@ -122,42 +122,33 @@ public class FomodManager(string archivePath)
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         foreach (var step in steps)
         {
+            // this works fine, don't touch it
             foreach (var fileGroup in step.Groups)
             {
-                var type = fileGroup.Type;
-
-                switch (type)
-                {
-                    case "SelectExactlyOne":
-                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectExactlyOne);
-                        break;
-                    case "SelectAny":
-                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectAny);
-                        break;
-                }
+                await ShowInstallWindow(fileGroup, entries, extractionMap);
             }
         }
     }
 
-    private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap, InstallWindowViewModel.InstallType type)
+    private async Task<List<PluginOption?>> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        var window = new InstallWindow();
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
-        var vm = new InstallWindowViewModel(type, plugins, tcs, window);
-
-        await vm.Init();
-        window.DataContext = vm;
+        
+        var vm = new InstallWindowViewModel(group, tcs);
+        var window = new InstallWindow { DataContext = vm };
         window.Show();
 
-        // waiting for result
+        // wait till the result
         var result = await tcs.Task;
-        
+        window.Close();
+
+        // map the files
         foreach (var plugin in result.Where(p => p != null))
         {
             foreach (var file in plugin!.Files) MapFile(file, entries, extractionMap);
             foreach (var folder in plugin.Folders) MapFile(folder, entries, extractionMap);
         }
-        
+
         return result;
     }
 
@@ -180,7 +171,6 @@ public class FomodManager(string archivePath)
                 string relativeTail = itemKeyNormalized.Substring(fullSource.Length).TrimStart('/');
                 string fileDestination = Path.Combine(destinationFolder, relativeTail);
                 
-                // Запоминаем путь распаковки в карте
                 extractionMap[itemKeyNormalized] = fileDestination;
             }
         }

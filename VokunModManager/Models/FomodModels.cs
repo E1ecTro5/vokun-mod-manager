@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 using VokunModManager.Interfaces;
 
 namespace VokunModManager.Models;
@@ -26,13 +27,15 @@ public class FileGroup
     public List<PluginOption> Plugins { get; set; }
 }
 
-public class PluginOption
+public partial class PluginOption : ObservableObject
 {
     public string Name { get; set; }
     public string Description { get; set; }
 
     public List<FolderMapping> Folders { get; set; }
     public List<FileMapping> Files { get; set; }
+    
+    [ObservableProperty] private bool _isSelected; // need for InstallWindow
 }
 
 public class FolderMapping : IMapping
