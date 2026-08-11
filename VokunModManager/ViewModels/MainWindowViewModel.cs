@@ -261,7 +261,8 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
         
-        var fomod = new FomodManager(filePath);
+        Logger.Log($"Selected file: {filePath}");
+        var fomod = new FomodManager(filePath, Logger);
         IsPlayAvailable = false;
         await fomod.InstallMod();
         IsPlayAvailable = true;

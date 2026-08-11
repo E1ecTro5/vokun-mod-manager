@@ -98,13 +98,9 @@
                                                Foreground="#666666"
                                                FontSize="12"/>
                                     <TextBlock Text="{Binding Message}"
+                                               FontFamily="Monospace"
                                                TextWrapping="Wrap"
                                                FontSize="12">
-                                        <TextBlock.Styles>
-                                            <Style Selector="TextBlock">
-                                                <Setter Property="Foreground" Value="#DCDCDC"/> <!-- Info / Default -->
-                                            </Style>
-                                        </TextBlock.Styles>
                                     </TextBlock>
                                 </StackPanel>
                             </DataTemplate>
