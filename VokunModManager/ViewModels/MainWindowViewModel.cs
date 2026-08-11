@@ -33,6 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
+    [ObservableProperty] private bool _isModInstalling;
 
     private readonly FileManager _fileManager = new FileManager();
     
@@ -260,12 +261,14 @@ public partial class MainWindowViewModel : ViewModelBase
             await MsgBoxManager.ShowWarning("Mod archive not selected!");
             return;
         }
-        
+
+        IsModInstalling = true;
         Logger.Log($"Selected file: {filePath}");
         var fomod = new FomodManager(filePath, Logger);
         IsPlayAvailable = false;
         await fomod.InstallMod();
         IsPlayAvailable = true;
+        IsModInstalling = false;
         
         await UpdateModList();
     }
