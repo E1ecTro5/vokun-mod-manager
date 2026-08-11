@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
         x:Class="VokunModManager.Views.InstallWindow"
-        Title="InstallWindow"
+        Title="Select which to install..."
         xmlns:vm="using:VokunModManager.ViewModels"
         x:DataType="vm:InstallWindowViewModel"
         SizeToContent="WidthAndHeight" 

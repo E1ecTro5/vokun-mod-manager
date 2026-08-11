@@ -49,6 +49,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenDataFolderCommand { get; }
     public ICommand OpenPluginFileCommand { get; }
     public ICommand OpenGameConfigCommand { get; }
+
+    public ILoggerService Logger { get; }
     
     public MainWindowViewModel()
     {
@@ -69,6 +71,9 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
+
+        Logger = new UILoggerService();
+        Logger.Log("Logger initialized.");
     }
 
     private async Task StartGame()
@@ -135,6 +140,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var modListM = new ModListManager();
         var updated = await modListM.UpdateModList();
         ModList = updated;
+        Logger.Log("Mod list updated.");
     }
     
     private async Task SaveModList()
@@ -268,4 +274,6 @@ public partial class MainWindowViewModel : ViewModelBase
         await LateInit();
         await UpdateModList(); // maybe you should include this in LateInit()
     }
+    
+    
 }

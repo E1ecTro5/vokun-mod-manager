@@ -88,22 +88,29 @@
                     <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                     <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
-                <!--<StackPanel Grid.Row="3">
-                    <TextBlock Text="{Binding ArchivePath, StringFormat='Selected archive: {0}'}" FontSize="11"/>
-                </StackPanel>
-                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
-                    <TreeView ItemsSource="{Binding ArchiveItems}">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal" Margin="2">
-                                    ~1~ add check all the children of the parent feature @1@
-                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsThreeState="False" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:LogMessage">
+                                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2">
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='[{0}]'}"
+                                               FontFamily="Monospace"
+                                               Foreground="#666666"
+                                               FontSize="12"/>
+                                    <TextBlock Text="{Binding Message}"
+                                               TextWrapping="Wrap"
+                                               FontSize="12">
+                                        <TextBlock.Styles>
+                                            <Style Selector="TextBlock">
+                                                <Setter Property="Foreground" Value="#DCDCDC"/> <!-- Info / Default -->
+                                            </Style>
+                                        </TextBlock.Styles>
+                                    </TextBlock>
                                 </StackPanel>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </Border>-->
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
                 <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
                     <Button Content="Install mod" Command="{Binding InstallModCommand}" Grid.Column="0" Padding="10,5"></Button>
                     <!--yo, make this work later ; turned off because of relocation of methods-->
