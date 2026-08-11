@@ -7,6 +7,7 @@
         xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions.DragAndDrop"
         xmlns:b="clr-namespace:VokunModManager.Behaviors"
         xmlns:models="clr-namespace:VokunModManager.Models"
+        xmlns:li="using:LoadingIndicators.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinWidth="900" MinHeight="400"
         x:Class="VokunModManager.Views.MainWindow"
@@ -88,31 +89,28 @@
                     <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                     <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
-                <!--<StackPanel Grid.Row="3">
-                    <TextBlock Text="{Binding ArchivePath, StringFormat='Selected archive: {0}'}" FontSize="11"/>
-                </StackPanel>
-                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
-                    <TreeView ItemsSource="{Binding ArchiveItems}">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal" Margin="2">
-                                    ~1~ add check all the children of the parent feature @1@
-                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsThreeState="False" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:LogMessage">
+                                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2">
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='[{0}]'}"
+                                               FontFamily="Monospace"
+                                               Foreground="#666666"
+                                               FontSize="12"/>
+                                    <TextBlock Text="{Binding Message}"
+                                               FontFamily="Monospace"
+                                               TextWrapping="Wrap"
+                                               FontSize="12">
+                                    </TextBlock>
                                 </StackPanel>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </Border>-->
-                <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="5">
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="5">
                     <Button Content="Install mod" Command="{Binding InstallModCommand}" Grid.Column="0" Padding="10,5"></Button>
-                    <!--yo, make this work later ; turned off because of relocation of methods-->
-                    <!--
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="5,0" IsVisible="False">
-                        <TextBlock Text="{Binding CurrentInstallFile, StringFormat='Installing: {0}'}" FontSize="9"/>
-                        <ProgressBar Value="{Binding InstallPercentage}" Maximum="{Binding MaxPercentageValue}" Minimum="0"/>
-                    </StackPanel>
-                    -->
+                    <li:LoadingIndicator Grid.Column="1" Height="30" IsActive="{Binding IsModInstalling}" Mode="Arc" SpeedRatio="1.2" />
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
                     <Button Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" Padding="10,5"></Button>
                 </Grid>

@@ -15,7 +15,7 @@ using VokunModManager.Views;
 
 namespace VokunModManager.Misc;
 
-public class FomodManager(string archivePath)
+public class FomodManager(string archivePath, ILoggerService logger)
 {
     private string? _moduleName;
     private string? _defaultDestination;
@@ -25,6 +25,7 @@ public class FomodManager(string archivePath)
 
     public async Task InstallMod()
     {
+        logger.Log("Installing mod...");
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
         // NormalizedKeyInArchive -> FullDestinationPathOnDisk
@@ -32,25 +33,34 @@ public class FomodManager(string archivePath)
 
         try
         {
+            logger.Log("Opening the archive...");
             using (var archive = ArchiveFactory.Open(archivePath))
             {
                 // caching entries
                 var entries = archive.Entries.Where(x => !x.IsDirectory).ToList();
+                logger.Log($"{entries.Count} entries found inside the archive.");
 
-                if (await SearchForFomodFolder(entries))
-                    //await InstallFromConfig(entries);
-                    await PrepareFromConfig(entries, extractionMap);
-                else
-                    //await InstallWithoutConfig(entries);
-                    PrepareWithoutConfig(entries, extractionMap);
+                if (await SearchForFomodFolder(entries)) await PrepareFromConfig(entries, extractionMap);
+                else PrepareWithoutConfig(entries, extractionMap);
 
-                if (extractionMap.Count > 0) ExtractAllStreamlined(archive, extractionMap);
+                if (extractionMap.Count > 0)
+                {
+                    logger.Log("Extracting files...");
+                    ExtractAllStreamlined(archive, extractionMap);
+                }
 
                 entries.Clear();
             }
+            logger.Log($"{extractionMap.Count} files has been extracted.");
+        }
+        catch (TaskCanceledException)
+        {
+            logger.Log("Mod installment has been canceled.", LogLevel.Error);
+            await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
         }
         finally
         {
+            logger.Log("Disposing memory...");
             extractionMap.Clear();
             _createdDirectories.Clear();
 
@@ -67,6 +77,8 @@ public class FomodManager(string archivePath)
         // DISPOSE everything once finished
         GC.Collect();
         GC.WaitForPendingFinalizers();
+        
+        logger.Log("Mod installment finished.");
     }
     
     private void ExtractAllStreamlined(IArchive archive, Dictionary<string, string> extractionMap)
@@ -96,18 +108,25 @@ public class FomodManager(string archivePath)
     private async Task<bool> SearchForFomodFolder(List<IArchiveEntry> entries)
     {
         var configEntry = entries.FirstOrDefault(x => x.Key != null && x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
-        if (configEntry?.Key == null) return false;
+        if (configEntry?.Key == null)
+        {
+            logger.Log("ModuleConfig.xml has not been found.");
+            return false;
+        }
 
         // normalize the slashes
         string normalizedKey = configEntry.Key.Replace('\\', '/');
         _moduleName = normalizedKey.Split('/').FirstOrDefault() ?? "";
+        logger.Log($"ModuleConfig.xml has been found. Module name: {_moduleName}");
         
         return !string.IsNullOrEmpty(_moduleName);
     }
     
     private async Task PrepareFromConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
+        logger.Log("Reading the config...");
         var fomodConfig = ReadConfig();
+        logger.Log("Config has been read. Mapping files...");
         
         foreach (var file in fomodConfig.RequiredFiles)
         {
@@ -122,42 +141,38 @@ public class FomodManager(string archivePath)
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         foreach (var step in steps)
         {
+            // this works fine, don't touch it
             foreach (var fileGroup in step.Groups)
             {
-                var type = fileGroup.Type;
-
-                switch (type)
-                {
-                    case "SelectExactlyOne":
-                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectExactlyOne);
-                        break;
-                    case "SelectAny":
-                        await ShowInstallWindow(fileGroup.Plugins, entries, extractionMap, InstallWindowViewModel.InstallType.SelectAny);
-                        break;
-                }
+                logger.Log($"InstallWindow appeared. Group: {fileGroup.Name}");
+                await ShowInstallWindow(fileGroup, entries, extractionMap);
             }
         }
+        logger.Log("extractionMap has been prepared.");
     }
 
-    private async Task<List<PluginOption?>> ShowInstallWindow(IEnumerable<PluginOption> plugins, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap, InstallWindowViewModel.InstallType type)
+    private async Task<List<PluginOption?>?> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        var window = new InstallWindow();
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
-        var vm = new InstallWindowViewModel(type, plugins, tcs, window);
-
-        await vm.Init();
-        window.DataContext = vm;
+        
+        var vm = new InstallWindowViewModel(group, tcs);
+        var window = new InstallWindow { DataContext = vm };
         window.Show();
 
-        // waiting for result
-        var result = await tcs.Task;
+        List<PluginOption?> result;
         
+        // wait till the result
+        result = await tcs.Task;
+        window.Close();
+
+        // map the files
         foreach (var plugin in result.Where(p => p != null))
         {
+            logger.Log($"Mapping {plugin.Name} files...");
             foreach (var file in plugin!.Files) MapFile(file, entries, extractionMap);
             foreach (var folder in plugin.Folders) MapFile(folder, entries, extractionMap);
         }
-        
+
         return result;
     }
 
@@ -180,7 +195,6 @@ public class FomodManager(string archivePath)
                 string relativeTail = itemKeyNormalized.Substring(fullSource.Length).TrimStart('/');
                 string fileDestination = Path.Combine(destinationFolder, relativeTail);
                 
-                // Запоминаем путь распаковки в карте
                 extractionMap[itemKeyNormalized] = fileDestination;
             }
         }
@@ -191,6 +205,7 @@ public class FomodManager(string archivePath)
         string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
 
+        logger.Log("Preparing without config...");
         foreach (var entry in entries)
         {
             string normalizedKey = entry.Key.Replace('\\', '/');
@@ -213,6 +228,7 @@ public class FomodManager(string archivePath)
 
             extractionMap[normalizedKey] = currentDestination;
         }
+        logger.Log("extractionMap has been prepared.");
     }
 
     private int DeterminePrefixSegmentsToSkip(IEnumerable<IArchiveEntry> entries)
