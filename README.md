@@ -23,7 +23,7 @@ Just download the latest release from the [release pages](https://github.com/E1e
 ## How to use
 
 ### So, here is the UI design:
-<img width="800" height="401" alt="image" src="assets/preview1.gif" />
+<img width="800" height="401" alt="image" src="Assets/preview1.gif" />
 
 * **`Current mod list`** - on the left side is the list of mods (.esp/.esm/.esl) mentioned in the `Plugins.txt` file. The checkbox represents the `*` symbol in a string, saying whether the mod is currently on or off.
 You're also able to reorder them by drag-and-dropping, thanks to [@aldelaro5](https://github.com/aldelaro5) for the [solution](https://github.com/AvaloniaUI/Avalonia/discussions/10877).
@@ -54,17 +54,17 @@ Next, just install mods, enable/disable them and go play. Just make sure you did
 
 > [!WARNING]
 > Please, before you start just fill all the TextBoxes above the buttons. You should initialize every path (if it's not detected automatically) and make it look like this (first two strings can be ignored on Windows):
-> <img alt="image" src="assets/preview2.png" />
+> <img alt="image" src="Assets/preview2.png" />
 > Once you finish with all path and file's initializations, move on.
 
 ###
 You can check if you did everything correct in game's "Creations" tab:
 
-<img height="300" alt="image" src="assets/previewGameLoadOrder.jpg" />
+<img height="300" alt="image" src="Assets/previewGameLoadOrder.jpg" />
 
 Example, College of Winterhold main hall and SkyHUB dot in the centre:
 
-<img height="300" alt="image" src="assets/previewCollegeHall.jpg" />
+<img height="300" alt="image" src="Assets/previewCollegeHall.jpg" />
 
 ## Features
 Completed:
