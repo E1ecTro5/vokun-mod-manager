@@ -50,15 +50,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
             if (hasFomod) await PrepareFromConfig(entries, extractionMap);
             else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
-            
+
             // extracting...
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-                await Task.Run(() =>
-                {
-                    ExtractAllStreamlined(extractionMap);
-                });
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -66,6 +63,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
         {
             logger.Log("Mod installment has been canceled.", LogLevel.Error);
             await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
+        }
+        catch (Exception ex)
+        {
+            logger.Log("Error during mod installment.", LogLevel.Error);
+            await MsgBoxManager.ShowWarning($"Error: {ex.Message}");
         }
         finally
         {
@@ -89,7 +91,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     private void ExtractAllStreamlined(Dictionary<string, string> extractionMap)
     {
+        if (extractionMap.Count == 0) return;
+        
         bool is7Zip = archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase);
+        
+        int leftToExtract = extractionMap.Count;
         
         if (is7Zip)
         {
@@ -105,6 +111,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
                     ExtractSingleEntry(reader, destinationPath);
+                    leftToExtract -= 1;
+                    if(leftToExtract == 0) break;
                 }
             }
         }
@@ -122,6 +130,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
                     ExtractSingleEntry(entry, destinationPath);
+                    leftToExtract -= 1;
+                    if(leftToExtract == 0) break;
                 }
             }
         }
@@ -133,21 +143,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
         if (string.IsNullOrWhiteSpace(cleanPath)) return;
         string? parentDir = Path.GetDirectoryName(cleanPath);
         
-        if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir))
-        {
-            Directory.CreateDirectory(parentDir);
-        }
+        if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir)) Directory.CreateDirectory(parentDir);
 
         using var fileStream = File.Create(cleanPath);
 
-        if (entryOrReader is IReader reader)
-        {
-            reader.WriteEntryTo(fileStream);
-        }
-        else if (entryOrReader is IArchiveEntry entry)
-        {
-            entry.WriteTo(fileStream);
-        }
+        if (entryOrReader is IReader reader) reader.WriteEntryTo(fileStream);
+        else if (entryOrReader is IArchiveEntry entry) entry.WriteTo(fileStream);
     }
 
     private bool SearchForFomodFolder(List<IArchiveEntry> entries)
@@ -171,17 +172,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
     {
         logger.Log("Reading the config...");
         var fomodConfig = ReadConfig(entries);
+        if (fomodConfig is null) throw new Exception("Couldn't read the config.");
         logger.Log("Config has been read. Mapping files...");
         
-        foreach (var file in fomodConfig.RequiredFiles)
-        {
-            MapFile(file, entries, extractionMap);
-        }
-        
-        foreach (var file in fomodConfig.RequiredFolders)
-        {
-            MapFile(file, entries, extractionMap);
-        }
+        foreach (var file in fomodConfig.RequiredFiles) MapFile(file, entries, extractionMap);
+        foreach (var file in fomodConfig.RequiredFolders) MapFile(file, entries, extractionMap);
 
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         foreach (var step in steps)
