@@ -79,19 +79,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = pathToLauncher,
-                WorkingDirectory = GameFolderPath,
-                UseShellExecute = true
-            };
-
-            Process.Start(startInfo);
-        }
-        else
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             ulong longId = AppConfig.Instance.LauncherId;
 
@@ -105,6 +93,18 @@ public partial class MainWindowViewModel : ViewModelBase
                 UseShellExecute = true,
                 CreateNoWindow = true
             });
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToLauncher,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
         }
     }
     
@@ -230,15 +230,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task OpenFileDirectory(string path)
     {
         if(string.IsNullOrEmpty(path)) return;
-        
-        // on Windows;
-        // still need to refactor for dirs/apps
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            Console.WriteLine("Running on Windows");
-            Process.Start("explorer.exe", path);
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             var psi = new ProcessStartInfo
             {
@@ -251,6 +244,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Process.Start(psi);
         }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Process.Start("explorer.exe", path);
+        }
+        
     }
 
     private async Task InstallMod()

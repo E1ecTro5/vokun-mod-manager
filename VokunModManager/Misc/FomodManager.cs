@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SharpCompress.Archives;
+using SharpCompress.Archives.SevenZip;
+using SharpCompress.Readers;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 using VokunModManager.ViewModels;
@@ -28,35 +30,44 @@ public class FomodManager(string archivePath, ILoggerService logger)
         logger.Log("Installing mod...");
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
+        // open it ONCE
+        using var archive = ArchiveFactory.Open(archivePath);
+        
         // NormalizedKeyInArchive -> FullDestinationPathOnDisk
         var extractionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         try
         {
-            logger.Log("Opening the archive...");
-            using (var archive = ArchiveFactory.Open(archivePath))
+            var (entries, hasFomod) = await Task.Run(() =>
             {
-                // caching entries
-                var entries = archive.Entries.Where(x => !x.IsDirectory).ToList();
-                logger.Log($"{entries.Count} entries found inside the archive.");
+                logger.Log("Opening the archive...");
+                var validEntries = archive.Entries.Where(x => !x.IsDirectory).ToList();
+                logger.Log($"{validEntries.Count} entries found inside the archive.");
 
-                if (await SearchForFomodFolder(entries)) await PrepareFromConfig(entries, extractionMap);
-                else PrepareWithoutConfig(entries, extractionMap);
+                bool fomodFound = SearchForFomodFolder(validEntries);
+                return (validEntries, fomodFound);
+            });
 
-                if (extractionMap.Count > 0)
-                {
-                    logger.Log("Extracting files...");
-                    ExtractAllStreamlined(archive, extractionMap);
-                }
+            if (hasFomod) await PrepareFromConfig(entries, extractionMap);
+            else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
 
-                entries.Clear();
+            // extracting...
+            if (extractionMap.Count > 0)
+            {
+                logger.Log("Extracting files...");
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
+                logger.Log($"{extractionMap.Count} files have been extracted.");
             }
-            logger.Log($"{extractionMap.Count} files has been extracted.");
         }
         catch (TaskCanceledException)
         {
             logger.Log("Mod installment has been canceled.", LogLevel.Error);
             await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
+        }
+        catch (Exception ex)
+        {
+            logger.Log("Error during mod installment.", LogLevel.Error);
+            await MsgBoxManager.ShowWarning($"Error: {ex.Message}");
         }
         finally
         {
@@ -64,48 +75,83 @@ public class FomodManager(string archivePath, ILoggerService logger)
             extractionMap.Clear();
             _createdDirectories.Clear();
 
-            // dispose and give the memory back to the OS
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            TrimProcessMemory();
+            // cleaning and disposing the memory
+            await Task.Run(() =>
+            {
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                TrimProcessMemory();
+            });
         }
-        
-        _createdDirectories.Clear();
-
-        // DISPOSE everything once finished
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
         
         logger.Log("Mod installment finished.");
     }
-    
-    private void ExtractAllStreamlined(IArchive archive, Dictionary<string, string> extractionMap)
-    {
-        foreach (var entry in archive.Entries)
-        {
-            if (entry.IsDirectory) continue;
-            string normalizedKey = entry.Key.Replace('\\', '/');
 
-            // chech if we need the file
-            if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap)
+    {
+        if (extractionMap.Count == 0) return;
+        
+        bool is7Zip = archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase);
+        
+        int leftToExtract = extractionMap.Count;
+        
+        if (is7Zip)
+        {
+            using var archive = SevenZipArchive.Open(archivePath);
+            using var reader = archive.ExtractAllEntries();
+
+            while (reader.MoveToNextEntry())
             {
-                string? parentDir = Path.GetDirectoryName(destinationPath);
-                
-                if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir))
+                if (reader.Entry.IsDirectory || reader.Entry.Key == null) continue;
+
+                string normalizedKey = reader.Entry.Key.Replace('\\', '/');
+
+                if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
-                    Directory.CreateDirectory(parentDir);
+                    ExtractSingleEntry(reader, destinationPath);
+                    leftToExtract -= 1;
+                    if(leftToExtract == 0) break;
                 }
-                
-                // Stream of a specific FILE inside the archive
-                using var fileStream = File.Create(destinationPath);
-                entry.WriteTo(fileStream);
+            }
+        }
+        
+        else
+        {
+            using var archive = ArchiveFactory.Open(archivePath);
+
+            foreach (var entry in archive.Entries)
+            {
+                if (entry.IsDirectory || entry.Key == null) continue;
+
+                string normalizedKey = entry.Key.Replace('\\', '/');
+
+                if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
+                {
+                    ExtractSingleEntry(entry, destinationPath);
+                    leftToExtract -= 1;
+                    if(leftToExtract == 0) break;
+                }
             }
         }
     }
 
-    private async Task<bool> SearchForFomodFolder(List<IArchiveEntry> entries)
+    private void ExtractSingleEntry(object entryOrReader, string destinationPath)
+    {
+        string cleanPath = destinationPath.Replace('/', '\\').TrimEnd('\\');
+        if (string.IsNullOrWhiteSpace(cleanPath)) return;
+        string? parentDir = Path.GetDirectoryName(cleanPath);
+        
+        if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir)) Directory.CreateDirectory(parentDir);
+
+        using var fileStream = File.Create(cleanPath);
+
+        if (entryOrReader is IReader reader) reader.WriteEntryTo(fileStream);
+        else if (entryOrReader is IArchiveEntry entry) entry.WriteTo(fileStream);
+    }
+
+    private bool SearchForFomodFolder(List<IArchiveEntry> entries)
     {
         var configEntry = entries.FirstOrDefault(x => x.Key != null && x.Key.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
         if (configEntry?.Key == null)
@@ -125,18 +171,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
     private async Task PrepareFromConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
         logger.Log("Reading the config...");
-        var fomodConfig = ReadConfig();
+        var fomodConfig = ReadConfig(entries);
+        if (fomodConfig is null) throw new Exception("Couldn't read the config.");
         logger.Log("Config has been read. Mapping files...");
         
-        foreach (var file in fomodConfig.RequiredFiles)
-        {
-            MapFile(file, entries, extractionMap);
-        }
-        
-        foreach (var file in fomodConfig.RequiredFolders)
-        {
-            MapFile(file, entries, extractionMap);
-        }
+        foreach (var file in fomodConfig.RequiredFiles) MapFile(file, entries, extractionMap);
+        foreach (var file in fomodConfig.RequiredFolders) MapFile(file, entries, extractionMap);
 
         IEnumerable<InstallStep> steps = fomodConfig.InstallSteps;
         foreach (var step in steps)
@@ -178,24 +218,42 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     private void MapFile(IMapping mapping, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        string normModuleName = _moduleName?.Replace('\\', '/') ?? "";
-        string normSource = mapping.Source.Replace('\\', '/').TrimStart('/');
+        string normModuleName = _moduleName?.Replace('\\', '/').Trim('/') ?? "";
+        string normSource = mapping.Source.Replace('\\', '/').Trim('/'); // Trimstart?
         
         bool moduleIsTheParent = entries.All(x => x.Key.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
+        
         string fullSource = moduleIsTheParent && !string.IsNullOrEmpty(normModuleName) ? $"{normModuleName}/{normSource}" : normSource;
-        fullSource = fullSource.TrimEnd('/');
-        string destinationFolder = Path.Combine(_defaultDestination!, mapping.Destination);
+        fullSource = fullSource.Trim('/'); // TrimEnd?
+        
+        // base dir
+        string destAttr = mapping.Destination.Replace('/', '\\').Trim('\\');
 
         foreach (var item in entries)
         {
+            if (item.IsDirectory || item.Key == null) continue; // ignore folders
             string itemKeyNormalized = item.Key.Replace('\\', '/');
             
-            if (itemKeyNormalized.StartsWith(fullSource, StringComparison.OrdinalIgnoreCase))
+            // exact match
+            if (itemKeyNormalized.Equals(fullSource, StringComparison.OrdinalIgnoreCase))
+            {
+                string fileName = Path.GetFileName(itemKeyNormalized);
+            
+                // if destination in XML contains file
+                // else defaultDestination + destination + fileName.
+                string finalDestination;
+                if (!string.IsNullOrEmpty(destAttr) && Path.HasExtension(destAttr)) finalDestination = Path.Combine(_defaultDestination!, destAttr);
+                else finalDestination = Path.Combine(_defaultDestination!, destAttr, fileName);
+
+                extractionMap[itemKeyNormalized] = finalDestination;
+            }
+            // XML points at a folder
+            else if (itemKeyNormalized.StartsWith(fullSource + "/", StringComparison.OrdinalIgnoreCase))
             {
                 string relativeTail = itemKeyNormalized.Substring(fullSource.Length).TrimStart('/');
-                string fileDestination = Path.Combine(destinationFolder, relativeTail);
-                
-                extractionMap[itemKeyNormalized] = fileDestination;
+                string finalDestination = Path.Combine(_defaultDestination!, destAttr, relativeTail);
+
+                extractionMap[itemKeyNormalized] = finalDestination;
             }
         }
     }
@@ -293,12 +351,13 @@ public class FomodManager(string archivePath, ILoggerService logger)
     
     // don't touch these methods until you know what you're doing
     
-    private FomodConfig ReadConfig()
+    private FomodConfig? ReadConfig(List<IArchiveEntry> archiveEntries)
     {
-        using var archive = ArchiveFactory.Open(archivePath);
-        var entry = archive.Entries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
-        using var stream = entry!.OpenEntryStream();
+        // using var archive = ArchiveFactory.Open(archivePath);
+        var entry = archiveEntries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
+        if (entry == null) return null;
         
+        using var stream = entry.OpenEntryStream();
         using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
         string text = reader.ReadToEnd();
 

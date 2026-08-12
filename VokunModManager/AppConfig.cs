@@ -16,7 +16,6 @@ public sealed class AppConfig
         var baseDirectory = AppContext.BaseDirectory; // path of the folder which contains the executable / binary
     
         _appConfigPath = Path.Combine(baseDirectory, "config.txt");
-        TempFolder = Path.Combine(baseDirectory, "temp");
     }
 
     public enum ConfigType
@@ -56,11 +55,6 @@ public sealed class AppConfig
     /// Path to "SkyrimPrefs" file. Basically, the in-game settings config.
     /// </summary>
     public string? SkyrimPrefsFilePath { get; private set; }
-    /// <summary>
-    /// Path to "temp" folder. Used to extract archive files directly in there, then move to Data folder of the game.
-    /// It's a faster way of installing.
-    /// </summary>
-    public string TempFolder { get; }
     
     // ======== ===== ========
 
@@ -95,7 +89,6 @@ public sealed class AppConfig
     public async Task InitConfig()
     {
         if (!File.Exists(_appConfigPath)) await File.WriteAllTextAsync(_appConfigPath, string.Empty);
-        if (!Directory.Exists(TempFolder)) Directory.CreateDirectory(TempFolder);       // It just HAS to exist
 
         var lines = await File.ReadAllLinesAsync(_appConfigPath);
 
