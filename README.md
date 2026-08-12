@@ -9,7 +9,7 @@ Before installing the manager, make sure you have [Skyrim Script Extender](https
 > [!WARNING]
 > Add `skse64_loader.exe` to your steam library only if you are on Linux. On Windows you don't need this, the app will automatically detect the launcher.
 
-Set the proton version (I personally used Proton  10.0-4), and in the
+Set the proton version (I personally used `Proton  10.0-4`), and in the
 launch options add the next line:
 ``````
 STEAM_COMPAT_DATA_PATH=/home/<your-username>/.local/share/Steam/steamapps/compatdata/489830 %command%
@@ -18,7 +18,7 @@ This will make the launcher use the original game's files.
 
 ### Installing
 
-Just download the latest release from the [release pages](https://github.com/E1ecTro5/vokun-mod-manager/releases). Yeah, this is a portable software with the archive of its dependencies, no need to install, just download and run <ins>**VokunModManager**</ins> file. Just don't touch anything else.
+Just download the latest release from the [release pages](https://github.com/E1ecTro5/vokun-mod-manager/releases). Yeah, this is a portable software with the archive of its dependencies, no need to install, just download and run <ins>**VokunModManager**</ins> file in it. It would be better if the executable remains in folder, since `config.txt` file will appear next to it.
 
 ## How to use
 
@@ -35,14 +35,17 @@ You're also able to reorder them by drag-and-dropping, thanks to [@aldelaro5](ht
   + **`shortcuts.vdf`** file - this file is needed to calculate the loader's ID properly (ignore on Windows).
   + **`Game folder`** - just `Skyrim Special Edition` folder inside the `.../steamapps/common/`
   + **`Mod file path`** - path of the `Plugins.txt file`, which contains info about current mod list. Used by game. Located in `AppData/Local` folder.
-* Buttons:
+* **`Buttons`**:
   + **`Select loader compatdata`** - after you launch `skse64_loader.exe` at least once using Proton (check in Steam -> Rightclick an app -> Properties -> Compatibility, then set the proton version) select the folder inside `../steamapps/compatdata/`, related to the app.
   It usually comes with a huge number. The launcher ID will update after that.
-  + **`ReInit Text Blocks`** - ask app to auto-detect missing folder/filepaths. Automatically called at first launch.
+  + **`ReInit Text Blocks`** - ask app to auto-detect missing folder/filepaths. Automatically called at launch.
   + **`The rest of the buttons`** - their names speak for themselves. Please initialize manually if textboxes above are null or empty.
 
 > [!CAUTION]
 > Canceling mod's instalation is not included in program yet, be careful.
+
+> [!WARNING]
+> Please, ignore the `shortcuts.vdf path` duplicate, I always forget to delete unnecessary stuff.
 
 ### Launching application
 The only file you need to launch is called `VokunModManager`, that will be inside the archive's folder.
@@ -78,6 +81,7 @@ Coming:
 * Deleting mods.
 * Preset/backup system.
 * Nexus integration?
+* More mods support.
 * Something else...
 
 ## Possible issues
@@ -86,3 +90,5 @@ Coming:
 Not all type of mods are handled by Vokun, so if you install something like FNIS, or complex mods without FOMOD and other stuff, it may give you an exception or just dump all the files to `Data` folder and make a mess.
 
 Also, the "delete mod" feature is not ready yet, just like the profile/preset system, careful with deleting mods manually.
+
+I'll improve this manager and make it better.. one day... if i feel so.. :)
