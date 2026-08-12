@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
         x:Class="VokunModManager.Views.InstallWindow"
-        Title="Select which to install..."
+        Title="{Binding Type}"
         xmlns:vm="using:VokunModManager.ViewModels"
         x:DataType="vm:InstallWindowViewModel"
         SizeToContent="WidthAndHeight" 
@@ -22,27 +22,42 @@
                            Margin="0,10,0,0"/>
 
                 <!-- dynamic list -->
-                <ItemsControl ItemsSource="{Binding Options}">
+                <!-- 1. ВАРИАНТ ДЛЯ SINGLE SELECT (RadioButton) -->
+                <ItemsControl ItemsSource="{Binding Options}" 
+                              IsVisible="{Binding IsSingleSelect}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Margin="0,0,0,12" Orientation="Vertical">
-                                
-                                <!-- if IsSingleSelect == true -->
+                            <StackPanel Margin="0,0,0,14" Orientation="Vertical">
                                 <RadioButton Content="{Binding Name}" 
-                                             GroupName="PluginOptionsGroup"
-                                             IsChecked="{Binding IsSelected}"
-                                             IsVisible="{Binding $parent[Window].((vm:InstallWindowViewModel)DataContext).IsSingleSelect}"/>
+                                             GroupName="{Binding $parent[Window].((vm:InstallWindowViewModel)DataContext).GroupName}"
+                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                             FontWeight="SemiBold"/>
 
-                                <!-- if IsMultiSelect == true -->
-                                <CheckBox Content="{Binding Name}" 
-                                          IsChecked="{Binding IsSelected}"
-                                          IsVisible="{Binding $parent[Window].((vm:InstallWindowViewModel)DataContext).IsMultiSelect}"/>
-
-                                <!-- Description for both cases -->
                                 <TextBlock Text="{Binding Description}" 
-                                           Margin="0" 
+                                           Margin="28,4,0,0" 
                                            TextWrapping="Wrap"
-                                           Opacity="0.8"/>
+                                           Opacity="0.75"
+                                           FontSize="12"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 2. ВАРИАНТ ДЛЯ MULTI SELECT (CheckBox) -->
+                <ItemsControl ItemsSource="{Binding Options}" 
+                              IsVisible="{Binding IsMultiSelect}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,14" Orientation="Vertical">
+                                <CheckBox Content="{Binding Name}" 
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                          FontWeight="SemiBold"/>
+
+                                <TextBlock Text="{Binding Description}" 
+                                           Margin="28,4,0,0" 
+                                           TextWrapping="Wrap"
+                                           Opacity="0.75"
+                                           FontSize="12"/>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
