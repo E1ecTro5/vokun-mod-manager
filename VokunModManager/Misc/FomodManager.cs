@@ -139,7 +139,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     private void ExtractSingleEntry(object entryOrReader, string destinationPath)
     {
-        string cleanPath = destinationPath.Replace('/', '\\').TrimEnd('\\');
+        // on Linux will be '/', on Windows '\'
+        string cleanPath = destinationPath.Replace('/', Path.DirectorySeparatorChar) .Replace('\\', Path.DirectorySeparatorChar);
         if (string.IsNullOrWhiteSpace(cleanPath)) return;
         string? parentDir = Path.GetDirectoryName(cleanPath);
         
@@ -227,7 +228,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         fullSource = fullSource.Trim('/'); // TrimEnd?
         
         // base dir
-        string destAttr = mapping.Destination.Replace('/', '\\').Trim('\\');
+        string destAttr = mapping.Destination.Replace('\\', '/').Trim('/');
 
         foreach (var item in entries)
         {
@@ -482,7 +483,10 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 using var process = Process.GetCurrentProcess();
                 EmptyWorkingSet(process.Handle);
             }
-            catch { /* Игнорируем на случай ограничений прав */ }
+            catch
+            {
+                // ignore here
+            }
         }
     }
 
