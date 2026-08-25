@@ -4,7 +4,7 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class UILoggerService : ILoggerService
+public class UiLoggerService : ILoggerService
 {
     public ObservableCollection<LogMessage> Logs { get; } = new();
 

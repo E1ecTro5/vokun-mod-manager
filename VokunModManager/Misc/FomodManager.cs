@@ -139,7 +139,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     private void ExtractSingleEntry(object entryOrReader, string destinationPath)
     {
-        string cleanPath = destinationPath.Replace('/', '\\').TrimEnd('\\');
+        // on Linux will be '/', on Windows '\'
+        string cleanPath = destinationPath.Replace('/', Path.DirectorySeparatorChar) .Replace('\\', Path.DirectorySeparatorChar);
         if (string.IsNullOrWhiteSpace(cleanPath)) return;
         string? parentDir = Path.GetDirectoryName(cleanPath);
         
@@ -191,7 +192,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         logger.Log("extractionMap has been prepared.");
     }
 
-    private async Task<List<PluginOption?>?> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
+    private async Task ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
         
@@ -208,12 +209,10 @@ public class FomodManager(string archivePath, ILoggerService logger)
         // map the files
         foreach (var plugin in result.Where(p => p != null))
         {
-            logger.Log($"Mapping {plugin.Name} files...");
-            foreach (var file in plugin!.Files) MapFile(file, entries, extractionMap);
+            logger.Log($"Mapping {plugin!.Name} files...");
+            foreach (var file in plugin.Files) MapFile(file, entries, extractionMap);
             foreach (var folder in plugin.Folders) MapFile(folder, entries, extractionMap);
         }
-
-        return result;
     }
 
     private void MapFile(IMapping mapping, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
@@ -227,7 +226,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         fullSource = fullSource.Trim('/'); // TrimEnd?
         
         // base dir
-        string destAttr = mapping.Destination.Replace('/', '\\').Trim('\\');
+        string destAttr = mapping.Destination.Replace('\\', '/').Trim('/');
 
         foreach (var item in entries)
         {
@@ -482,7 +481,10 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 using var process = Process.GetCurrentProcess();
                 EmptyWorkingSet(process.Handle);
             }
-            catch { /* Игнорируем на случай ограничений прав */ }
+            catch
+            {
+                // ignore here
+            }
         }
     }
 
