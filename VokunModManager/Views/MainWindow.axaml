@@ -61,24 +61,12 @@
                         <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
                     </ScrollViewer>
                     <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding VdfFilePath, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
-                    <TextBlock Text="{Binding ModGameId, StringFormat='Mod Game ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding CompatdataFolder, StringFormat='shortcuts.vdf path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding LauncherId, StringFormat='Launcher ID: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <TextBlock Text="{Binding SkyrimPrefsFilePath, StringFormat='SkyrimPrefs.ini path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
                     </ScrollViewer>
                 </StackPanel>
-                <Grid Grid.Row="1" ColumnDefinitions="2*,2*,*,2*" ColumnSpacing="10">
-                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" FontSize="11"/>
-                    <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1" FontSize="11"/>
-                    <Button Content="Select .vdf" Command="{Binding SelectVdfCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2" FontSize="11"/>
-                    <Button Content="Select loader compatdata" Command="{Binding SelectLoaderCompatdataCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="3" FontSize="11"/>
+                <Grid Grid.Row="1" ColumnDefinitions="2*,2*" ColumnSpacing="10">
+                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" />
+                    <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                 </Grid>
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
                     <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,13 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // they all need to be displayed just to make it easier for me
     [ObservableProperty] private string _gameFolderPath;     // Steam game folder
     [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    [ObservableProperty] private string _vdfFilePath;        // shortcuts.vdf file from Steam/userinfo/../config/..
-    [ObservableProperty] private ulong _modGameId;           // need for launching the skse64_loader.exe
-    [ObservableProperty] private ulong _compatdataFolder;
-    [ObservableProperty] private ulong _launcherId;
     [ObservableProperty] private string _skyrimPrefsFilePath;
-    
-    [ObservableProperty] private string _archivePath;        // path of a selected archive
 
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
@@ -42,8 +33,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ReInitTextBlocksCommand { get; }
     public ICommand UpdateModListCommand { get; }
     public ICommand PlayClickCommand { get; }
-    public ICommand SelectVdfCommand { get; }
-    public ICommand SelectLoaderCompatdataCommand { get; }
     public ICommand SaveModListCommand { get; }
     public ICommand InstallModCommand { get; }
     
@@ -59,10 +48,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
         SelectFileCommand = new AsyncRelayCommand(SetModListPath);
-        ReInitTextBlocksCommand = new AsyncRelayCommand(LateInit);  // possible rename because of refactor ; remind me later if needed
+        ReInitTextBlocksCommand = new AsyncRelayCommand(ReInitValues);  // possible rename because of refactor ; remind me later if needed
         UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
-        SelectVdfCommand = new AsyncRelayCommand(SelectVdf);
-        SelectLoaderCompatdataCommand = new AsyncRelayCommand(SelectLoaderCompatdata);
         
         OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
         OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
@@ -73,7 +60,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
 
-        Logger = new UILoggerService();
+        Logger = new UiLoggerService();
         Logger.Log("Logger initialized.");
     }
 
@@ -131,14 +118,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // please, make sure they're initialized before using
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
-        ModGameId = AppConfig.Instance.LauncherId;
-        VdfFilePath = AppConfig.Instance.VdfConfigPath;
-
-        CompatdataFolder = AppConfig.Instance.CompatdataFolderId;
-        LauncherId = AppConfig.Instance.LauncherId;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
-        
-        ArchivePath = "Not selected"; // default
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
@@ -154,6 +134,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var modListM = new ModListManager();
         var updated = await modListM.UpdateModList();
+        if (updated is null)
+        {
+            Logger.Log("Mod list is null.", LogLevel.Warning);
+            return;
+        }
         ModList = updated;
         Logger.Log("Mod list updated.");
     }
@@ -164,33 +149,6 @@ public partial class MainWindowViewModel : ViewModelBase
         // save current state
         await modListM.SaveCurrentModListState(ModList);
         await UpdateModList();
-    }
-
-    private async Task SelectVdf()
-    {
-        var filePath = await _fileManager.SelectFile();
-        
-        if (string.IsNullOrEmpty(filePath))
-        {
-            await MsgBoxManager.ShowWarning("Vdf file path not selected!");
-            return;
-        }
-
-        VdfFilePath = filePath;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.VdfConfigPath, filePath);
-    }
-
-    private async Task SelectLoaderCompatdata()
-    {
-        var compatdataDir = await _fileManager.SelectDirectory();
-        
-        if (string.IsNullOrEmpty(compatdataDir))
-        {
-            await MsgBoxManager.ShowWarning("Compatdata folder path not selected!");
-            return;
-        }
-
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.CompatdataFolder, compatdataDir);
     }
 
     private async Task SetGamePath()
@@ -238,31 +196,32 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task OpenGameConfig()
     {
-        await OpenFileDirectory(AppConfig.Instance.SkyrimPrefsFilePath);
+        await OpenFileDirectory(SkyrimPrefsFilePath);
     }
 
     private async Task OpenFileDirectory(string path)
     {
-        if(string.IsNullOrEmpty(path)) return;
+        if (string.IsNullOrWhiteSpace(path)) return;
+        if (!File.Exists(path) && !Directory.Exists(path)) return;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            var psi = new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
-                FileName = "xdg-open", // this should work only on Linux (Wayland?)
+                FileName = "xdg-open",
                 Arguments = $"\"{path}\"",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
+                UseShellExecute = true, // important on Linux
                 CreateNoWindow = true
-            };
-
-            Process.Start(psi);
+            });
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Process.Start("explorer.exe", path);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
         }
-        
     }
 
     private async Task InstallMod()
@@ -290,6 +249,4 @@ public partial class MainWindowViewModel : ViewModelBase
         await LateInit();
         await UpdateModList(); // maybe you should include this in LateInit()
     }
-    
-    
 }

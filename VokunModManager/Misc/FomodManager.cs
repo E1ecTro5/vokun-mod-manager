@@ -192,7 +192,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         logger.Log("extractionMap has been prepared.");
     }
 
-    private async Task<List<PluginOption?>?> ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
+    private async Task ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
         var tcs = new TaskCompletionSource<List<PluginOption?>>();
         
@@ -209,12 +209,10 @@ public class FomodManager(string archivePath, ILoggerService logger)
         // map the files
         foreach (var plugin in result.Where(p => p != null))
         {
-            logger.Log($"Mapping {plugin.Name} files...");
-            foreach (var file in plugin!.Files) MapFile(file, entries, extractionMap);
+            logger.Log($"Mapping {plugin!.Name} files...");
+            foreach (var file in plugin.Files) MapFile(file, entries, extractionMap);
             foreach (var folder in plugin.Folders) MapFile(folder, entries, extractionMap);
         }
-
-        return result;
     }
 
     private void MapFile(IMapping mapping, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
