@@ -81,15 +81,32 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            ulong longId = AppConfig.Instance.LauncherId;
+            string sksePath = Path.Combine(GameFolderPath, "skse64_loader.exe");
+            string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+            string backupPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
 
-            // just uri command to run the game
-            string uri = $"steam://rungameid/{longId}";
+            // check if skse installed
+            if (File.Exists(sksePath))
+            {
+                try
+                {
+                    // hide the original launcher to '_backup'
+                    if (File.Exists(launcherPath) && !File.Exists(backupPath))
+                        File.Move(launcherPath, backupPath);
 
-            // this variant should work on Linux;
+                    // copy skse64_loader.exe and rename to SkyrimSELauncher.exe
+                    File.Copy(sksePath, launcherPath, overwrite: true);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Error while changing files: {ex.Message}", LogLevel.Error);
+                }
+            }
+            
+            // launch the game (should start the skse loader)
             Process.Start(new ProcessStartInfo
             {
-                FileName = uri,
+                FileName = "steam://rungameid/489830",
                 UseShellExecute = true,
                 CreateNoWindow = true
             });
@@ -122,11 +139,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
         
         ArchivePath = "Not selected"; // default
-
-         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-             IsPlayAvailable = true;
-         else
-             IsPlayAvailable = AppConfig.Instance.LauncherId != 0;
+        
+        IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
