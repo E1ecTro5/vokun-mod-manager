@@ -25,8 +25,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
     [ObservableProperty] private bool _isModInstalling;
+    
+    // tools
+    [ObservableProperty] private string _pathToFnisTool;
+    [ObservableProperty] private bool _isFnisAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
+    private readonly AutoDetector _autoDetector = new AutoDetector();
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -42,6 +47,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ILoggerService Logger { get; }
     
+    // tools' commands
+    public ICommand OpenFnisCommand { get; }
+    
     public MainWindowViewModel()
     {
         ModList = new ObservableCollection<Mod>();
@@ -54,6 +62,9 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
         OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
         OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
+        
+        //tools
+        OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -119,12 +130,30 @@ public partial class MainWindowViewModel : ViewModelBase
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+
+        PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
+        IsFnisAvailable = CheckForFnis(PathToFnisTool);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
 
+    private bool CheckForFnis(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        if (!File.Exists(path)) return false;
+        return true;
+    }
+
+    private async Task OpenFnis()
+    {
+        // just for now ; I'll change it to the real 'execute' next commit
+        
+        string executablePath = PathToFnisTool;
+        Logger.Log($"Path to FNIS: {executablePath}");
+    }
+    
     private async Task ReInitValues()
     {
         await AppConfig.Instance.CheckConfigStatus();

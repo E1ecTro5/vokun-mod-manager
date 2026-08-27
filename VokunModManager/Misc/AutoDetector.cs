@@ -3,9 +3,9 @@ namespace VokunModManager.Misc;
 public class AutoDetector
 {
     /// <summary>
-    /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder.
+    /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder and set it to the app config.
     /// </summary>
-    /// <returns>True, if folder has been found and set. Otherwise, false.</returns>
+    /// <returns>True, if folder has been found and set to the config. Otherwise, false.</returns>
     public async Task<bool> TryGetGameFolder()
     {
         string possiblePath = string.Empty;
@@ -28,9 +28,9 @@ public class AutoDetector
     }
 
     /// <summary>
-    /// Tries to find game's Plugin.txt file, located in compatdata folder.
+    /// Tries to find game's Plugin.txt file, located in compatdata folder and set it to the app config.
     /// </summary>
-    /// <returns>True, if file has been found and set. Otherwise, false.</returns>
+    /// <returns>True, if file has been found and set to the config. Otherwise, false.</returns>
     public async Task<bool> TryGetPluginConfig()
     {
         string possibleLocation = string.Empty;
@@ -52,9 +52,9 @@ public class AutoDetector
     }
 
     /// <summary>
-    /// Tries to get the config (settings) file of the game.
+    /// Tries to get and set the config (settings) file of the game.
     /// </summary>
-    /// <returns>Path to the SkyrimPrefs.ini file.</returns>
+    /// <returns>True, if file has been found and set to the app config. Otherwise, false.</returns>
     public async Task<bool> TryGetPrefsFile()
     {
         string possibleLocation = string.Empty;
@@ -73,5 +73,29 @@ public class AutoDetector
         if(!File.Exists(possibleLocation)) return false;
         await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.SkyrimPrefsFilePath, possibleLocation);
         return true;
+    }
+
+    /// <summary>
+    /// Tries to get the GenerateFNISforUsers.exe file, if it exists.
+    /// </summary>
+    /// <returns>Path to the .exe file. Null if nothing found.</returns>
+    public async Task<string?> TryGetFnisExecutable()
+    {
+        //home/epsilon/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data/tools/GenerateFNIS_for_Users/GenerateFNISforUsers.exe
+
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            possibleLocation = Path.Combine(gameFolder, "Data/tools/GenerateFNIS_for_Users/GenerateFNISforUsers.exe");
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            possibleLocation = Path.Combine(gameFolder, @"Data\tools\GenerateFNIS_for_Users\GenerateFNISforUsers.exe");
+        }
+
+        return File.Exists(possibleLocation) ? possibleLocation : null;
     }
 }
