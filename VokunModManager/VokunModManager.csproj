@@ -9,6 +9,24 @@
         <ApplicationIcon>Assets\vokunIcon.ico</ApplicationIcon>
     </PropertyGroup>
 
+    <!-- external projs -->
+    <ItemGroup>
+        <ProjectReference Include="../FnisLauncher/FnisLauncher.csproj"
+                          ReferenceOutputAssembly="false"
+                          SkipGetTargetFrameworkProperties="true"
+                          Private="false" />
+    </ItemGroup>
+
+    <Target Name="BuildAndCopyFnisLauncher" BeforeTargets="BeforeBuild">
+        <MSBuild Projects="../FnisLauncher/FnisLauncher.csproj"
+                 Targets="Publish"
+                 Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true" />
+
+        <Copy SourceFiles="../FnisLauncher/bin/$(Configuration)/net10.0/win-x64/publish/FnisLauncher.exe"
+              DestinationFolder="$(TargetDir)Assets/Utils/"
+              SkipUnchangedFiles="true" />
+    </Target>
+    
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>

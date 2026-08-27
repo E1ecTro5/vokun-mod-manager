@@ -49,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     // tools' commands
     public ICommand OpenFnisCommand { get; }
+    public ICommand DeleteFnisSymlinksCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -65,6 +66,7 @@ public partial class MainWindowViewModel : ViewModelBase
         
         //tools
         OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
+        DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -148,10 +150,92 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenFnis()
     {
-        // just for now ; I'll change it to the real 'execute' next commit
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string fnisPath = PathToFnisTool; // we expect it to be available
+            string fnisDirPath = Path.GetDirectoryName(fnisPath);
+            
+            // to make sure it EXISTS you HAVE to hit the play button AT LEAST ONCE
+            string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+            string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+            
+            // our compiled console .exe from Utils folders
+            string fnisHelperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "FnisLauncher.exe");
+
+            try
+            {
+                // check for helper inside the build
+                if (!File.Exists(fnisHelperSource))
+                {
+                    Logger.Log($"FNIS Helper executable not found at: {fnisHelperSource}", LogLevel.Error);
+                    return;
+                }
+
+                // backup the original launcher if not symlink
+                if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
+                {
+                    var fileInfo = new FileInfo(launcherPath);
+                    if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
+                    {
+                        File.Move(launcherPath, backupLauncherPath);
+                    }
+                }
+
+                // create FNIS.ini / fix 2001 error
+                string fnisIniPath = Path.Combine(fnisDirPath, "FNIS.ini");
+                if (!File.Exists(fnisIniPath))
+                {
+                    await File.WriteAllTextAsync(fnisIniPath, "[Language]\nLanguage=ENGLISH\n\n[Path]\nData=Data\n");
+                }
+
+                // replace SkyrimSELauncher.exe to FnisLauncher.exe
+                if (File.Exists(launcherPath)) File.Delete(launcherPath);
+                File.Copy(fnisHelperSource, launcherPath, overwrite: true);
+
+                // launch our helper
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "steam://rungameid/489830",
+                    UseShellExecute = true,
+                });
+
+                await Task.Delay(3000);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error setting up FNIS launch: {ex.Message}", LogLevel.Error);
+            }
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string pathToFnis = PathToFnisTool;
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToFnis,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
+        }
+    }
+    
+    // refactor?
+    private async Task DeleteFnisSymlinks()
+    {
+        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+        string tempSymlinkDir = Path.Combine(GameFolderPath, "tools"); // temp dir inside the root
         
-        string executablePath = PathToFnisTool;
-        Logger.Log($"Path to FNIS: {executablePath}");
+        // need to be careful here
+        if(!File.Exists(backupLauncherPath)) return; // don't delete current one, if backup has not been found
+        
+        // delete symlinks
+        if (Directory.Exists(tempSymlinkDir)) Directory.Delete(tempSymlinkDir);
+        if (File.Exists(launcherPath)) File.Delete(launcherPath);
+
+        // get back the original launcher
+        if (File.Exists(backupLauncherPath)) File.Move(backupLauncherPath, launcherPath);
     }
     
     private async Task ReInitValues()
