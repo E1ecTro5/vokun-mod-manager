@@ -17,6 +17,7 @@
                           Private="false" />
     </ItemGroup>
 
+    <!-- include and copy the FnisLauncher into the build -->
     <Target Name="BuildAndCopyFnisLauncher" BeforeTargets="BeforeBuild">
         <MSBuild Projects="../FnisLauncher/FnisLauncher.csproj"
                  Targets="Publish"
@@ -26,11 +27,18 @@
               DestinationFolder="$(TargetDir)Assets/Utils/"
               SkipUnchangedFiles="true" />
     </Target>
-    
-    <ItemGroup>
-        <AvaloniaResource Include="Assets\**"/>
-    </ItemGroup>
 
+    <!-- copy FnisLauncher.exe and Assets to publish folder -->
+    <Target Name="CopyFnisLauncherToPublish" AfterTargets="ComputeFilesToPublish">
+        <Copy SourceFiles="../FnisLauncher/bin/$(Configuration)/net10.0/win-x64/publish/FnisLauncher.exe"
+              DestinationFolder="$(PublishDir)Assets/Utils/"
+              SkipUnchangedFiles="true" />
+    </Target>
+
+    <!-- Assets outside the main file -->
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\Utils\**" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.3.11"/>
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.11" />
