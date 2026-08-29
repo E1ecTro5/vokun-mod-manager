@@ -177,16 +177,16 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
+    private async Task OpenBodySlide()
+    {
+        string relativeBodySlidePath = Path.Combine("Data", "CalienteTools", "BodySlide", "BodySlide.exe");
+        await LaunchToolInProtonAsync(relativeBodySlidePath);
+    }
+    
     private async Task OpenOutfitStudio()
     {
         string relativeStudioPath = Path.Combine("Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
         await LaunchToolInProtonAsync(relativeStudioPath);
-    }
-    
-    private async Task OpenBodySlide()
-    {
-        Logger.Log($"BodySlide: {PathToBodySlide}");
-        return;
     }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
