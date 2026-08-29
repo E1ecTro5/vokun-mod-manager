@@ -29,6 +29,10 @@ public partial class MainWindowViewModel : ViewModelBase
     // tools
     [ObservableProperty] private string _pathToFnisTool;
     [ObservableProperty] private bool _isFnisAvailable;
+    [ObservableProperty] private string _pathToBodySlide;
+    [ObservableProperty] private bool _isBodySlideAvailable;
+    [ObservableProperty] private string _pathToOutfitStudio;
+    [ObservableProperty] private bool _isOutfitStudioAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
     private readonly AutoDetector _autoDetector = new AutoDetector();
@@ -50,6 +54,8 @@ public partial class MainWindowViewModel : ViewModelBase
     // tools' commands
     public ICommand OpenFnisCommand { get; }
     public ICommand DeleteFnisSymlinksCommand { get; }
+    public ICommand OpenOutfitStudioCommand { get; }
+    public ICommand OpenBodySlideCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -67,6 +73,8 @@ public partial class MainWindowViewModel : ViewModelBase
         //tools
         OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
         DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
+        OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
+        OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -134,14 +142,19 @@ public partial class MainWindowViewModel : ViewModelBase
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
 
         PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
-        IsFnisAvailable = CheckForFnis(PathToFnisTool);
+        PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
+        
+        IsFnisAvailable = CheckForExecutable(PathToFnisTool);
+        IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
+        IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
 
-    private bool CheckForFnis(string path)
+    private bool CheckForExecutable(string path)
     {
         if (string.IsNullOrEmpty(path)) return false;
         if (!File.Exists(path)) return false;
@@ -218,6 +231,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Process.Start(startInfo);
         }
+    }
+
+    private async Task OpenOutfitStudio()
+    {
+        Logger.Log($"OutfitStudio: {PathToOutfitStudio}");
+        return;
+    }
+    
+    private async Task OpenBodySlide()
+    {
+        Logger.Log($"BodySlide: {PathToBodySlide}");
+        return;
     }
     
     // refactor?
