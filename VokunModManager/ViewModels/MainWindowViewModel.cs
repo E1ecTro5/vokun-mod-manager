@@ -25,8 +25,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
     [ObservableProperty] private bool _isModInstalling;
+    
+    // tools
+    [ObservableProperty] private string _pathToFnisTool;
+    [ObservableProperty] private bool _isFnisAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
+    private readonly AutoDetector _autoDetector = new AutoDetector();
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -42,6 +47,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ILoggerService Logger { get; }
     
+    // tools' commands
+    public ICommand OpenFnisCommand { get; }
+    public ICommand DeleteFnisSymlinksCommand { get; }
+    
     public MainWindowViewModel()
     {
         ModList = new ObservableCollection<Mod>();
@@ -54,6 +63,10 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
         OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
         OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
+        
+        //tools
+        OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
+        DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -119,12 +132,112 @@ public partial class MainWindowViewModel : ViewModelBase
         GameFolderPath = AppConfig.Instance.GameFolderPath;
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+
+        PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
+        IsFnisAvailable = CheckForFnis(PathToFnisTool);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
 
+    private bool CheckForFnis(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        if (!File.Exists(path)) return false;
+        return true;
+    }
+
+    private async Task OpenFnis()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string fnisPath = PathToFnisTool; // we expect it to be available
+            string fnisDirPath = Path.GetDirectoryName(fnisPath);
+            
+            // to make sure it EXISTS you HAVE to hit the play button AT LEAST ONCE
+            string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+            string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+            
+            // our compiled console .exe from Utils folders
+            string fnisHelperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "FnisLauncher.exe");
+
+            try
+            {
+                // check for helper inside the build
+                if (!File.Exists(fnisHelperSource))
+                {
+                    Logger.Log($"FNIS Helper executable not found at: {fnisHelperSource}", LogLevel.Error);
+                    return;
+                }
+
+                // backup the original launcher if not symlink
+                if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
+                {
+                    var fileInfo = new FileInfo(launcherPath);
+                    if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
+                    {
+                        File.Move(launcherPath, backupLauncherPath);
+                    }
+                }
+
+                // create FNIS.ini / fix 2001 error
+                string fnisIniPath = Path.Combine(fnisDirPath, "FNIS.ini");
+                if (!File.Exists(fnisIniPath))
+                {
+                    await File.WriteAllTextAsync(fnisIniPath, "[Language]\nLanguage=ENGLISH\n\n[Path]\nData=Data\n");
+                }
+
+                // replace SkyrimSELauncher.exe to FnisLauncher.exe
+                if (File.Exists(launcherPath)) File.Delete(launcherPath);
+                File.Copy(fnisHelperSource, launcherPath, overwrite: true);
+
+                // launch our helper
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "steam://rungameid/489830",
+                    UseShellExecute = true,
+                });
+
+                await Task.Delay(3000);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error setting up FNIS launch: {ex.Message}", LogLevel.Error);
+            }
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string pathToFnis = PathToFnisTool;
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToFnis,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
+        }
+    }
+    
+    // refactor?
+    private async Task DeleteFnisSymlinks()
+    {
+        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+        string tempSymlinkDir = Path.Combine(GameFolderPath, "tools"); // temp dir inside the root
+        
+        // need to be careful here
+        if(!File.Exists(backupLauncherPath)) return; // don't delete current one, if backup has not been found
+        
+        // delete symlinks
+        if (Directory.Exists(tempSymlinkDir)) Directory.Delete(tempSymlinkDir);
+        if (File.Exists(launcherPath)) File.Delete(launcherPath);
+
+        // get back the original launcher
+        if (File.Exists(backupLauncherPath)) File.Move(backupLauncherPath, launcherPath);
+    }
+    
     private async Task ReInitValues()
     {
         await AppConfig.Instance.CheckConfigStatus();

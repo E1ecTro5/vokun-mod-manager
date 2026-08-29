@@ -142,6 +142,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
         // on Linux will be '/', on Windows '\'
         string cleanPath = destinationPath.Replace('/', Path.DirectorySeparatorChar) .Replace('\\', Path.DirectorySeparatorChar);
         if (string.IsNullOrWhiteSpace(cleanPath)) return;
+
+        // fix registers i.e. 'meshes' and 'Meshes' (IMPORTANT FOR LINUX)
+        // will take the existing one, not creating other variations
+        cleanPath = PathResolver.NormalizePathForOs(cleanPath);
+        
         string? parentDir = Path.GetDirectoryName(cleanPath);
         
         if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir)) Directory.CreateDirectory(parentDir);

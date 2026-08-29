@@ -107,10 +107,10 @@ public sealed class AppConfig
     
     public async Task CheckConfigStatus()
     {
-        var fileM = new FileManager();
+        var detector = new AutoDetector();
 
-        if (string.IsNullOrEmpty(GameFolderPath)) await fileM.TryGetGameFolder();
-        if (string.IsNullOrEmpty(PluginFilePath)) await fileM.TryGetPluginConfig();
-        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) await fileM.TryGetPrefsFile();
+        if (string.IsNullOrEmpty(GameFolderPath)) await detector.TryGetGameFolder();
+        if (string.IsNullOrEmpty(PluginFilePath)) await detector.TryGetPluginConfig();
+        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) await detector.TryGetPrefsFile();
     }
 }
