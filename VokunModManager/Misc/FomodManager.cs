@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
@@ -27,7 +22,6 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     public async Task InstallMod()
     {
-        logger.Log("Installing mod...");
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
         // open it ONCE
@@ -51,8 +45,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
             if (hasFomod) await PrepareFromConfig(entries, extractionMap);
             else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
 
+            if (extractionMap.Count == 0)
+            {
+                logger.Log("Not a single fil selected in extractionMap. Make sure the config is not broken and you've chosen the options");
+            }
             // extracting...
-            if (extractionMap.Count > 0)
+            else if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
                 await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
@@ -190,11 +188,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
             // this works fine, don't touch it
             foreach (var fileGroup in step.Groups)
             {
-                logger.Log($"InstallWindow appeared. Group: {fileGroup.Name}");
+                logger.Log($"InstallWindow appeared. Group: {fileGroup.Name}. Type: {fileGroup.Type}");
                 await ShowInstallWindow(fileGroup, entries, extractionMap);
             }
         }
-        logger.Log("extractionMap has been prepared.");
+        logger.Log($"extractionMap has been prepared with {extractionMap.Count}.");
     }
 
     private async Task ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
