@@ -42,15 +42,21 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 return (validEntries, fomodFound);
             });
 
-            if (hasFomod) await PrepareFromConfig(entries, extractionMap);
-            else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
-
-            if (extractionMap.Count == 0)
+            if (hasFomod)
             {
-                logger.Log("Not a single fil selected in extractionMap. Make sure the config is not broken and you've chosen the options");
+                await PrepareFromConfig(entries, extractionMap);
+                
+                // some modders just ignore config's 'REQUIRED FILES/FOLDERS'.
+                if (extractionMap.Count == 0)
+                {
+                    logger.Log("Not a single fil selected in extractionMap. Falling back to PrepareWithoutConfig...", LogLevel.Warning);
+                    await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
+                }
             }
+            else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
+            
             // extracting...
-            else if (extractionMap.Count > 0)
+            if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
                 await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
