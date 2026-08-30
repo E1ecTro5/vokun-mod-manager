@@ -86,7 +86,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
-                TrimProcessMemory();
+                TrimProcessMemory(); // works only on Windows
             });
         }
         
@@ -198,7 +198,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 await ShowInstallWindow(fileGroup, entries, extractionMap);
             }
         }
-        logger.Log($"extractionMap has been prepared with {extractionMap.Count}.");
+        logger.Log($"extractionMap has been prepared with {extractionMap.Count} files.");
     }
 
     private async Task ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
@@ -294,7 +294,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
             extractionMap[normalizedKey] = currentDestination;
         }
-        logger.Log("extractionMap has been prepared.");
+        logger.Log($"extractionMap has been prepared with {extractionMap.Count} files.");
     }
 
     private int DeterminePrefixSegmentsToSkip(IEnumerable<IArchiveEntry> entries)
@@ -319,12 +319,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
                 if (isMarkerFile || isMarkerDir)
                 {
-                    // Запоминаем минимальную глубину, на которой встретили маркер
+                    // min depth
                     if (i < minSkip)
                     {
                         minSkip = i;
                     }
-                    break; // Для этого файла дальше глубже не смотрим, берем наивысший совпавший маркер
+                    break;
                 }
             }
         }
@@ -480,6 +480,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
             Priority = (int?)element.Attribute("priority") ?? 0
         };
     }
+    
+    // -------- Memory Handling --------
     
     private static void TrimProcessMemory()
     {
