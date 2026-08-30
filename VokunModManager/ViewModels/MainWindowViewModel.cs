@@ -380,10 +380,14 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         IsModInstalling = true;
+        IsPlayAvailable = false;
+        
+        Logger.Log(string.Empty); // space for better visibility
         Logger.Log($"Selected file: {filePath}");
         var fomod = new FomodManager(filePath, Logger);
-        IsPlayAvailable = false;
         await fomod.InstallMod();
+        Logger.Log(string.Empty); // space for better visibility
+        
         IsPlayAvailable = true;
         IsModInstalling = false;
         

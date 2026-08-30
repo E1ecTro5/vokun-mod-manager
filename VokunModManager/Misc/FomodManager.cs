@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
@@ -27,7 +22,6 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
     public async Task InstallMod()
     {
-        logger.Log("Installing mod...");
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
         // open it ONCE
@@ -48,9 +42,19 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 return (validEntries, fomodFound);
             });
 
-            if (hasFomod) await PrepareFromConfig(entries, extractionMap);
+            if (hasFomod)
+            {
+                await PrepareFromConfig(entries, extractionMap);
+                
+                // some modders just ignore config's 'REQUIRED FILES/FOLDERS'.
+                if (extractionMap.Count == 0)
+                {
+                    logger.Log("Not a single fil selected in extractionMap. Falling back to PrepareWithoutConfig...", LogLevel.Warning);
+                    await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
+                }
+            }
             else await Task.Run(() => PrepareWithoutConfig(entries, extractionMap));
-
+            
             // extracting...
             if (extractionMap.Count > 0)
             {
@@ -82,7 +86,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
-                TrimProcessMemory();
+                TrimProcessMemory(); // works only on Windows
             });
         }
         
@@ -190,11 +194,11 @@ public class FomodManager(string archivePath, ILoggerService logger)
             // this works fine, don't touch it
             foreach (var fileGroup in step.Groups)
             {
-                logger.Log($"InstallWindow appeared. Group: {fileGroup.Name}");
+                logger.Log($"InstallWindow appeared. Group: {fileGroup.Name}. Type: {fileGroup.Type}");
                 await ShowInstallWindow(fileGroup, entries, extractionMap);
             }
         }
-        logger.Log("extractionMap has been prepared.");
+        logger.Log($"extractionMap has been prepared with {extractionMap.Count} files.");
     }
 
     private async Task ShowInstallWindow(FileGroup group, List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
@@ -290,7 +294,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
             extractionMap[normalizedKey] = currentDestination;
         }
-        logger.Log("extractionMap has been prepared.");
+        logger.Log($"extractionMap has been prepared with {extractionMap.Count} files.");
     }
 
     private int DeterminePrefixSegmentsToSkip(IEnumerable<IArchiveEntry> entries)
@@ -315,12 +319,12 @@ public class FomodManager(string archivePath, ILoggerService logger)
 
                 if (isMarkerFile || isMarkerDir)
                 {
-                    // Запоминаем минимальную глубину, на которой встретили маркер
+                    // min depth
                     if (i < minSkip)
                     {
                         minSkip = i;
                     }
-                    break; // Для этого файла дальше глубже не смотрим, берем наивысший совпавший маркер
+                    break;
                 }
             }
         }
@@ -476,6 +480,8 @@ public class FomodManager(string archivePath, ILoggerService logger)
             Priority = (int?)element.Attribute("priority") ?? 0
         };
     }
+    
+    // -------- Memory Handling --------
     
     private static void TrimProcessMemory()
     {
