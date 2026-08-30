@@ -29,6 +29,10 @@ public partial class MainWindowViewModel : ViewModelBase
     // tools
     [ObservableProperty] private string _pathToFnisTool;
     [ObservableProperty] private bool _isFnisAvailable;
+    [ObservableProperty] private string _pathToBodySlide;
+    [ObservableProperty] private bool _isBodySlideAvailable;
+    [ObservableProperty] private string _pathToOutfitStudio;
+    [ObservableProperty] private bool _isOutfitStudioAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
     private readonly AutoDetector _autoDetector = new AutoDetector();
@@ -50,6 +54,8 @@ public partial class MainWindowViewModel : ViewModelBase
     // tools' commands
     public ICommand OpenFnisCommand { get; }
     public ICommand DeleteFnisSymlinksCommand { get; }
+    public ICommand OpenOutfitStudioCommand { get; }
+    public ICommand OpenBodySlideCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -67,6 +73,8 @@ public partial class MainWindowViewModel : ViewModelBase
         //tools
         OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
         DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
+        OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
+        OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -134,14 +142,19 @@ public partial class MainWindowViewModel : ViewModelBase
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
 
         PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
-        IsFnisAvailable = CheckForFnis(PathToFnisTool);
+        PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
+        
+        IsFnisAvailable = CheckForExecutable(PathToFnisTool);
+        IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
+        IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
 
-    private bool CheckForFnis(string path)
+    private bool CheckForExecutable(string path)
     {
         if (string.IsNullOrEmpty(path)) return false;
         if (!File.Exists(path)) return false;
@@ -150,75 +163,95 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenFnis()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        string relativeFnisPath = Path.Combine("Data", "tools", "GenerateFNIS_for_Users", "GenerateFNISForUsers.exe");
+        
+        await LaunchToolInProtonAsync(relativeFnisPath, () =>
         {
-            string fnisPath = PathToFnisTool; // we expect it to be available
-            string fnisDirPath = Path.GetDirectoryName(fnisPath);
-            
-            // to make sure it EXISTS you HAVE to hit the play button AT LEAST ONCE
-            string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-            string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
-            
-            // our compiled console .exe from Utils folders
-            string fnisHelperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "FnisLauncher.exe");
-
-            try
+            // fix the 2001 error in FNIS
+            string fnisDirPath = Path.GetDirectoryName(PathToFnisTool)!;
+            string fnisIniPath = Path.Combine(fnisDirPath, "FNIS.ini");
+            if (!File.Exists(fnisIniPath))
             {
-                // check for helper inside the build
-                if (!File.Exists(fnisHelperSource))
-                {
-                    Logger.Log($"FNIS Helper executable not found at: {fnisHelperSource}", LogLevel.Error);
-                    return;
-                }
-
-                // backup the original launcher if not symlink
-                if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
-                {
-                    var fileInfo = new FileInfo(launcherPath);
-                    if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
-                    {
-                        File.Move(launcherPath, backupLauncherPath);
-                    }
-                }
-
-                // create FNIS.ini / fix 2001 error
-                string fnisIniPath = Path.Combine(fnisDirPath, "FNIS.ini");
-                if (!File.Exists(fnisIniPath))
-                {
-                    await File.WriteAllTextAsync(fnisIniPath, "[Language]\nLanguage=ENGLISH\n\n[Path]\nData=Data\n");
-                }
-
-                // replace SkyrimSELauncher.exe to FnisLauncher.exe
-                if (File.Exists(launcherPath)) File.Delete(launcherPath);
-                File.Copy(fnisHelperSource, launcherPath, overwrite: true);
-
-                // launch our helper
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "steam://rungameid/489830",
-                    UseShellExecute = true,
-                });
-
-                await Task.Delay(3000);
+                File.WriteAllText(fnisIniPath, "[Language]\nLanguage=ENGLISH\n\n[Path]\nData=Data\n");
             }
-            catch (Exception ex)
+        });
+    }
+
+    private async Task OpenBodySlide()
+    {
+        string relativeBodySlidePath = Path.Combine("Data", "CalienteTools", "BodySlide", "BodySlide.exe");
+        await LaunchToolInProtonAsync(relativeBodySlidePath);
+    }
+    
+    private async Task OpenOutfitStudio()
+    {
+        string relativeStudioPath = Path.Combine("Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
+        await LaunchToolInProtonAsync(relativeStudioPath);
+    }
+    
+    private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
+{
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+    {
+        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+        string helperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "ToolLauncher.exe");
+        string configPath = Path.Combine(GameFolderPath, "vokun_tool_config.txt"); // out specific config file
+
+        try
+        {
+            if (!File.Exists(helperSource))
             {
-                Logger.Log($"Error setting up FNIS launch: {ex.Message}", LogLevel.Error);
+                Logger.Log($"Tool executable not found at: {helperSource}", LogLevel.Error);
+                return;
             }
+
+            // backup the launcher if not symlink
+            if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
+            {
+                var fileInfo = new FileInfo(launcherPath);
+                if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
+                {
+                    File.Move(launcherPath, backupLauncherPath);
+                }
+            }
+
+            // for specific reasons (like fix error 2001 in FNIS)
+            preLaunchSetup?.Invoke();
+
+            // write path to our tool, so it'll launch the right one
+            await File.WriteAllTextAsync(configPath, pathToTool);
+
+            // replace the launcher
+            if (File.Exists(launcherPath)) File.Delete(launcherPath);
+            File.Copy(helperSource, launcherPath, overwrite: true);
+
+            // run
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "steam://rungameid/489830",
+                UseShellExecute = true,
+            });
+
+            await Task.Delay(3000);
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        catch (Exception ex)
         {
-            string pathToFnis = PathToFnisTool;
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = pathToFnis,
-                WorkingDirectory = GameFolderPath,
-                UseShellExecute = true
-            };
-
-            Process.Start(startInfo);
+            Logger.Log($"Error launching tool in Proton: {ex.Message}", LogLevel.Error);
         }
     }
+    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = pathToTool,
+            WorkingDirectory = GameFolderPath,
+            UseShellExecute = true
+        };
+
+        Process.Start(startInfo);
+    }
+}
     
     // refactor?
     private async Task DeleteFnisSymlinks()

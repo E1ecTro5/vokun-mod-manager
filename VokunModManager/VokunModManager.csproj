@@ -11,26 +11,23 @@
 
     <!-- external projs -->
     <ItemGroup>
-        <ProjectReference Include="../FnisLauncher/FnisLauncher.csproj"
-                          ReferenceOutputAssembly="false"
-                          SkipGetTargetFrameworkProperties="true"
-                          Private="false" />
+        <ProjectReference Include="..\ToolLauncher\ToolLauncher.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
     </ItemGroup>
 
-    <!-- include and copy the FnisLauncher into the build -->
-    <Target Name="BuildAndCopyFnisLauncher" BeforeTargets="BeforeBuild">
-        <MSBuild Projects="../FnisLauncher/FnisLauncher.csproj"
+    <!-- include and copy the ToolLauncher into the build -->
+    <Target Name="BuildAndCopyToolLauncher" BeforeTargets="BeforeBuild">
+        <MSBuild Projects="../ToolLauncher/ToolLauncher.csproj"
                  Targets="Publish"
                  Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true" />
 
-        <Copy SourceFiles="../FnisLauncher/bin/$(Configuration)/net10.0/win-x64/publish/FnisLauncher.exe"
+        <Copy SourceFiles="../ToolLauncher/bin/$(Configuration)/net10.0/win-x64/publish/ToolLauncher.exe"
               DestinationFolder="$(TargetDir)Assets/Utils/"
               SkipUnchangedFiles="true" />
     </Target>
 
-    <!-- copy FnisLauncher.exe and Assets to publish folder -->
-    <Target Name="CopyFnisLauncherToPublish" AfterTargets="ComputeFilesToPublish">
-        <Copy SourceFiles="../FnisLauncher/bin/$(Configuration)/net10.0/win-x64/publish/FnisLauncher.exe"
+    <!-- copy ToolLauncher.exe and Assets to publish folder -->
+    <Target Name="CopyToolLauncherToPublish" AfterTargets="ComputeFilesToPublish">
+        <Copy SourceFiles="../ToolLauncher/bin/$(Configuration)/net10.0/win-x64/publish/ToolLauncher.exe"
               DestinationFolder="$(PublishDir)Assets/Utils/"
               SkipUnchangedFiles="true" />
     </Target>

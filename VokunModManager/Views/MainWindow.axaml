@@ -77,9 +77,10 @@
                     <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                     <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
-                <Grid Grid.Row="4" ColumnDefinitions="*, *" ColumnSpacing="10">
+                <Grid Grid.Row="4" ColumnDefinitions="*, *, *" ColumnSpacing="10">
                     <Button Content="Open FNIS" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Delete FNIS symlinks" Command="{Binding DeleteFnisSymlinksCommand}" IsEnabled="{Binding IsFnisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+                    <Button Content="Open BodySlide" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+                    <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
                 <ScrollViewer Grid.Row="5" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">

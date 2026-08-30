@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VokunModManager", "VokunModManager.csproj", "{F5790B59-3E03-4B26-8B3E-15D1A51A5C9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FnisLauncher", "..\FnisLauncher\FnisLauncher.csproj", "{780037BD-CD3C-49AA-A76E-979C01CAC307}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolLauncher", "..\ToolLauncher\ToolLauncher.csproj", "{780037BD-CD3C-49AA-A76E-979C01CAC307}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
