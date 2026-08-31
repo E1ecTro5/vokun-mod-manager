@@ -83,7 +83,7 @@
                     <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
                 <Grid Grid.Row="5" ColumnDefinitions="*" ColumnSpacing="10">
-                    <Button Content="Open Nemesisя" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                 </Grid>
                 <ScrollViewer Grid.Row="6" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
