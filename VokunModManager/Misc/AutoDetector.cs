@@ -144,4 +144,26 @@ public class AutoDetector
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
+    
+    /// <summary>
+    /// Tries to get the Nemesis Unlimited Behavior Engine.exe file, if it exists.
+    /// </summary>
+    /// <returns>Path to the .exe file. Null if nothing found.</returns>
+    public async Task<string?> TryGetNemesisExecutable()
+    {
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            possibleLocation = Path.Combine(gameFolder, "Data/Nemesis_Engine/Nemesis Unlimited Behavior Engine.exe");
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            possibleLocation = Path.Combine(gameFolder, @"Data\Nemesis_Engine\Nemesis Unlimited Behavior Engine.exe");
+        }
+
+        return File.Exists(possibleLocation) ? possibleLocation : null;
+    }
 }
