@@ -166,4 +166,38 @@ public class AutoDetector
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
+    
+    /// <summary>
+    /// Tries to get the SSEEdit.exe file, if it exists.
+    /// </summary>
+    /// <returns>Path to the .exe file. Null if nothing found.</returns>
+    public async Task<string?> TryGetSseeditExecutable()
+    {
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        string dataFolder = Path.Combine(gameFolder, "Data");
+        string searchFolder = Path.Combine(dataFolder, "SSEEdit");
+        string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
+            .FirstOrDefault(x => x.StartsWith(searchFolder));
+
+        possibleLocation = Path.Combine(sseeditFolder, "SSEEdit.exe");
+        return File.Exists(possibleLocation) ? possibleLocation : null;
+    }
+    
+    public async Task<string?> TryGetSseeditAutoCleanExecutable()
+    {
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        string dataFolder = Path.Combine(gameFolder, "Data");
+        string searchFolder = Path.Combine(dataFolder, "SSEEdit");
+        string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
+            .FirstOrDefault(x => x.StartsWith(searchFolder));
+
+        possibleLocation = Path.Combine(sseeditFolder, "SSEEditQuickAutoClean.exe");
+        return File.Exists(possibleLocation) ? possibleLocation : null;
+    }
 }

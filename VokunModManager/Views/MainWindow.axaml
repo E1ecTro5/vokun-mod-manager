@@ -82,8 +82,10 @@
                     <Button Content="Open BodySlide" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                     <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
-                <Grid Grid.Row="5" ColumnDefinitions="*" ColumnSpacing="10">
+                <Grid Grid.Row="5" ColumnDefinitions="*, *, *" ColumnSpacing="10">
                     <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="Open SSEEdit" Command="{Binding OpenSseeditCommand}" IsEnabled="{Binding IsSseeditAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+                    <Button Content="Open SSEEditQuickAutoClean" Command="{Binding OpenSseeditAutoCleanCommand}" IsEnabled="{Binding IsSseeditAutoCleanAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
                 <ScrollViewer Grid.Row="6" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
