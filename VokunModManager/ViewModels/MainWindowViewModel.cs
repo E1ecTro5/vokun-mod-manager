@@ -33,6 +33,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isBodySlideAvailable;
     [ObservableProperty] private string _pathToOutfitStudio;
     [ObservableProperty] private bool _isOutfitStudioAvailable;
+    [ObservableProperty] private string _pathToNemesisTool;
+    [ObservableProperty] private bool _isNemesisAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
     private readonly AutoDetector _autoDetector = new AutoDetector();
@@ -56,6 +58,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand DeleteFnisSymlinksCommand { get; }
     public ICommand OpenOutfitStudioCommand { get; }
     public ICommand OpenBodySlideCommand { get; }
+    public ICommand OpenNemesisCommand { get; }
     
     public MainWindowViewModel()
     {
@@ -75,6 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
         OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
         OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
+        OpenNemesisCommand = new AsyncRelayCommand(OpenNemesis);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -144,10 +148,12 @@ public partial class MainWindowViewModel : ViewModelBase
         PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
         PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
         PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
+        PathToNemesisTool = await _autoDetector.TryGetNemesisExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
         IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
+        IsNemesisAvailable = CheckForExecutable(PathToNemesisTool);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
@@ -188,70 +194,76 @@ public partial class MainWindowViewModel : ViewModelBase
         string relativeStudioPath = Path.Combine("Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
         await LaunchToolInProtonAsync(relativeStudioPath);
     }
+
+    private async Task OpenNemesis()
+    {
+        string relativeStudioPath = Path.Combine("Data", "Nemesis_Engine", "Nemesis Unlimited Behavior Engine.exe");
+        await LaunchToolInProtonAsync(relativeStudioPath);
+    }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
-{
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
-        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
-        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-        string helperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "ToolLauncher.exe");
-        string configPath = Path.Combine(GameFolderPath, "vokun_tool_config.txt"); // out specific config file
-
-        try
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            if (!File.Exists(helperSource))
-            {
-                Logger.Log($"Tool executable not found at: {helperSource}", LogLevel.Error);
-                return;
-            }
+            string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
+            string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
+            string helperSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Utils", "ToolLauncher.exe");
+            string configPath = Path.Combine(GameFolderPath, "vokun_tool_config.txt"); // out specific config file
 
-            // backup the launcher if not symlink
-            if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
+            try
             {
-                var fileInfo = new FileInfo(launcherPath);
-                if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
+                if (!File.Exists(helperSource))
                 {
-                    File.Move(launcherPath, backupLauncherPath);
+                    Logger.Log($"Tool executable not found at: {helperSource}", LogLevel.Error);
+                    return;
                 }
+
+                // backup the launcher if not symlink
+                if (File.Exists(launcherPath) && !File.Exists(backupLauncherPath))
+                {
+                    var fileInfo = new FileInfo(launcherPath);
+                    if ((fileInfo.Attributes & FileAttributes.ReparsePoint) == 0)
+                    {
+                        File.Move(launcherPath, backupLauncherPath);
+                    }
+                }
+
+                // for specific reasons (like fix error 2001 in FNIS)
+                preLaunchSetup?.Invoke();
+
+                // write path to our tool, so it'll launch the right one
+                await File.WriteAllTextAsync(configPath, pathToTool);
+
+                // replace the launcher
+                if (File.Exists(launcherPath)) File.Delete(launcherPath);
+                File.Copy(helperSource, launcherPath, overwrite: true);
+
+                // run
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "steam://rungameid/489830",
+                    UseShellExecute = true,
+                });
+
+                await Task.Delay(3000);
             }
-
-            // for specific reasons (like fix error 2001 in FNIS)
-            preLaunchSetup?.Invoke();
-
-            // write path to our tool, so it'll launch the right one
-            await File.WriteAllTextAsync(configPath, pathToTool);
-
-            // replace the launcher
-            if (File.Exists(launcherPath)) File.Delete(launcherPath);
-            File.Copy(helperSource, launcherPath, overwrite: true);
-
-            // run
-            Process.Start(new ProcessStartInfo
+            catch (Exception ex)
             {
-                FileName = "steam://rungameid/489830",
-                UseShellExecute = true,
-            });
-
-            await Task.Delay(3000);
+                Logger.Log($"Error launching tool in Proton: {ex.Message}", LogLevel.Error);
+            }
         }
-        catch (Exception ex)
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Logger.Log($"Error launching tool in Proton: {ex.Message}", LogLevel.Error);
-        }
-    }
-    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = pathToTool,
-            WorkingDirectory = GameFolderPath,
-            UseShellExecute = true
-        };
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = pathToTool,
+                WorkingDirectory = GameFolderPath,
+                UseShellExecute = true
+            };
 
-        Process.Start(startInfo);
-    }
-}
+            Process.Start(startInfo);
+        }
+    }   
     
     // refactor?
     private async Task DeleteFnisSymlinks()
