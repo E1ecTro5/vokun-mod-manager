@@ -35,6 +35,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isOutfitStudioAvailable;
     [ObservableProperty] private string _pathToNemesisTool;
     [ObservableProperty] private bool _isNemesisAvailable;
+    [ObservableProperty] private string _pathToSseeditTool;
+    [ObservableProperty] private bool _isSseeditAvailable;
+    [ObservableProperty] private string _pathToSseeditAutoCleanTool;
+    [ObservableProperty] private bool _isSseeditAutoCleanAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
     private readonly AutoDetector _autoDetector = new AutoDetector();
@@ -59,7 +63,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenOutfitStudioCommand { get; }
     public ICommand OpenBodySlideCommand { get; }
     public ICommand OpenNemesisCommand { get; }
-    
+    public ICommand OpenSseeditCommand { get; }
+    public ICommand OpenSseeditAutoCleanCommand { get; }
+
     public MainWindowViewModel()
     {
         ModList = new ObservableCollection<Mod>();
@@ -79,6 +85,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
         OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
         OpenNemesisCommand = new AsyncRelayCommand(OpenNemesis);
+        OpenSseeditCommand = new AsyncRelayCommand(OpenSseedit);
+        OpenSseeditAutoCleanCommand = new AsyncRelayCommand(OpenSseeditAutoClean);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -149,11 +157,15 @@ public partial class MainWindowViewModel : ViewModelBase
         PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
         PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
         PathToNemesisTool = await _autoDetector.TryGetNemesisExecutable();
+        PathToSseeditTool = await _autoDetector.TryGetSseeditExecutable();
+        PathToSseeditAutoCleanTool = await _autoDetector.TryGetSseeditAutoCleanExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
         IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
         IsNemesisAvailable = CheckForExecutable(PathToNemesisTool);
+        IsSseeditAvailable = CheckForExecutable(PathToSseeditTool);
+        IsSseeditAutoCleanAvailable = CheckForExecutable(PathToSseeditAutoCleanTool);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
@@ -199,6 +211,24 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         string relativeStudioPath = Path.Combine("Data", "Nemesis_Engine", "Nemesis Unlimited Behavior Engine.exe");
         await LaunchToolInProtonAsync(relativeStudioPath);
+    }
+    
+    private async Task OpenSseedit()
+    {
+        string relativeStudioPath = PathToSseeditTool;
+        string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
+        string relativeFromData = Path.Combine(
+            dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        await LaunchToolInProtonAsync(relativeFromData);
+    }
+    
+    private async Task OpenSseeditAutoClean()
+    {
+        string relativeStudioPath = PathToSseeditAutoCleanTool;
+        string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
+        string relativeFromData = Path.Combine(
+            dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        await LaunchToolInProtonAsync(relativeFromData);
     }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
