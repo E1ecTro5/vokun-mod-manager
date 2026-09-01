@@ -180,7 +180,7 @@ public class AutoDetector
         string dataFolder = Path.Combine(gameFolder, "Data");
         string searchFolder = Path.Combine(dataFolder, "SSEEdit");
         string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
-            .FirstOrDefault(x => x.StartsWith(searchFolder));
+            .FirstOrDefault(x => x.StartsWith(searchFolder) && !x.EndsWith("Cache", StringComparison.OrdinalIgnoreCase));
 
         possibleLocation = Path.Combine(sseeditFolder, "SSEEdit.exe");
         return File.Exists(possibleLocation) ? possibleLocation : null;
@@ -195,7 +195,7 @@ public class AutoDetector
         string dataFolder = Path.Combine(gameFolder, "Data");
         string searchFolder = Path.Combine(dataFolder, "SSEEdit");
         string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
-            .FirstOrDefault(x => x.StartsWith(searchFolder));
+            .FirstOrDefault(x => x.StartsWith(searchFolder) && !x.EndsWith("Cache", StringComparison.OrdinalIgnoreCase));
 
         possibleLocation = Path.Combine(sseeditFolder, "SSEEditQuickAutoClean.exe");
         return File.Exists(possibleLocation) ? possibleLocation : null;
