@@ -215,4 +215,23 @@ public class AutoDetector
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
+    
+    /// <summary>
+    /// Tries to get the BethINI.exe file INSIDE THE DATA FOLDER, if it exists.
+    /// </summary>
+    /// <returns>Path to the .exe file. Null if nothing found.</returns>
+    public async Task<string?> TryGetBethIniExecutable()
+    {
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        string dataFolder = Path.Combine(gameFolder, "Data");
+        string bethIniFolder = Directory.EnumerateDirectories(dataFolder)
+            .FirstOrDefault(x => x.StartsWith(Path.Combine(dataFolder, "BethINI")));
+        if (string.IsNullOrEmpty(bethIniFolder)) return null; // forgot to handle exception; apply to others when you'll refactor
+        possibleLocation = Path.Combine(bethIniFolder, "BethINI.exe");
+
+        return File.Exists(possibleLocation) ? possibleLocation : null;
+    }
 }
