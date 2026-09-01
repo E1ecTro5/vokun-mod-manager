@@ -89,6 +89,7 @@
                 </Grid>
                 <Grid Grid.Row="6" ColumnDefinitions="*, *, *" ColumnSpacing="10">
                     <Button Content="Open Pandora" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+                    <Button Content="Open BethINI" Command="{Binding OpenBethIniCommand}" IsEnabled="{Binding IsBethIniAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                 </Grid>
                 <ScrollViewer Grid.Row="7" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">

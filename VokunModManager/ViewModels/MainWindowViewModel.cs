@@ -41,6 +41,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isSseeditAutoCleanAvailable;
     [ObservableProperty] private string _pathToPandoraTool;
     [ObservableProperty] private bool _isPandoraAvailable;
+    [ObservableProperty] private string _pathToBethIniTool;
+    [ObservableProperty] private bool _isBethIniAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
     private readonly AutoDetector _autoDetector = new AutoDetector();
@@ -68,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenSseeditCommand { get; }
     public ICommand OpenSseeditAutoCleanCommand { get; }
     public ICommand OpenPandoraCommand { get; }
+    public ICommand OpenBethIniCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -91,6 +94,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenSseeditCommand = new AsyncRelayCommand(OpenSseedit);
         OpenSseeditAutoCleanCommand = new AsyncRelayCommand(OpenSseeditAutoClean);
         OpenPandoraCommand = new AsyncRelayCommand(OpenPandora);
+        OpenBethIniCommand = new AsyncRelayCommand(OpenBethIni);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -164,6 +168,7 @@ public partial class MainWindowViewModel : ViewModelBase
         PathToSseeditTool = await _autoDetector.TryGetSseeditExecutable();
         PathToSseeditAutoCleanTool = await _autoDetector.TryGetSseeditAutoCleanExecutable();
         PathToPandoraTool = await _autoDetector.TryGetPandoraExecutable();
+        PathToBethIniTool = await _autoDetector.TryGetBethIniExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
@@ -172,6 +177,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsSseeditAvailable = CheckForExecutable(PathToSseeditTool);
         IsSseeditAutoCleanAvailable = CheckForExecutable(PathToSseeditAutoCleanTool);
         IsPandoraAvailable = CheckForExecutable(PathToPandoraTool);
+        IsBethIniAvailable = CheckForExecutable(PathToBethIniTool);
         
         IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
@@ -241,6 +247,15 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         string relativeStudioPath = Path.Combine("Data", "Pandora Behaviour Engine+.exe");
         await LaunchToolInProtonAsync(relativeStudioPath);
+    }
+
+    private async Task OpenBethIni()
+    {
+        string relativeStudioPath = PathToBethIniTool;
+        string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
+        string relativeFromData = Path.Combine(
+            dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        await LaunchToolInProtonAsync(relativeFromData);
     }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
