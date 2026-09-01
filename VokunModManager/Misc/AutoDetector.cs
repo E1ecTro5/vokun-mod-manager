@@ -200,4 +200,19 @@ public class AutoDetector
         possibleLocation = Path.Combine(sseeditFolder, "SSEEditQuickAutoClean.exe");
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
+    
+    /// <summary>
+    /// Tries to get the Pandora Behaviour Engine+.exe file, if it exists.
+    /// </summary>
+    /// <returns>Path to the .exe file. Null if nothing found.</returns>
+    public async Task<string?> TryGetPandoraExecutable()
+    {
+        string possibleLocation = string.Empty;
+        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolder)) return null;
+
+        possibleLocation = Path.Combine(gameFolder, "Data", "Pandora Behaviour Engine+.exe");
+
+        return File.Exists(possibleLocation) ? possibleLocation : null;
+    }
 }
