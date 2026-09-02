@@ -1,12 +1,14 @@
+using VokunModManager.Interfaces;
+
 namespace VokunModManager.Misc;
 
-public static class AutoDetector
+public class AutoDetector : IAutoDetector
 {
     /// <summary>
     /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder and set it to the app config.
     /// </summary>
     /// <returns>Path to the game folder, if found. Null, if not.</returns>
-    public static string? TryGetGameFolder()
+    public string? TryGetGameFolder()
     {
         string possiblePath = string.Empty;
 
@@ -28,7 +30,7 @@ public static class AutoDetector
     /// Tries to find game's Plugin.txt file, located in compatdata folder and set it to the app config.
     /// </summary>
     /// <returns>Path to the file, if found. Null, if not.</returns>
-    public static string? TryGetPluginConfig()
+    public string? TryGetPluginConfig()
     {
         string possibleLocation = string.Empty;
 
@@ -50,7 +52,7 @@ public static class AutoDetector
     /// Tries to get and set the config (settings) file of the game.
     /// </summary>
     /// <returns>Path to the file, if found. Null, if not.</returns>
-    public static string? TryGetPrefsFile()
+    public string? TryGetPrefsFile()
     {
         string possibleLocation = string.Empty;
 
@@ -74,7 +76,7 @@ public static class AutoDetector
     /// Tries to get the GenerateFNISforUsers.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetFnisExecutable()
+    public string? TryGetFnisExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -88,7 +90,7 @@ public static class AutoDetector
     /// Tries to get the OutfitStudio.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetOutfitStudioExecutable()
+    public string? TryGetOutfitStudioExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -102,7 +104,7 @@ public static class AutoDetector
     /// Tries to get the BodySlide.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetBodySlideExecutable()
+    public string? TryGetBodySlideExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -116,7 +118,7 @@ public static class AutoDetector
     /// Tries to get the Nemesis Unlimited Behavior Engine.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetNemesisExecutable()
+    public string? TryGetNemesisExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -130,7 +132,7 @@ public static class AutoDetector
     /// Tries to get the SSEEdit.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetSseeditExecutable()
+    public string? TryGetSseeditExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -145,7 +147,7 @@ public static class AutoDetector
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
-    public static string? TryGetSseeditAutoCleanExecutable()
+    public string? TryGetSseeditAutoCleanExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -165,7 +167,7 @@ public static class AutoDetector
     /// Tries to get the Pandora Behaviour Engine+.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetPandoraExecutable()
+    public string? TryGetPandoraExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
@@ -179,7 +181,7 @@ public static class AutoDetector
     /// Tries to get the BethINI.exe file INSIDE THE DATA FOLDER, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public static string? TryGetBethIniExecutable()
+    public string? TryGetBethIniExecutable()
     {
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;

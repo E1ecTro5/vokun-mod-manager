@@ -60,6 +60,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenGameConfigCommand { get; }
 
     public ILoggerService Logger { get; }
+    private IAutoDetector Detector { get; } = new AutoDetector();
     
     // tools' commands
     public ICommand OpenFnisCommand { get; }
@@ -159,14 +160,14 @@ public partial class MainWindowViewModel : ViewModelBase
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
 
-        PathToFnisTool = AutoDetector.TryGetFnisExecutable();
-        PathToBodySlide = AutoDetector.TryGetBodySlideExecutable();
-        PathToOutfitStudio = AutoDetector.TryGetOutfitStudioExecutable();
-        PathToNemesisTool = AutoDetector.TryGetNemesisExecutable();
-        PathToXEditTool = AutoDetector.TryGetSseeditExecutable();
-        PathToXEditAutoCleanTool = AutoDetector.TryGetSseeditAutoCleanExecutable();
-        PathToPandoraTool = AutoDetector.TryGetPandoraExecutable();
-        PathToBethIniTool = AutoDetector.TryGetBethIniExecutable();
+        PathToFnisTool = Detector.TryGetFnisExecutable();
+        PathToBodySlide = Detector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = Detector.TryGetOutfitStudioExecutable();
+        PathToNemesisTool = Detector.TryGetNemesisExecutable();
+        PathToXEditTool = Detector.TryGetSseeditExecutable();
+        PathToXEditAutoCleanTool = Detector.TryGetSseeditAutoCleanExecutable();
+        PathToPandoraTool = Detector.TryGetPandoraExecutable();
+        PathToBethIniTool = Detector.TryGetBethIniExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);

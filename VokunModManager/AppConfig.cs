@@ -1,3 +1,4 @@
+using VokunModManager.Interfaces;
 using VokunModManager.Misc;
 
 namespace VokunModManager;
@@ -107,8 +108,10 @@ public sealed class AppConfig
     
     public void CheckConfigStatus()
     {
-        if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = AutoDetector.TryGetGameFolder();
-        if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = AutoDetector.TryGetPluginConfig();
-        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) SkyrimPrefsFilePath = AutoDetector.TryGetPrefsFile();
+        IAutoDetector detector = new AutoDetector(); 
+        
+        if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = detector.TryGetGameFolder();
+        if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = detector.TryGetPluginConfig();
+        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) SkyrimPrefsFilePath = detector.TryGetPrefsFile();
     }
 }
