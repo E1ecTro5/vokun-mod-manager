@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VokunModManager.Interfaces;
 using VokunModManager.Misc;
 using VokunModManager.Models;
 
@@ -44,7 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string? _pathToBethIniTool;
     [ObservableProperty] private bool _isBethIniAvailable;
 
-    private readonly FileManager _fileManager = new();
+    private readonly IFileManager _fileManager = new FileManager();
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -357,7 +358,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetGamePath()
     {
-        var filePath = await _fileManager.SelectDirectory();
+        var filePath = await _fileManager.SelectDirectoryAsync();
 
         if (string.IsNullOrEmpty(filePath))
         {
@@ -371,7 +372,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task SetModListPath()
     {
-        var filePath = await _fileManager.SelectFile();
+        var filePath = await _fileManager.SelectFileAsync();
 
         if (string.IsNullOrEmpty(filePath))
         {
@@ -430,7 +431,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task InstallMod()
     {
-        var filePath = await _fileManager.SelectFile();
+        var filePath = await _fileManager.SelectFileAsync();
         if (string.IsNullOrEmpty(filePath))
         {
             await MsgBoxManager.ShowWarning("Mod archive not selected!");

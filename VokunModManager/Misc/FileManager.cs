@@ -1,55 +1,48 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using VokunModManager.Interfaces;
 
 namespace VokunModManager.Misc;
 
-public class FileManager
+public class FileManager : IFileManager
 {
-    private TopLevel GetOwner()
+    private static IStorageProvider GetStorageProvider()
     {
-        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow!;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow.StorageProvider: { } storage })
+        {
+            return storage;
+        }
+
+        throw new InvalidOperationException("Desktop MainWindow or StorageProvider is not initialized.");
     }
 
-    // make it all static?
-    
-    public async Task<string?> SelectFile()
+    public async Task<string?> SelectFileAsync(FilePickerFileType[]? fileTypes = null)
     {
-        var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
+        var storage = GetStorageProvider();
 
-        if (storage == null) throw new NullReferenceException("Storage provider is null");
-        
-        var files = await storage.OpenFilePickerAsync(
-            new FilePickerOpenOptions()
-            {
-                Title = "Select a file",
-                AllowMultiple = false
-            });
-        
-        var file = files.FirstOrDefault();
-        
-        file?.Dispose();
-        
-        // LOCAL PATH because of OS
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select a file",
+            AllowMultiple = false,
+            FileTypeFilter = fileTypes
+        });
+
+        using var file = files.FirstOrDefault();
         return file?.Path.LocalPath;
     }
 
-    public async Task<string?> SelectDirectory()
+    public async Task<string?> SelectDirectoryAsync()
     {
-        var storage = TopLevel.GetTopLevel(GetOwner())?.StorageProvider;
+        var storage = GetStorageProvider();
 
-        if (storage == null) throw new NullReferenceException("Storage provider is null");
-        
-        var folders = await storage.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions
-            {
-                Title = "Select a  folder",
-                AllowMultiple = false
-            });
-        
-        var folder = folders.FirstOrDefault();
-        // LOCALPATH because of OS
+        var folders = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select a folder",
+            AllowMultiple = false
+        });
+
+        using var folder = folders.FirstOrDefault();
         return folder?.Path.LocalPath;
     }
 }
