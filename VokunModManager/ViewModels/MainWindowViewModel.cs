@@ -45,7 +45,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string? _pathToBethIniTool;
     [ObservableProperty] private bool _isBethIniAvailable;
 
-    private readonly IFileManager _fileManager = new FileManager();
+    private readonly IFileManager _fileManager;
+    private readonly IAutoDetector _autoDetector;
+    
+    public ILoggerService Logger { get; }
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -58,9 +61,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenDataFolderCommand { get; }
     public ICommand OpenPluginFileCommand { get; }
     public ICommand OpenGameConfigCommand { get; }
-
-    public ILoggerService Logger { get; }
-    private IAutoDetector Detector { get; } = new AutoDetector();
     
     // tools' commands
     public ICommand OpenFnisCommand { get; }
@@ -72,8 +72,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenPandoraCommand { get; }
     public ICommand OpenBethIniCommand { get; }
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IFileManager fileManager, IAutoDetector autoDetector, ILoggerService loggerService)
     {
+        _fileManager = fileManager;
+        _autoDetector = autoDetector;
+        Logger = loggerService;
+        Logger.Log("Logger initialized.");
+        
         ModList = new ObservableCollection<Mod>();
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
@@ -99,9 +104,6 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
-
-        Logger = new UiLoggerService();
-        Logger.Log("Logger initialized.");
     }
 
     private async Task StartGame()
@@ -160,14 +162,14 @@ public partial class MainWindowViewModel : ViewModelBase
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
 
-        PathToFnisTool = Detector.TryGetFnisExecutable();
-        PathToBodySlide = Detector.TryGetBodySlideExecutable();
-        PathToOutfitStudio = Detector.TryGetOutfitStudioExecutable();
-        PathToNemesisTool = Detector.TryGetNemesisExecutable();
-        PathToXEditTool = Detector.TryGetSseeditExecutable();
-        PathToXEditAutoCleanTool = Detector.TryGetSseeditAutoCleanExecutable();
-        PathToPandoraTool = Detector.TryGetPandoraExecutable();
-        PathToBethIniTool = Detector.TryGetBethIniExecutable();
+        PathToFnisTool = _autoDetector.TryGetFnisExecutable();
+        PathToBodySlide = _autoDetector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = _autoDetector.TryGetOutfitStudioExecutable();
+        PathToNemesisTool = _autoDetector.TryGetNemesisExecutable();
+        PathToXEditTool = _autoDetector.TryGetSseeditExecutable();
+        PathToXEditAutoCleanTool = _autoDetector.TryGetSseeditAutoCleanExecutable();
+        PathToPandoraTool = _autoDetector.TryGetPandoraExecutable();
+        PathToBethIniTool = _autoDetector.TryGetBethIniExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
