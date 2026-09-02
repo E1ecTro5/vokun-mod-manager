@@ -90,8 +90,8 @@ public sealed class AppConfig
                     continue; // skip if not match
             }
         }
-
-        await CheckConfigStatus(); // just to be sure
+        
+        CheckConfigStatus(); // just to be sure
     }
     
     private async Task ReWriteConfig()
@@ -105,12 +105,10 @@ public sealed class AppConfig
         }
     }
     
-    public async Task CheckConfigStatus()
+    public void CheckConfigStatus()
     {
-        var detector = new AutoDetector();
-
-        if (string.IsNullOrEmpty(GameFolderPath)) await detector.TryGetGameFolder();
-        if (string.IsNullOrEmpty(PluginFilePath)) await detector.TryGetPluginConfig();
-        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) await detector.TryGetPrefsFile();
+        if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = AutoDetector.TryGetGameFolder();
+        if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = AutoDetector.TryGetPluginConfig();
+        if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) SkyrimPrefsFilePath = AutoDetector.TryGetPrefsFile();
     }
 }

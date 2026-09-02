@@ -45,7 +45,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isBethIniAvailable;
 
     private readonly FileManager _fileManager = new FileManager();
-    private readonly AutoDetector _autoDetector = new AutoDetector();
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -161,14 +160,14 @@ public partial class MainWindowViewModel : ViewModelBase
         PluginFilePath = AppConfig.Instance.PluginFilePath;
         SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
 
-        PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
-        PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
-        PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
-        PathToNemesisTool = await _autoDetector.TryGetNemesisExecutable();
-        PathToSseeditTool = await _autoDetector.TryGetSseeditExecutable();
-        PathToSseeditAutoCleanTool = await _autoDetector.TryGetSseeditAutoCleanExecutable();
-        PathToPandoraTool = await _autoDetector.TryGetPandoraExecutable();
-        PathToBethIniTool = await _autoDetector.TryGetBethIniExecutable();
+        PathToFnisTool = AutoDetector.TryGetFnisExecutable();
+        PathToBodySlide = AutoDetector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = AutoDetector.TryGetOutfitStudioExecutable();
+        PathToNemesisTool = AutoDetector.TryGetNemesisExecutable();
+        PathToSseeditTool = AutoDetector.TryGetSseeditExecutable();
+        PathToSseeditAutoCleanTool = AutoDetector.TryGetSseeditAutoCleanExecutable();
+        PathToPandoraTool = AutoDetector.TryGetPandoraExecutable();
+        PathToBethIniTool = AutoDetector.TryGetBethIniExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
@@ -342,7 +341,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task ReInitValues()
     {
-        await AppConfig.Instance.CheckConfigStatus();
+        AppConfig.Instance.CheckConfigStatus();
     }
 
     private async Task UpdateModList()

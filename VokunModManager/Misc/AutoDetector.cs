@@ -1,12 +1,12 @@
 namespace VokunModManager.Misc;
 
-public class AutoDetector
+public static class AutoDetector
 {
     /// <summary>
     /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder and set it to the app config.
     /// </summary>
-    /// <returns>True, if folder has been found and set to the config. Otherwise, false.</returns>
-    public async Task<bool> TryGetGameFolder()
+    /// <returns>Path to the game folder, if found. Null, if not.</returns>
+    public static string? TryGetGameFolder()
     {
         string possiblePath = string.Empty;
 
@@ -21,17 +21,14 @@ public class AutoDetector
             possiblePath = Path.Combine(programFilesPath, @"Steam\steamapps\common\Skyrim Special Edition");
         }
 
-        if (!Directory.Exists(possiblePath)) return false;
-        
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, possiblePath);
-        return true;
+        return !Directory.Exists(possiblePath) ? null : possiblePath;
     }
 
     /// <summary>
     /// Tries to find game's Plugin.txt file, located in compatdata folder and set it to the app config.
     /// </summary>
-    /// <returns>True, if file has been found and set to the config. Otherwise, false.</returns>
-    public async Task<bool> TryGetPluginConfig()
+    /// <returns>Path to the file, if found. Null, if not.</returns>
+    public static string? TryGetPluginConfig()
     {
         string possibleLocation = string.Empty;
 
@@ -45,17 +42,15 @@ public class AutoDetector
             var appdataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             possibleLocation = Path.Combine(appdataFolder, @"Skyrim Special Edition\Plugins.txt");
         }
-        if (!File.Exists(possibleLocation)) return false;
-        
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, possibleLocation);
-        return true;
+
+        return !File.Exists(possibleLocation) ? null : possibleLocation;
     }
 
     /// <summary>
     /// Tries to get and set the config (settings) file of the game.
     /// </summary>
-    /// <returns>True, if file has been found and set to the app config. Otherwise, false.</returns>
-    public async Task<bool> TryGetPrefsFile()
+    /// <returns>Path to the file, if found. Null, if not.</returns>
+    public static string? TryGetPrefsFile()
     {
         string possibleLocation = string.Empty;
 
@@ -70,32 +65,22 @@ public class AutoDetector
             possibleLocation = Path.Combine(pathToDocs, @"Documents\My Games\Skyrim Special Edition\SkyrimPrefs.ini");
         }
 
-        if(!File.Exists(possibleLocation)) return false;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.SkyrimPrefsFilePath, possibleLocation);
-        return true;
+        return !File.Exists(possibleLocation) ? null : possibleLocation;
     }
 
+    // Note: all the tools below will be detected if they installed directly into the game's folder...
+    
     /// <summary>
     /// Tries to get the GenerateFNISforUsers.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetFnisExecutable()
+    public static string? TryGetFnisExecutable()
     {
-        //home/epsilon/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data/tools/GenerateFNIS_for_Users/GenerateFNISforUsers.exe
-
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            possibleLocation = Path.Combine(gameFolder, "Data/tools/GenerateFNIS_for_Users/GenerateFNISforUsers.exe");
-        }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            possibleLocation = Path.Combine(gameFolder, @"Data\tools\GenerateFNIS_for_Users\GenerateFNISforUsers.exe");
-        }
-
+        string possibleLocation = Path.Combine(gameFolder, "Data", "tools", "GenerateFNIS_for_Users", "GenerateFNISforUsers.exe");
+        
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
@@ -103,23 +88,13 @@ public class AutoDetector
     /// Tries to get the OutfitStudio.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetOutfitStudioExecutable()
+    public static string? TryGetOutfitStudioExecutable()
     {
-        //home/epsilon/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data/CalienteTools/BodySlide/BodySlide.exe
-
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            possibleLocation = Path.Combine(gameFolder, "Data/CalienteTools/BodySlide/OutfitStudio.exe");
-        }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            possibleLocation = Path.Combine(gameFolder, @"Data\CalienteTools\BodySlide\OutfitStudio.exe");
-        }
-
+        string possibleLocation = Path.Combine(gameFolder, "Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
+        
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
@@ -127,21 +102,13 @@ public class AutoDetector
     /// Tries to get the BodySlide.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetBodySlideExecutable()
+    public static string? TryGetBodySlideExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            possibleLocation = Path.Combine(gameFolder, "Data/CalienteTools/BodySlide/BodySlide.exe");
-        }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            possibleLocation = Path.Combine(gameFolder, @"Data\CalienteTools\BodySlide\BodySlide.exe");
-        }
-
+        string possibleLocation = Path.Combine(gameFolder, "Data", "CalienteTools", "BodySlide", "BodySlide.exe");
+        
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
@@ -149,20 +116,12 @@ public class AutoDetector
     /// Tries to get the Nemesis Unlimited Behavior Engine.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetNemesisExecutable()
+    public static string? TryGetNemesisExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            possibleLocation = Path.Combine(gameFolder, "Data/Nemesis_Engine/Nemesis Unlimited Behavior Engine.exe");
-        }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-        {
-            possibleLocation = Path.Combine(gameFolder, @"Data\Nemesis_Engine\Nemesis Unlimited Behavior Engine.exe");
-        }
+        string possibleLocation = Path.Combine(gameFolder, "Data", "Nemesis_Engine", "Nemesis Unlimited Behavior Engine.exe");
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
@@ -171,33 +130,34 @@ public class AutoDetector
     /// Tries to get the SSEEdit.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetSseeditExecutable()
+    public static string? TryGetSseeditExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");
         string searchFolder = Path.Combine(dataFolder, "SSEEdit");
-        string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
+        string? sseeditFolder = Directory.EnumerateDirectories(dataFolder)
             .FirstOrDefault(x => x.StartsWith(searchFolder) && !x.EndsWith("Cache", StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrEmpty(sseeditFolder)) return null;
 
-        possibleLocation = Path.Combine(sseeditFolder, "SSEEdit.exe");
+        string possibleLocation = Path.Combine(sseeditFolder, "SSEEdit.exe");
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
-    public async Task<string?> TryGetSseeditAutoCleanExecutable()
+    public static string? TryGetSseeditAutoCleanExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");
         string searchFolder = Path.Combine(dataFolder, "SSEEdit");
-        string sseeditFolder = Directory.EnumerateDirectories(dataFolder)
+        string? sseeditFolder = Directory.EnumerateDirectories(dataFolder)
             .FirstOrDefault(x => x.StartsWith(searchFolder) && !x.EndsWith("Cache", StringComparison.OrdinalIgnoreCase));
+        if(string.IsNullOrEmpty(sseeditFolder)) return null;
 
-        possibleLocation = Path.Combine(sseeditFolder, "SSEEditQuickAutoClean.exe");
+        string possibleLocation = Path.Combine(sseeditFolder, "SSEEditQuickAutoClean.exe");
+        
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
     
@@ -205,13 +165,12 @@ public class AutoDetector
     /// Tries to get the Pandora Behaviour Engine+.exe file, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetPandoraExecutable()
+    public static string? TryGetPandoraExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
-        possibleLocation = Path.Combine(gameFolder, "Data", "Pandora Behaviour Engine+.exe");
+        string possibleLocation = Path.Combine(gameFolder, "Data", "Pandora Behaviour Engine+.exe");
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
@@ -220,17 +179,17 @@ public class AutoDetector
     /// Tries to get the BethINI.exe file INSIDE THE DATA FOLDER, if it exists.
     /// </summary>
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
-    public async Task<string?> TryGetBethIniExecutable()
+    public static string? TryGetBethIniExecutable()
     {
-        string possibleLocation = string.Empty;
         string? gameFolder = AppConfig.Instance.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");
-        string bethIniFolder = Directory.EnumerateDirectories(dataFolder)
+        string? bethIniFolder = Directory.EnumerateDirectories(dataFolder)
             .FirstOrDefault(x => x.StartsWith(Path.Combine(dataFolder, "BethINI")));
-        if (string.IsNullOrEmpty(bethIniFolder)) return null; // forgot to handle exception; apply to others when you'll refactor
-        possibleLocation = Path.Combine(bethIniFolder, "BethINI.exe");
+        if (string.IsNullOrEmpty(bethIniFolder)) return null;
+        
+        string possibleLocation = Path.Combine(bethIniFolder, "BethINI.exe");
 
         return File.Exists(possibleLocation) ? possibleLocation : null;
     }
