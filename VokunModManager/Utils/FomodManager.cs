@@ -12,7 +12,7 @@ using VokunModManager.Views;
 
 namespace VokunModManager.Misc;
 
-public class FomodManager(string archivePath, ILoggerService logger)
+public class FomodManager(ILoggerService logger) : IModInstaller
 {
     private string? _moduleName;
     private string? _defaultDestination;
@@ -20,7 +20,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
     // cache
     private readonly HashSet<string> _createdDirectories = new(StringComparer.OrdinalIgnoreCase);
 
-    public async Task InstallMod()
+    public async Task InstallMod(string archivePath)
     {
         _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
         
@@ -59,7 +59,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -93,7 +93,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath)
     {
         if (extractionMap.Count == 0) return;
         

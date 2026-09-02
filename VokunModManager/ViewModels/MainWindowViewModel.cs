@@ -47,6 +47,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly IFileManager _fileManager;
     private readonly IAutoDetector _autoDetector;
+    private readonly IModInstaller _modInstaller;
     
     public ILoggerService Logger { get; }
     
@@ -72,12 +73,17 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenPandoraCommand { get; }
     public ICommand OpenBethIniCommand { get; }
 
-    public MainWindowViewModel(IFileManager fileManager, IAutoDetector autoDetector, ILoggerService loggerService)
+    public MainWindowViewModel(
+        IFileManager fileManager,
+        IAutoDetector autoDetector,
+        ILoggerService loggerService,
+        IModInstaller modInstaller)
     {
         _fileManager = fileManager;
         _autoDetector = autoDetector;
         Logger = loggerService;
         Logger.Log("Logger initialized.");
+        _modInstaller = modInstaller;
         
         ModList = new ObservableCollection<Mod>();
 
@@ -446,8 +452,7 @@ public partial class MainWindowViewModel : ViewModelBase
         
         Logger.Log(string.Empty); // space for better visibility
         Logger.Log($"Selected file: {filePath}");
-        var fomod = new FomodManager(filePath, Logger);
-        await fomod.InstallMod();
+        await _modInstaller.InstallMod(filePath);
         Logger.Log(string.Empty); // space for better visibility
         
         IsPlayAvailable = true;
