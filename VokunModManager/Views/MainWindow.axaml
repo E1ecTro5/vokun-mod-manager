@@ -84,8 +84,8 @@
                 </Grid>
                 <Grid Grid.Row="5" ColumnDefinitions="*, *, *" ColumnSpacing="10">
                     <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Open SSEEdit" Command="{Binding OpenSseeditCommand}" IsEnabled="{Binding IsSseeditAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-                    <Button Content="Open SSEEditQuickAutoClean" Command="{Binding OpenSseeditAutoCleanCommand}" IsEnabled="{Binding IsSseeditAutoCleanAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
+                    <Button Content="Open SSEEdit" Command="{Binding OpenXEditCommand}" IsEnabled="{Binding IsXEditAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+                    <Button Content="Open SSEEditQuickAutoClean" Command="{Binding OpenXEditAutoCleanCommand}" IsEnabled="{Binding IsXEditAutoCleanAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
                 </Grid>
                 <Grid Grid.Row="6" ColumnDefinitions="*, *, *" ColumnSpacing="10">
                     <Button Content="Open Pandora" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>

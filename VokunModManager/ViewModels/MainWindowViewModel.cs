@@ -13,38 +13,38 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<Mod> _modList;
-    [ObservableProperty] private ObservableCollection<Mod> _foundMods;
-    [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
+    [ObservableProperty] private ObservableCollection<Mod>? _modList;
+    [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
+    [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
     
     // they all need to be displayed just to make it easier for me
-    [ObservableProperty] private string _gameFolderPath;     // Steam game folder
-    [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    [ObservableProperty] private string _skyrimPrefsFilePath;
+    [ObservableProperty] private string? _gameFolderPath;     // Steam game folder
+    [ObservableProperty] private string? _pluginFilePath;     // plugins.txt file
+    [ObservableProperty] private string? _skyrimPrefsFilePath;
 
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
     [ObservableProperty] private bool _isModInstalling;
     
     // tools
-    [ObservableProperty] private string _pathToFnisTool;
+    [ObservableProperty] private string? _pathToFnisTool;
     [ObservableProperty] private bool _isFnisAvailable;
-    [ObservableProperty] private string _pathToBodySlide;
+    [ObservableProperty] private string? _pathToBodySlide;
     [ObservableProperty] private bool _isBodySlideAvailable;
-    [ObservableProperty] private string _pathToOutfitStudio;
+    [ObservableProperty] private string? _pathToOutfitStudio;
     [ObservableProperty] private bool _isOutfitStudioAvailable;
-    [ObservableProperty] private string _pathToNemesisTool;
+    [ObservableProperty] private string? _pathToNemesisTool;
     [ObservableProperty] private bool _isNemesisAvailable;
-    [ObservableProperty] private string _pathToSseeditTool;
-    [ObservableProperty] private bool _isSseeditAvailable;
-    [ObservableProperty] private string _pathToSseeditAutoCleanTool;
-    [ObservableProperty] private bool _isSseeditAutoCleanAvailable;
-    [ObservableProperty] private string _pathToPandoraTool;
+    [ObservableProperty] private string? _pathToXEditTool;
+    [ObservableProperty] private bool _isXEditAvailable;
+    [ObservableProperty] private string? _pathToXEditAutoCleanTool;
+    [ObservableProperty] private bool _isXEditAutoCleanAvailable;
+    [ObservableProperty] private string? _pathToPandoraTool;
     [ObservableProperty] private bool _isPandoraAvailable;
-    [ObservableProperty] private string _pathToBethIniTool;
+    [ObservableProperty] private string? _pathToBethIniTool;
     [ObservableProperty] private bool _isBethIniAvailable;
 
-    private readonly FileManager _fileManager = new FileManager();
+    private readonly FileManager _fileManager = new();
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -62,12 +62,11 @@ public partial class MainWindowViewModel : ViewModelBase
     
     // tools' commands
     public ICommand OpenFnisCommand { get; }
-    public ICommand DeleteFnisSymlinksCommand { get; }
     public ICommand OpenOutfitStudioCommand { get; }
     public ICommand OpenBodySlideCommand { get; }
     public ICommand OpenNemesisCommand { get; }
-    public ICommand OpenSseeditCommand { get; }
-    public ICommand OpenSseeditAutoCleanCommand { get; }
+    public ICommand OpenXEditCommand { get; }
+    public ICommand OpenXEditAutoCleanCommand { get; }
     public ICommand OpenPandoraCommand { get; }
     public ICommand OpenBethIniCommand { get; }
 
@@ -86,12 +85,11 @@ public partial class MainWindowViewModel : ViewModelBase
         
         //tools
         OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
-        DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
         OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
         OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
         OpenNemesisCommand = new AsyncRelayCommand(OpenNemesis);
-        OpenSseeditCommand = new AsyncRelayCommand(OpenSseedit);
-        OpenSseeditAutoCleanCommand = new AsyncRelayCommand(OpenSseeditAutoClean);
+        OpenXEditCommand = new AsyncRelayCommand(OpenXEdit);
+        OpenXEditAutoCleanCommand = new AsyncRelayCommand(OpenXEditAutoClean);
         OpenPandoraCommand = new AsyncRelayCommand(OpenPandora);
         OpenBethIniCommand = new AsyncRelayCommand(OpenBethIni);
 
@@ -106,44 +104,44 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartGame()
     {
+        if(string.IsNullOrEmpty(GameFolderPath)) return;
+        string skseLoaderPath = Path.Combine(GameFolderPath, "skse64_loader.exe");
+        if(!File.Exists(skseLoaderPath)) return; // don't start if you don't have skse64.
+        
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            string sksePath = Path.Combine(GameFolderPath, "skse64_loader.exe");
             string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
             string backupPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-
-            // check if skse installed
-            if (File.Exists(sksePath))
+            
+            try
             {
-                try
-                {
-                    // hide the original launcher to '_backup'
-                    if (File.Exists(launcherPath) && !File.Exists(backupPath))
-                        File.Move(launcherPath, backupPath);
+                // hide the original launcher to '_backup'
+                if (File.Exists(launcherPath) && !File.Exists(backupPath))
+                    File.Move(launcherPath, backupPath);
 
-                    // copy skse64_loader.exe and rename to SkyrimSELauncher.exe
-                    File.Copy(sksePath, launcherPath, overwrite: true);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Error while changing files: {ex.Message}", LogLevel.Error);
-                }
+                // copy skse64_loader.exe and rename to SkyrimSELauncher.exe
+                File.Copy(skseLoaderPath, launcherPath, overwrite: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error while changing files: {ex.Message}", LogLevel.Error);
             }
             
             // launch the game (should start the skse loader)
-            Process.Start(new ProcessStartInfo
+            var startInfo = new ProcessStartInfo
             {
                 FileName = "steam://rungameid/489830",
                 UseShellExecute = true,
                 CreateNoWindow = true
-            });
+            };
+            
+            Process.Start(startInfo);
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
             var startInfo = new ProcessStartInfo
             {
-                FileName = pathToLauncher,
+                FileName = skseLoaderPath,
                 WorkingDirectory = GameFolderPath,
                 UseShellExecute = true
             };
@@ -164,8 +162,8 @@ public partial class MainWindowViewModel : ViewModelBase
         PathToBodySlide = AutoDetector.TryGetBodySlideExecutable();
         PathToOutfitStudio = AutoDetector.TryGetOutfitStudioExecutable();
         PathToNemesisTool = AutoDetector.TryGetNemesisExecutable();
-        PathToSseeditTool = AutoDetector.TryGetSseeditExecutable();
-        PathToSseeditAutoCleanTool = AutoDetector.TryGetSseeditAutoCleanExecutable();
+        PathToXEditTool = AutoDetector.TryGetSseeditExecutable();
+        PathToXEditAutoCleanTool = AutoDetector.TryGetSseeditAutoCleanExecutable();
         PathToPandoraTool = AutoDetector.TryGetPandoraExecutable();
         PathToBethIniTool = AutoDetector.TryGetBethIniExecutable();
         
@@ -173,8 +171,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
         IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
         IsNemesisAvailable = CheckForExecutable(PathToNemesisTool);
-        IsSseeditAvailable = CheckForExecutable(PathToSseeditTool);
-        IsSseeditAutoCleanAvailable = CheckForExecutable(PathToSseeditAutoCleanTool);
+        IsXEditAvailable = CheckForExecutable(PathToXEditTool);
+        IsXEditAutoCleanAvailable = CheckForExecutable(PathToXEditAutoCleanTool);
         IsPandoraAvailable = CheckForExecutable(PathToPandoraTool);
         IsBethIniAvailable = CheckForExecutable(PathToBethIniTool);
         
@@ -183,7 +181,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLoadArchiveAvailable = true;
     }
 
-    private bool CheckForExecutable(string path)
+    private bool CheckForExecutable(string? path)
     {
         if (string.IsNullOrEmpty(path)) return false;
         if (!File.Exists(path)) return false;
@@ -224,21 +222,27 @@ public partial class MainWindowViewModel : ViewModelBase
         await LaunchToolInProtonAsync(relativeStudioPath);
     }
     
-    private async Task OpenSseedit()
+    private async Task OpenXEdit()
     {
-        string relativeStudioPath = PathToSseeditTool;
+        string? relativeStudioPath = PathToXEditTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
     
-    private async Task OpenSseeditAutoClean()
+    private async Task OpenXEditAutoClean()
     {
-        string relativeStudioPath = PathToSseeditAutoCleanTool;
+        string? relativeStudioPath = PathToXEditAutoCleanTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
 
@@ -250,15 +254,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenBethIni()
     {
-        string relativeStudioPath = PathToBethIniTool;
+        string? relativeStudioPath = PathToBethIniTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
     {
+        if(string.IsNullOrEmpty(GameFolderPath)) return; // just in case
+        
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
@@ -321,24 +330,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }   
     
-    // refactor?
-    private async Task DeleteFnisSymlinks()
-    {
-        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
-        string tempSymlinkDir = Path.Combine(GameFolderPath, "tools"); // temp dir inside the root
-        
-        // need to be careful here
-        if(!File.Exists(backupLauncherPath)) return; // don't delete current one, if backup has not been found
-        
-        // delete symlinks
-        if (Directory.Exists(tempSymlinkDir)) Directory.Delete(tempSymlinkDir);
-        if (File.Exists(launcherPath)) File.Delete(launcherPath);
-
-        // get back the original launcher
-        if (File.Exists(backupLauncherPath)) File.Move(backupLauncherPath, launcherPath);
-    }
-    
     private async Task ReInitValues()
     {
         AppConfig.Instance.CheckConfigStatus();
@@ -360,8 +351,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task SaveModList()
     {
         var modListM = new ModListManager();
-        // save current state
-        await modListM.SaveCurrentModListState(ModList);
+        await modListM.SaveCurrentModListState(ModList!); // has to be initialized at this time...
         await UpdateModList();
     }
 
@@ -413,7 +403,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await OpenFileDirectory(SkyrimPrefsFilePath);
     }
 
-    private async Task OpenFileDirectory(string path)
+    private async Task OpenFileDirectory(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
         if (!File.Exists(path) && !Directory.Exists(path)) return;
