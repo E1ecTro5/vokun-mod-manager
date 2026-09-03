@@ -45,6 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string? _pathToBethIniTool;
     [ObservableProperty] private bool _isBethIniAvailable;
 
+    private readonly IAppConfig _appConfig;
     private readonly IFileManager _fileManager;
     private readonly IAutoDetector _autoDetector;
     private readonly IModInstaller _modInstaller;
@@ -75,12 +76,14 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenBethIniCommand { get; }
 
     public MainWindowViewModel(
+        IAppConfig appConfig,
         IFileManager fileManager,
         IAutoDetector autoDetector,
         ILoggerService loggerService,
         IModInstaller modInstaller,
         IModListManager modListManager)
     {
+        _appConfig = appConfig;
         _fileManager = fileManager;
         _autoDetector = autoDetector;
         Logger = loggerService;
@@ -165,11 +168,14 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task LateInit()
     {
+        await _appConfig.InitConfig();
+        _appConfig.CheckConfigStatus();
+        
         // may be null/default if Skyrim not installed, or you're launching for the first time.
         // please, make sure they're initialized before using
-        GameFolderPath = AppConfig.Instance.GameFolderPath;
-        PluginFilePath = AppConfig.Instance.PluginFilePath;
-        SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+        GameFolderPath = _appConfig.GameFolderPath;
+        PluginFilePath = _appConfig.PluginFilePath;
+        SkyrimPrefsFilePath = _appConfig.SkyrimPrefsFilePath;
 
         PathToFnisTool = _autoDetector.TryGetFnisExecutable();
         PathToBodySlide = _autoDetector.TryGetBodySlideExecutable();
@@ -345,7 +351,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task ReInitValues()
     {
-        AppConfig.Instance.CheckConfigStatus();
+        _appConfig.CheckConfigStatus();
     }
 
     private async Task UpdateModList()
@@ -382,7 +388,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         
         GameFolderPath = filePath;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
     }
 
     private async Task SetModListPath()
@@ -396,7 +402,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         PluginFilePath = filePath;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
     }
 
     private async Task OpenDataFolder()

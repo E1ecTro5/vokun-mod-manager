@@ -3,15 +3,12 @@ using VokunModManager.Misc;
 
 namespace VokunModManager;
 
-public sealed class AppConfig
+public sealed class AppConfig : IAppConfig
 {
-    private static readonly Lazy<AppConfig> Lazy = new(() => new AppConfig());
-    public static AppConfig Instance => Lazy.Value;
-
-    private AppConfig()
+    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
+    public AppConfig()
     {
         var baseDirectory = AppContext.BaseDirectory; // path of the folder which contains the executable / binary
-    
         _appConfigPath = Path.Combine(baseDirectory, "config.txt");
     }
 
@@ -19,13 +16,8 @@ public sealed class AppConfig
     {
         GameFolderPath,
         PluginFilePath,
-        VdfConfigPath,
-        CompatdataFolder,
         SkyrimPrefsFilePath
     }
-
-    // private readonly string _baseDirectory; // ../VokunModManager directory
-    private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
 
     // ======== PROPS ========
     
@@ -108,7 +100,7 @@ public sealed class AppConfig
     
     public void CheckConfigStatus()
     {
-        IAutoDetector detector = new AutoDetector(); 
+        IAutoDetector detector = new AutoDetector(this); 
         
         if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = detector.TryGetGameFolder();
         if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = detector.TryGetPluginConfig();

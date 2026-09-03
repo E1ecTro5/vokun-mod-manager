@@ -12,7 +12,7 @@ using VokunModManager.Views;
 
 namespace VokunModManager.Misc;
 
-public class FomodManager(ILoggerService logger) : IModInstaller
+public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModInstaller
 {
     private string? _moduleName;
     private string? _defaultDestination;
@@ -22,7 +22,7 @@ public class FomodManager(ILoggerService logger) : IModInstaller
 
     public async Task InstallMod(string archivePath)
     {
-        _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        _defaultDestination = Path.Combine(appConfig.GameFolderPath, "Data");
         
         // open it ONCE
         using var archive = ArchiveFactory.Open(archivePath);
@@ -266,7 +266,7 @@ public class FomodManager(ILoggerService logger) : IModInstaller
     
     private void PrepareWithoutConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        string destination = Path.Combine(appConfig.GameFolderPath, "Data");
         int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
 
         logger.Log("Preparing without config...");

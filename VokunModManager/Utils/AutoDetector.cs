@@ -2,7 +2,7 @@ using VokunModManager.Interfaces;
 
 namespace VokunModManager.Misc;
 
-public class AutoDetector : IAutoDetector
+public class AutoDetector(IAppConfig config) : IAutoDetector
 {
     /// <summary>
     /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder and set it to the app config.
@@ -78,7 +78,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetFnisExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string possibleLocation = Path.Combine(gameFolder, "Data", "tools", "GenerateFNIS_for_Users", "GenerateFNISforUsers.exe");
@@ -92,7 +92,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetOutfitStudioExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string possibleLocation = Path.Combine(gameFolder, "Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
@@ -106,7 +106,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetBodySlideExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string possibleLocation = Path.Combine(gameFolder, "Data", "CalienteTools", "BodySlide", "BodySlide.exe");
@@ -120,7 +120,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetNemesisExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string possibleLocation = Path.Combine(gameFolder, "Data", "Nemesis_Engine", "Nemesis Unlimited Behavior Engine.exe");
@@ -134,7 +134,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetSseeditExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");
@@ -149,7 +149,7 @@ public class AutoDetector : IAutoDetector
     
     public string? TryGetSseeditAutoCleanExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");
@@ -169,7 +169,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetPandoraExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string possibleLocation = Path.Combine(gameFolder, "Data", "Pandora Behaviour Engine+.exe");
@@ -183,7 +183,7 @@ public class AutoDetector : IAutoDetector
     /// <returns>Path to the .exe file. Null if nothing found.</returns>
     public string? TryGetBethIniExecutable()
     {
-        string? gameFolder = AppConfig.Instance.GameFolderPath;
+        string? gameFolder = config.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolder)) return null;
 
         string dataFolder = Path.Combine(gameFolder, "Data");

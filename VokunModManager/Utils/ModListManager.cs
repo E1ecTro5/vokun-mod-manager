@@ -4,11 +4,12 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class ModListManager(ILoggerService logger) : IModListManager
+public class ModListManager(IAppConfig config, ILoggerService logger) : IModListManager
 {
-    private string modlistPath = AppConfig.Instance.PluginFilePath;
     private async Task<bool> CheckForExistance()
     {
+        var modlistPath = config.PluginFilePath;
+        
         if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
         {
             logger.Log($"Couldn't find the mod list path.");
@@ -82,6 +83,9 @@ public class ModListManager(ILoggerService logger) : IModListManager
     /// <returns>Collection of mods, found inside the file.</returns>
     private async Task<ObservableCollection<Mod>?> ReadModList()
     {
+        var modlistPath = config.PluginFilePath;
+        if(string.IsNullOrEmpty(modlistPath)) return null;
+        
         if (!await CheckForExistance()) return null;
         
         ObservableCollection<Mod> result = new();
@@ -118,7 +122,7 @@ public class ModListManager(ILoggerService logger) : IModListManager
     private async Task<ObservableCollection<Mod>?> GetModsFromDisk()
     {
         // checked on Windows first launch; needed to fix this
-        string gameFolderPath = AppConfig.Instance.GameFolderPath ?? string.Empty;
+        string gameFolderPath = config.GameFolderPath ?? string.Empty;
         if (string.IsNullOrEmpty(gameFolderPath))
         {
             Console.WriteLine("GAMEPATH NOT FOUND");
@@ -161,6 +165,9 @@ public class ModListManager(ILoggerService logger) : IModListManager
     /// <param name="modList">Relevant mod list, will be written into the file.</param>
     private async Task SaveCurrentModList(ObservableCollection<Mod> modList)
     {
+        var modlistPath = config.PluginFilePath;
+        if(string.IsNullOrEmpty(modlistPath)) return;
+        
         var sortedList = modList
             .OrderByDescending(m => m.IsEnabled)
             .ThenBy(m => m.LoadOrder)

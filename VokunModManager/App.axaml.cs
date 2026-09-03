@@ -37,8 +37,7 @@ public partial class App : Application
             {
                 DataContext = vm
             };
-
-            await AppConfig.Instance.InitConfig();
+            
             await vm.UpdateAll();
         }
 
@@ -48,6 +47,7 @@ public partial class App : Application
     private void ConfigureServices(IServiceCollection services)
     {
         // register singleton services
+        services.AddSingleton<IAppConfig, AppConfig>(); // important, since I use AppConfig almost everywhere
         services.AddSingleton<IFileManager, FileManager>();
         services.AddSingleton<IAutoDetector, AutoDetector>();
         services.AddSingleton<ILoggerService, UiLoggerService>();
