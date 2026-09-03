@@ -22,7 +22,13 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
     public async Task InstallMod(string archivePath)
     {
-        _defaultDestination = Path.Combine(appConfig.GameFolderPath, "Data");
+        var gameFolderPath = appConfig.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            logger.Log("GameFolderPath prop is not initialized.", LogLevel.Error);
+            return;
+        }
+        _defaultDestination = Path.Combine(gameFolderPath, "Data");
         
         // open it ONCE
         using var archive = ArchiveFactory.Open(archivePath);
@@ -69,7 +75,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         }
         catch (Exception ex)
         {
-            logger.Log("Error during mod installment.", LogLevel.Error);
+            logger.Log($"Error during mod installment: {ex.Message}", LogLevel.Error);
         }
         finally
         {
@@ -227,7 +233,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         string normModuleName = _moduleName?.Replace('\\', '/').Trim('/') ?? "";
         string normSource = mapping.Source.Replace('\\', '/').Trim('/'); // Trimstart?
         
-        bool moduleIsTheParent = entries.All(x => x.Key.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
+        bool moduleIsTheParent = entries.All(x => x.Key!.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
         
         string fullSource = moduleIsTheParent && !string.IsNullOrEmpty(normModuleName) ? $"{normModuleName}/{normSource}" : normSource;
         fullSource = fullSource.Trim('/'); // TrimEnd?
@@ -266,13 +272,20 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
     
     private void PrepareWithoutConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        string destination = Path.Combine(appConfig.GameFolderPath, "Data");
+        var gameFolderPath = appConfig.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            logger.Log("GameFolderPath prop is not initialized.", LogLevel.Error);
+            return;
+        }
+        
+        string destination = Path.Combine(gameFolderPath, "Data");
         int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
 
         logger.Log("Preparing without config...");
         foreach (var entry in entries)
         {
-            string normalizedKey = entry.Key.Replace('\\', '/');
+            string normalizedKey = entry.Key!.Replace('\\', '/');
             
             var segments = normalizedKey.Split('/');
             if (segments.Any(s => s.Equals("fomod", StringComparison.OrdinalIgnoreCase))) continue;
@@ -305,7 +318,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         
         foreach (var entry in entries)
         {
-            string path = entry.Key.Replace('\\', '/');
+            string path = entry.Key!.Replace('\\', '/');
             var parts = path.Split('/');
 
             for (int i = 0; i < parts.Length; i++)
@@ -327,7 +340,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
             }
         }
 
-        return minSkip == int.MaxValue ? 0 : minSkip;; // Data is the root
+        return minSkip == int.MaxValue ? 0 : minSkip; // Data is the root
     }
 
     /*
@@ -359,7 +372,6 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
     
     private FomodConfig? ReadConfig(List<IArchiveEntry> archiveEntries)
     {
-        // using var archive = ArchiveFactory.Open(archivePath);
         var entry = archiveEntries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
         if (entry == null) return null;
         
