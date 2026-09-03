@@ -28,6 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isModInstalling;
     
     // tools
+    // will be deleted soon, probably?
     [ObservableProperty] private string? _pathToFnisTool;
     [ObservableProperty] private bool _isFnisAvailable;
     [ObservableProperty] private string? _pathToBodySlide;
@@ -48,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IFileManager _fileManager;
     private readonly IAutoDetector _autoDetector;
     private readonly IModInstaller _modInstaller;
+    private readonly IModListManager _modListManager;
     
     public ILoggerService Logger { get; }
     
@@ -77,13 +79,15 @@ public partial class MainWindowViewModel : ViewModelBase
         IFileManager fileManager,
         IAutoDetector autoDetector,
         ILoggerService loggerService,
-        IModInstaller modInstaller)
+        IModInstaller modInstaller,
+        IModListManager modListManager)
     {
         _fileManager = fileManager;
         _autoDetector = autoDetector;
         Logger = loggerService;
         Logger.Log("Logger initialized.");
         _modInstaller = modInstaller;
+        _modListManager = modListManager;
         
         ModList = new ObservableCollection<Mod>();
 
@@ -347,8 +351,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task UpdateModList()
     {
-        var modListM = new ModListManager();
-        var updated = await modListM.UpdateModList();
+        var updated = await _modListManager.UpdateModList();
         if (updated is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Warning);
@@ -360,8 +363,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task SaveModList()
     {
-        var modListM = new ModListManager();
-        await modListM.SaveCurrentModListState(ModList!); // has to be initialized at this time...
+        await _modListManager.SaveCurrentModListState(ModList!); // has to be initialized at this time...
         await UpdateModList();
     }
 

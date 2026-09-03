@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class ModListManager
+public class ModListManager : IModListManager
 {
     private string modlistPath = AppConfig.Instance.PluginFilePath;
     private async Task<bool> CheckForExistance()
@@ -63,6 +59,21 @@ public class ModListManager
         await SaveCurrentModList(sortedCollection);
         
         return sortedCollection;
+    }
+    
+    public async Task SaveCurrentModListState(ObservableCollection<Mod> modList)
+    {
+        var list = new ObservableCollection<Mod>();
+        
+        ushort order = 1;
+        foreach (var mod in modList)
+        {
+            if (mod.IsEnabled) mod.LoadOrder = order++;
+            else mod.LoadOrder = 0;
+            list.Add(mod);
+        }
+
+        await SaveCurrentModList(list);
     }
 
     /// <summary>
@@ -142,21 +153,6 @@ public class ModListManager
         }
 
         return result;
-    }
-
-    public async Task SaveCurrentModListState(ObservableCollection<Mod> modList)
-    {
-        var list = new ObservableCollection<Mod>();
-        
-        ushort order = 1;
-        foreach (var mod in modList)
-        {
-            if (mod.IsEnabled) mod.LoadOrder = order++;
-            else mod.LoadOrder = 0;
-            list.Add(mod);
-        }
-
-        await SaveCurrentModList(list);
     }
     
     /// <summary>

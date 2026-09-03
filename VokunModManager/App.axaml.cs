@@ -52,6 +52,7 @@ public partial class App : Application
         services.AddSingleton<IAutoDetector, AutoDetector>();
         services.AddSingleton<ILoggerService, UiLoggerService>();
         services.AddSingleton<IModInstaller, FomodManager>(); // automatically applies ILoggerService to FomodManager ctor
+        services.AddSingleton<IModListManager, ModListManager>();
         
         // register ViewModels
         services.AddTransient<MainWindowViewModel>();
