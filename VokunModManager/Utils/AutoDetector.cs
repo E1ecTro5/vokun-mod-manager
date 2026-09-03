@@ -1,6 +1,6 @@
 using VokunModManager.Interfaces;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public class AutoDetector(IAppConfig config) : IAutoDetector
 {

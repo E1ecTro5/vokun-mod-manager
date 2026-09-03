@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public class ModListManager(IAppConfig config, ILoggerService logger) : IModListManager
 {

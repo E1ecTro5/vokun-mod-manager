@@ -1,5 +1,5 @@
 using VokunModManager.Interfaces;
-using VokunModManager.Misc;
+using VokunModManager.Utils;
 
 namespace VokunModManager;
 

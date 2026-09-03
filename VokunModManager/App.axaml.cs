@@ -4,7 +4,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using VokunModManager.Interfaces;
-using VokunModManager.Misc;
+using VokunModManager.Utils;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 

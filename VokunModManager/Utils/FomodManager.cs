@@ -10,7 +10,7 @@ using VokunModManager.Models;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModInstaller
 {

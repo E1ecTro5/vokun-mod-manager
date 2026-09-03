@@ -3,7 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using VokunModManager.Interfaces;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public class FileManager : IFileManager
 {
