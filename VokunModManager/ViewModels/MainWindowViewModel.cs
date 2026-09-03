@@ -5,7 +5,6 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
-using VokunModManager.Misc;
 using VokunModManager.Models;
 
 namespace VokunModManager.ViewModels;
@@ -363,7 +362,12 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task SaveModList()
     {
-        await _modListManager.SaveCurrentModListState(ModList!); // has to be initialized at this time...
+        if (ModList is null)
+        {
+            Logger.Log("Mod list is null.", LogLevel.Error);
+            return;
+        }
+        await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
         await UpdateModList();
     }
 
@@ -373,7 +377,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Game path not selected!");
+            Logger.Log("Game path not selected!", LogLevel.Error);
             return;
         }
         
@@ -387,7 +391,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Mod file path not selected!");
+            Logger.Log("Mod file path not selected!", LogLevel.Error);
             return;
         }
 
@@ -399,7 +403,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(GameFolderPath))
         {
-            await MsgBoxManager.ShowWarning("Game folder path not selected!");
+            Logger.Log("Game folder path not selected!", LogLevel.Error);
             return;
         }
         await OpenFileDirectory(GameFolderPath);
@@ -445,7 +449,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var filePath = await _fileManager.SelectFileAsync();
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Mod archive not selected!");
+            Logger.Log("Mod archive not selected!", LogLevel.Error);
             return;
         }
 

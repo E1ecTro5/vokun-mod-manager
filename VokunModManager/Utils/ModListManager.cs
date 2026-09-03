@@ -4,14 +4,14 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Misc;
 
-public class ModListManager : IModListManager
+public class ModListManager(ILoggerService logger) : IModListManager
 {
     private string modlistPath = AppConfig.Instance.PluginFilePath;
     private async Task<bool> CheckForExistance()
     {
         if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
         {
-            await MsgBoxManager.ShowWarning($"Couldn't find the mod list path.");
+            logger.Log($"Couldn't find the mod list path.");
             return false;
         }
 

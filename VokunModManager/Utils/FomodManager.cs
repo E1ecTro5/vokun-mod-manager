@@ -66,12 +66,10 @@ public class FomodManager(ILoggerService logger) : IModInstaller
         catch (TaskCanceledException)
         {
             logger.Log("Mod installment has been canceled.", LogLevel.Error);
-            await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
         }
         catch (Exception ex)
         {
             logger.Log("Error during mod installment.", LogLevel.Error);
-            await MsgBoxManager.ShowWarning($"Error: {ex.Message}");
         }
         finally
         {

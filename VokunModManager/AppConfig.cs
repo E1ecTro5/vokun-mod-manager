@@ -58,7 +58,7 @@ public sealed class AppConfig
                 SkyrimPrefsFilePath = value;
                 break;
             default:
-                await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while updating the config.");
+                // await logg.ShowWarning($"Couldn't identify key: {key} while updating the config.");
                 return; // return if not match
         }
         
@@ -87,7 +87,7 @@ public sealed class AppConfig
                 // since you WRITE FIRST and READ LATER, we don't expect exception there ; may be just empty
                 case "skyrimPrefsFilePath": SkyrimPrefsFilePath = value; break;
                 default:
-                    await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while initializing the config.");
+                    // await MsgBoxManager.ShowWarning($"Couldn't identify key: {key} while initializing the config.");
                     continue; // skip if not match
             }
         }
