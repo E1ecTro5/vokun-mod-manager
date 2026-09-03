@@ -10,9 +10,9 @@ using VokunModManager.Models;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
-public class FomodManager(string archivePath, ILoggerService logger)
+public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModInstaller
 {
     private string? _moduleName;
     private string? _defaultDestination;
@@ -20,9 +20,15 @@ public class FomodManager(string archivePath, ILoggerService logger)
     // cache
     private readonly HashSet<string> _createdDirectories = new(StringComparer.OrdinalIgnoreCase);
 
-    public async Task InstallMod()
+    public async Task InstallMod(string archivePath)
     {
-        _defaultDestination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        var gameFolderPath = appConfig.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            logger.Log("GameFolderPath prop is not initialized.", LogLevel.Error);
+            return;
+        }
+        _defaultDestination = Path.Combine(gameFolderPath, "Data");
         
         // open it ONCE
         using var archive = ArchiveFactory.Open(archivePath);
@@ -59,19 +65,17 @@ public class FomodManager(string archivePath, ILoggerService logger)
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap); });
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
         catch (TaskCanceledException)
         {
             logger.Log("Mod installment has been canceled.", LogLevel.Error);
-            await MsgBoxManager.ShowWarning("Mod installment has been canceled.");
         }
         catch (Exception ex)
         {
-            logger.Log("Error during mod installment.", LogLevel.Error);
-            await MsgBoxManager.ShowWarning($"Error: {ex.Message}");
+            logger.Log($"Error during mod installment: {ex.Message}", LogLevel.Error);
         }
         finally
         {
@@ -93,7 +97,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath)
     {
         if (extractionMap.Count == 0) return;
         
@@ -229,7 +233,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         string normModuleName = _moduleName?.Replace('\\', '/').Trim('/') ?? "";
         string normSource = mapping.Source.Replace('\\', '/').Trim('/'); // Trimstart?
         
-        bool moduleIsTheParent = entries.All(x => x.Key.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
+        bool moduleIsTheParent = entries.All(x => x.Key!.Replace('\\', '/').StartsWith(normModuleName, StringComparison.OrdinalIgnoreCase));
         
         string fullSource = moduleIsTheParent && !string.IsNullOrEmpty(normModuleName) ? $"{normModuleName}/{normSource}" : normSource;
         fullSource = fullSource.Trim('/'); // TrimEnd?
@@ -268,13 +272,20 @@ public class FomodManager(string archivePath, ILoggerService logger)
     
     private void PrepareWithoutConfig(List<IArchiveEntry> entries, Dictionary<string, string> extractionMap)
     {
-        string destination = Path.Combine(AppConfig.Instance.GameFolderPath, "Data");
+        var gameFolderPath = appConfig.GameFolderPath;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            logger.Log("GameFolderPath prop is not initialized.", LogLevel.Error);
+            return;
+        }
+        
+        string destination = Path.Combine(gameFolderPath, "Data");
         int prefixSegmentsToSkip = DeterminePrefixSegmentsToSkip(entries);
 
         logger.Log("Preparing without config...");
         foreach (var entry in entries)
         {
-            string normalizedKey = entry.Key.Replace('\\', '/');
+            string normalizedKey = entry.Key!.Replace('\\', '/');
             
             var segments = normalizedKey.Split('/');
             if (segments.Any(s => s.Equals("fomod", StringComparison.OrdinalIgnoreCase))) continue;
@@ -307,7 +318,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
         
         foreach (var entry in entries)
         {
-            string path = entry.Key.Replace('\\', '/');
+            string path = entry.Key!.Replace('\\', '/');
             var parts = path.Split('/');
 
             for (int i = 0; i < parts.Length; i++)
@@ -329,7 +340,7 @@ public class FomodManager(string archivePath, ILoggerService logger)
             }
         }
 
-        return minSkip == int.MaxValue ? 0 : minSkip;; // Data is the root
+        return minSkip == int.MaxValue ? 0 : minSkip; // Data is the root
     }
 
     /*
@@ -361,7 +372,6 @@ public class FomodManager(string archivePath, ILoggerService logger)
     
     private FomodConfig? ReadConfig(List<IArchiveEntry> archiveEntries)
     {
-        // using var archive = ArchiveFactory.Open(archivePath);
         var entry = archiveEntries.FirstOrDefault(x => x.Key!.EndsWith("ModuleConfig.xml", StringComparison.OrdinalIgnoreCase));
         if (entry == null) return null;
         

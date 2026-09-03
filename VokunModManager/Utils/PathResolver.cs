@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public static class PathResolver
 {

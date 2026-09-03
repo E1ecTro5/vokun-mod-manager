@@ -2,7 +2,7 @@
 using Avalonia.Threading;
 using VokunModManager.Models;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
 public class UiLoggerService : ILoggerService
 {

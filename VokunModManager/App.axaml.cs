@@ -1,11 +1,10 @@
-using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
-using VokunModManager.Misc;
+using Microsoft.Extensions.DependencyInjection;
+using VokunModManager.Interfaces;
+using VokunModManager.Utils;
 using VokunModManager.ViewModels;
 using VokunModManager.Views;
 
@@ -13,6 +12,9 @@ namespace VokunModManager;
 
 public partial class App : Application
 {
+    // global service provider
+    public IServiceProvider Services { get; private set; } = null!;
+    
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -20,25 +22,40 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        var serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
+        Services = serviceCollection.BuildServiceProvider();
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var vm = new MainWindowViewModel();
-            // better not to touch
+            DisableAvaloniaDataAnnotationValidation();
+
+            // get ViewModel from container; all the dependencies will be included
+            var vm = Services.GetRequiredService<MainWindowViewModel>();
+
             desktop.MainWindow = new MainWindow
             {
                 DataContext = vm
             };
             
-            // just to avoid some UI blocks
-            await AppConfig.Instance.InitConfig();  // configs for application (includes paths)
             await vm.UpdateAll();
-
-            // just for UI testing
-            //var iv = new InstallWindow();
-            //iv.Show();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+    
+    private void ConfigureServices(IServiceCollection services)
+    {
+        // register singleton services
+        services.AddSingleton<IAppConfig, AppConfig>(); // important, since I use AppConfig almost everywhere
+        services.AddSingleton<IFileManager, FileManager>();
+        services.AddSingleton<IAutoDetector, AutoDetector>();
+        services.AddSingleton<ILoggerService, UiLoggerService>();
+        services.AddSingleton<IModInstaller, FomodManager>(); // automatically applies ILoggerService to FomodManager ctor
+        services.AddSingleton<IModListManager, ModListManager>();
+        
+        // register ViewModels
+        services.AddTransient<MainWindowViewModel>();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

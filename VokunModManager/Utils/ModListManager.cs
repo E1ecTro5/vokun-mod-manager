@@ -1,21 +1,18 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
-namespace VokunModManager.Misc;
+namespace VokunModManager.Utils;
 
-public class ModListManager
+public class ModListManager(IAppConfig config, ILoggerService logger) : IModListManager
 {
-    private string modlistPath = AppConfig.Instance.PluginFilePath;
     private async Task<bool> CheckForExistance()
     {
+        var modlistPath = config.PluginFilePath;
+        
         if (string.IsNullOrEmpty(modlistPath) || !File.Exists(modlistPath))
         {
-            await MsgBoxManager.ShowWarning($"Couldn't find the mod list path.");
+            logger.Log($"Couldn't find the mod list path.");
             return false;
         }
 
@@ -64,6 +61,21 @@ public class ModListManager
         
         return sortedCollection;
     }
+    
+    public async Task SaveCurrentModListState(ObservableCollection<Mod> modList)
+    {
+        var list = new ObservableCollection<Mod>();
+        
+        ushort order = 1;
+        foreach (var mod in modList)
+        {
+            if (mod.IsEnabled) mod.LoadOrder = order++;
+            else mod.LoadOrder = 0;
+            list.Add(mod);
+        }
+
+        await SaveCurrentModList(list);
+    }
 
     /// <summary>
     /// Reads the "Plugin.txt" file.
@@ -71,6 +83,9 @@ public class ModListManager
     /// <returns>Collection of mods, found inside the file.</returns>
     private async Task<ObservableCollection<Mod>?> ReadModList()
     {
+        var modlistPath = config.PluginFilePath;
+        if(string.IsNullOrEmpty(modlistPath)) return null;
+        
         if (!await CheckForExistance()) return null;
         
         ObservableCollection<Mod> result = new();
@@ -107,7 +122,7 @@ public class ModListManager
     private async Task<ObservableCollection<Mod>?> GetModsFromDisk()
     {
         // checked on Windows first launch; needed to fix this
-        string gameFolderPath = AppConfig.Instance.GameFolderPath ?? string.Empty;
+        string gameFolderPath = config.GameFolderPath ?? string.Empty;
         if (string.IsNullOrEmpty(gameFolderPath))
         {
             Console.WriteLine("GAMEPATH NOT FOUND");
@@ -143,21 +158,6 @@ public class ModListManager
 
         return result;
     }
-
-    public async Task SaveCurrentModListState(ObservableCollection<Mod> modList)
-    {
-        var list = new ObservableCollection<Mod>();
-        
-        ushort order = 1;
-        foreach (var mod in modList)
-        {
-            if (mod.IsEnabled) mod.LoadOrder = order++;
-            else mod.LoadOrder = 0;
-            list.Add(mod);
-        }
-
-        await SaveCurrentModList(list);
-    }
     
     /// <summary>
     /// Overwrites the Plugins.txt file with the ModList in arguments.
@@ -165,6 +165,9 @@ public class ModListManager
     /// <param name="modList">Relevant mod list, will be written into the file.</param>
     private async Task SaveCurrentModList(ObservableCollection<Mod> modList)
     {
+        var modlistPath = config.PluginFilePath;
+        if(string.IsNullOrEmpty(modlistPath)) return;
+        
         var sortedList = modList
             .OrderByDescending(m => m.IsEnabled)
             .ThenBy(m => m.LoadOrder)

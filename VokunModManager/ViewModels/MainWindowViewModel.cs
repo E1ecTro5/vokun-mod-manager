@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using VokunModManager.Misc;
+using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
 namespace VokunModManager.ViewModels;
@@ -13,39 +13,45 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<Mod> _modList;
-    [ObservableProperty] private ObservableCollection<Mod> _foundMods;
-    [ObservableProperty] private ObservableCollection<ArchiveNode> _archiveItems; // items shown in specific border
+    [ObservableProperty] private ObservableCollection<Mod>? _modList;
+    [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
+    [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
     
     // they all need to be displayed just to make it easier for me
-    [ObservableProperty] private string _gameFolderPath;     // Steam game folder
-    [ObservableProperty] private string _pluginFilePath;     // plugins.txt file
-    [ObservableProperty] private string _skyrimPrefsFilePath;
+    [ObservableProperty] private string? _gameFolderPath;     // Steam game folder
+    [ObservableProperty] private string? _pluginFilePath;     // plugins.txt file
+    [ObservableProperty] private string? _skyrimPrefsFilePath;
 
     [ObservableProperty] private bool _isPlayAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
     [ObservableProperty] private bool _isModInstalling;
     
     // tools
-    [ObservableProperty] private string _pathToFnisTool;
+    // will be deleted soon, probably?
+    [ObservableProperty] private string? _pathToFnisTool;
     [ObservableProperty] private bool _isFnisAvailable;
-    [ObservableProperty] private string _pathToBodySlide;
+    [ObservableProperty] private string? _pathToBodySlide;
     [ObservableProperty] private bool _isBodySlideAvailable;
-    [ObservableProperty] private string _pathToOutfitStudio;
+    [ObservableProperty] private string? _pathToOutfitStudio;
     [ObservableProperty] private bool _isOutfitStudioAvailable;
-    [ObservableProperty] private string _pathToNemesisTool;
+    [ObservableProperty] private string? _pathToNemesisTool;
     [ObservableProperty] private bool _isNemesisAvailable;
-    [ObservableProperty] private string _pathToSseeditTool;
-    [ObservableProperty] private bool _isSseeditAvailable;
-    [ObservableProperty] private string _pathToSseeditAutoCleanTool;
-    [ObservableProperty] private bool _isSseeditAutoCleanAvailable;
-    [ObservableProperty] private string _pathToPandoraTool;
+    [ObservableProperty] private string? _pathToXEditTool;
+    [ObservableProperty] private bool _isXEditAvailable;
+    [ObservableProperty] private string? _pathToXEditAutoCleanTool;
+    [ObservableProperty] private bool _isXEditAutoCleanAvailable;
+    [ObservableProperty] private string? _pathToPandoraTool;
     [ObservableProperty] private bool _isPandoraAvailable;
-    [ObservableProperty] private string _pathToBethIniTool;
+    [ObservableProperty] private string? _pathToBethIniTool;
     [ObservableProperty] private bool _isBethIniAvailable;
 
-    private readonly FileManager _fileManager = new FileManager();
-    private readonly AutoDetector _autoDetector = new AutoDetector();
+    private readonly IAppConfig _appConfig;
+    private readonly IFileManager _fileManager;
+    private readonly IAutoDetector _autoDetector;
+    private readonly IModInstaller _modInstaller;
+    private readonly IModListManager _modListManager;
+    
+    public ILoggerService Logger { get; }
     
     public ICommand SelectDirectoryCommand { get; }
     public ICommand SelectFileCommand { get; }
@@ -58,22 +64,33 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenDataFolderCommand { get; }
     public ICommand OpenPluginFileCommand { get; }
     public ICommand OpenGameConfigCommand { get; }
-
-    public ILoggerService Logger { get; }
     
     // tools' commands
     public ICommand OpenFnisCommand { get; }
-    public ICommand DeleteFnisSymlinksCommand { get; }
     public ICommand OpenOutfitStudioCommand { get; }
     public ICommand OpenBodySlideCommand { get; }
     public ICommand OpenNemesisCommand { get; }
-    public ICommand OpenSseeditCommand { get; }
-    public ICommand OpenSseeditAutoCleanCommand { get; }
+    public ICommand OpenXEditCommand { get; }
+    public ICommand OpenXEditAutoCleanCommand { get; }
     public ICommand OpenPandoraCommand { get; }
     public ICommand OpenBethIniCommand { get; }
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(
+        IAppConfig appConfig,
+        IFileManager fileManager,
+        IAutoDetector autoDetector,
+        ILoggerService loggerService,
+        IModInstaller modInstaller,
+        IModListManager modListManager)
     {
+        _appConfig = appConfig;
+        _fileManager = fileManager;
+        _autoDetector = autoDetector;
+        Logger = loggerService;
+        Logger.Log("Logger initialized.");
+        _modInstaller = modInstaller;
+        _modListManager = modListManager;
+        
         ModList = new ObservableCollection<Mod>();
 
         SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
@@ -87,12 +104,11 @@ public partial class MainWindowViewModel : ViewModelBase
         
         //tools
         OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
-        DeleteFnisSymlinksCommand = new AsyncRelayCommand(DeleteFnisSymlinks);
         OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
         OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
         OpenNemesisCommand = new AsyncRelayCommand(OpenNemesis);
-        OpenSseeditCommand = new AsyncRelayCommand(OpenSseedit);
-        OpenSseeditAutoCleanCommand = new AsyncRelayCommand(OpenSseeditAutoClean);
+        OpenXEditCommand = new AsyncRelayCommand(OpenXEdit);
+        OpenXEditAutoCleanCommand = new AsyncRelayCommand(OpenXEditAutoClean);
         OpenPandoraCommand = new AsyncRelayCommand(OpenPandora);
         OpenBethIniCommand = new AsyncRelayCommand(OpenBethIni);
 
@@ -100,51 +116,48 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
-
-        Logger = new UiLoggerService();
-        Logger.Log("Logger initialized.");
     }
 
     private async Task StartGame()
     {
+        if(string.IsNullOrEmpty(GameFolderPath)) return;
+        string skseLoaderPath = Path.Combine(GameFolderPath, "skse64_loader.exe");
+        if(!File.Exists(skseLoaderPath)) return; // don't start if you don't have skse64.
+        
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            string sksePath = Path.Combine(GameFolderPath, "skse64_loader.exe");
             string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
             string backupPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-
-            // check if skse installed
-            if (File.Exists(sksePath))
+            
+            try
             {
-                try
-                {
-                    // hide the original launcher to '_backup'
-                    if (File.Exists(launcherPath) && !File.Exists(backupPath))
-                        File.Move(launcherPath, backupPath);
+                // hide the original launcher to '_backup'
+                if (File.Exists(launcherPath) && !File.Exists(backupPath))
+                    File.Move(launcherPath, backupPath);
 
-                    // copy skse64_loader.exe and rename to SkyrimSELauncher.exe
-                    File.Copy(sksePath, launcherPath, overwrite: true);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Error while changing files: {ex.Message}", LogLevel.Error);
-                }
+                // copy skse64_loader.exe and rename to SkyrimSELauncher.exe
+                File.Copy(skseLoaderPath, launcherPath, overwrite: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error while changing files: {ex.Message}", LogLevel.Error);
             }
             
             // launch the game (should start the skse loader)
-            Process.Start(new ProcessStartInfo
+            var startInfo = new ProcessStartInfo
             {
                 FileName = "steam://rungameid/489830",
                 UseShellExecute = true,
                 CreateNoWindow = true
-            });
+            };
+            
+            Process.Start(startInfo);
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            string pathToLauncher = Path.Combine(GameFolderPath, "skse64_loader.exe");
             var startInfo = new ProcessStartInfo
             {
-                FileName = pathToLauncher,
+                FileName = skseLoaderPath,
                 WorkingDirectory = GameFolderPath,
                 UseShellExecute = true
             };
@@ -155,27 +168,30 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task LateInit()
     {
+        await _appConfig.InitConfig();
+        _appConfig.CheckConfigStatus();
+        
         // may be null/default if Skyrim not installed, or you're launching for the first time.
         // please, make sure they're initialized before using
-        GameFolderPath = AppConfig.Instance.GameFolderPath;
-        PluginFilePath = AppConfig.Instance.PluginFilePath;
-        SkyrimPrefsFilePath = AppConfig.Instance.SkyrimPrefsFilePath;
+        GameFolderPath = _appConfig.GameFolderPath;
+        PluginFilePath = _appConfig.PluginFilePath;
+        SkyrimPrefsFilePath = _appConfig.SkyrimPrefsFilePath;
 
-        PathToFnisTool = await _autoDetector.TryGetFnisExecutable();
-        PathToBodySlide = await _autoDetector.TryGetBodySlideExecutable();
-        PathToOutfitStudio = await _autoDetector.TryGetOutfitStudioExecutable();
-        PathToNemesisTool = await _autoDetector.TryGetNemesisExecutable();
-        PathToSseeditTool = await _autoDetector.TryGetSseeditExecutable();
-        PathToSseeditAutoCleanTool = await _autoDetector.TryGetSseeditAutoCleanExecutable();
-        PathToPandoraTool = await _autoDetector.TryGetPandoraExecutable();
-        PathToBethIniTool = await _autoDetector.TryGetBethIniExecutable();
+        PathToFnisTool = _autoDetector.TryGetFnisExecutable();
+        PathToBodySlide = _autoDetector.TryGetBodySlideExecutable();
+        PathToOutfitStudio = _autoDetector.TryGetOutfitStudioExecutable();
+        PathToNemesisTool = _autoDetector.TryGetNemesisExecutable();
+        PathToXEditTool = _autoDetector.TryGetSseeditExecutable();
+        PathToXEditAutoCleanTool = _autoDetector.TryGetSseeditAutoCleanExecutable();
+        PathToPandoraTool = _autoDetector.TryGetPandoraExecutable();
+        PathToBethIniTool = _autoDetector.TryGetBethIniExecutable();
         
         IsFnisAvailable = CheckForExecutable(PathToFnisTool);
         IsBodySlideAvailable = CheckForExecutable(PathToBodySlide);
         IsOutfitStudioAvailable = CheckForExecutable(PathToOutfitStudio);
         IsNemesisAvailable = CheckForExecutable(PathToNemesisTool);
-        IsSseeditAvailable = CheckForExecutable(PathToSseeditTool);
-        IsSseeditAutoCleanAvailable = CheckForExecutable(PathToSseeditAutoCleanTool);
+        IsXEditAvailable = CheckForExecutable(PathToXEditTool);
+        IsXEditAutoCleanAvailable = CheckForExecutable(PathToXEditAutoCleanTool);
         IsPandoraAvailable = CheckForExecutable(PathToPandoraTool);
         IsBethIniAvailable = CheckForExecutable(PathToBethIniTool);
         
@@ -184,7 +200,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLoadArchiveAvailable = true;
     }
 
-    private bool CheckForExecutable(string path)
+    private bool CheckForExecutable(string? path)
     {
         if (string.IsNullOrEmpty(path)) return false;
         if (!File.Exists(path)) return false;
@@ -225,21 +241,27 @@ public partial class MainWindowViewModel : ViewModelBase
         await LaunchToolInProtonAsync(relativeStudioPath);
     }
     
-    private async Task OpenSseedit()
+    private async Task OpenXEdit()
     {
-        string relativeStudioPath = PathToSseeditTool;
+        string? relativeStudioPath = PathToXEditTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
     
-    private async Task OpenSseeditAutoClean()
+    private async Task OpenXEditAutoClean()
     {
-        string relativeStudioPath = PathToSseeditAutoCleanTool;
+        string? relativeStudioPath = PathToXEditAutoCleanTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
 
@@ -251,15 +273,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task OpenBethIni()
     {
-        string relativeStudioPath = PathToBethIniTool;
+        string? relativeStudioPath = PathToBethIniTool;
+        if(string.IsNullOrEmpty(relativeStudioPath)) return;
+        
         string[] dirs = relativeStudioPath.Split(Path.DirectorySeparatorChar);
         string relativeFromData = Path.Combine(
             dirs.SkipWhile(d => !d.Equals("Data", StringComparison.OrdinalIgnoreCase)).ToArray());
+        
         await LaunchToolInProtonAsync(relativeFromData);
     }
     
     private async Task LaunchToolInProtonAsync(string pathToTool, Action? preLaunchSetup = null)
     {
+        if(string.IsNullOrEmpty(GameFolderPath)) return; // just in case
+        
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
@@ -322,33 +349,14 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }   
     
-    // refactor?
-    private async Task DeleteFnisSymlinks()
-    {
-        string backupLauncherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher_backup.exe");
-        string launcherPath = Path.Combine(GameFolderPath, "SkyrimSELauncher.exe");
-        string tempSymlinkDir = Path.Combine(GameFolderPath, "tools"); // temp dir inside the root
-        
-        // need to be careful here
-        if(!File.Exists(backupLauncherPath)) return; // don't delete current one, if backup has not been found
-        
-        // delete symlinks
-        if (Directory.Exists(tempSymlinkDir)) Directory.Delete(tempSymlinkDir);
-        if (File.Exists(launcherPath)) File.Delete(launcherPath);
-
-        // get back the original launcher
-        if (File.Exists(backupLauncherPath)) File.Move(backupLauncherPath, launcherPath);
-    }
-    
     private async Task ReInitValues()
     {
-        await AppConfig.Instance.CheckConfigStatus();
+        _appConfig.CheckConfigStatus();
     }
 
     private async Task UpdateModList()
     {
-        var modListM = new ModListManager();
-        var updated = await modListM.UpdateModList();
+        var updated = await _modListManager.UpdateModList();
         if (updated is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Warning);
@@ -360,45 +368,48 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private async Task SaveModList()
     {
-        var modListM = new ModListManager();
-        // save current state
-        await modListM.SaveCurrentModListState(ModList);
+        if (ModList is null)
+        {
+            Logger.Log("Mod list is null.", LogLevel.Error);
+            return;
+        }
+        await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
         await UpdateModList();
     }
 
     private async Task SetGamePath()
     {
-        var filePath = await _fileManager.SelectDirectory();
+        var filePath = await _fileManager.SelectDirectoryAsync();
 
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Game path not selected!");
+            Logger.Log("Game path not selected!", LogLevel.Error);
             return;
         }
         
         GameFolderPath = filePath;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.GameFolderPath, this.GameFolderPath);
     }
 
     private async Task SetModListPath()
     {
-        var filePath = await _fileManager.SelectFile();
+        var filePath = await _fileManager.SelectFileAsync();
 
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Mod file path not selected!");
+            Logger.Log("Mod file path not selected!", LogLevel.Error);
             return;
         }
 
         PluginFilePath = filePath;
-        await AppConfig.Instance.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, PluginFilePath);
     }
 
     private async Task OpenDataFolder()
     {
         if (string.IsNullOrEmpty(GameFolderPath))
         {
-            await MsgBoxManager.ShowWarning("Game folder path not selected!");
+            Logger.Log("Game folder path not selected!", LogLevel.Error);
             return;
         }
         await OpenFileDirectory(GameFolderPath);
@@ -414,7 +425,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await OpenFileDirectory(SkyrimPrefsFilePath);
     }
 
-    private async Task OpenFileDirectory(string path)
+    private async Task OpenFileDirectory(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
         if (!File.Exists(path) && !Directory.Exists(path)) return;
@@ -441,10 +452,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task InstallMod()
     {
-        var filePath = await _fileManager.SelectFile();
+        var filePath = await _fileManager.SelectFileAsync();
         if (string.IsNullOrEmpty(filePath))
         {
-            await MsgBoxManager.ShowWarning("Mod archive not selected!");
+            Logger.Log("Mod archive not selected!", LogLevel.Error);
             return;
         }
 
@@ -453,8 +464,7 @@ public partial class MainWindowViewModel : ViewModelBase
         
         Logger.Log(string.Empty); // space for better visibility
         Logger.Log($"Selected file: {filePath}");
-        var fomod = new FomodManager(filePath, Logger);
-        await fomod.InstallMod();
+        await _modInstaller.InstallMod(filePath);
         Logger.Log(string.Empty); // space for better visibility
         
         IsPlayAvailable = true;
