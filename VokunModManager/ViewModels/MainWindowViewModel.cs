@@ -51,6 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IAutoDetector _autoDetector;
     private readonly IModInstaller _modInstaller;
     private readonly IModListManager _modListManager;
+    private readonly IGameStateResetter _gameStateResetter;
     
     public ILoggerService Logger { get; }
     
@@ -75,6 +76,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenXEditAutoCleanCommand { get; }
     public ICommand OpenPandoraCommand { get; }
     public ICommand OpenBethIniCommand { get; }
+    
+    // resetter
+    public ICommand SaveCurrentGameStateCommand { get; }
+    public ICommand ResetGameStateCommand { get; }
 
     public MainWindowViewModel(
         IAppConfig appConfig,
@@ -82,7 +87,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IAutoDetector autoDetector,
         ILoggerService loggerService,
         IModInstaller modInstaller,
-        IModListManager modListManager)
+        IModListManager modListManager,
+        IGameStateResetter gameStateResetter)
     {
         _appConfig = appConfig;
         _fileManager = fileManager;
@@ -91,6 +97,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Logger.Log("Logger initialized.");
         _modInstaller = modInstaller;
         _modListManager = modListManager;
+        _gameStateResetter = gameStateResetter;
         
         ModList = new ObservableCollection<Mod>();
 
@@ -112,6 +119,9 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenXEditAutoCleanCommand = new AsyncRelayCommand(OpenXEditAutoClean);
         OpenPandoraCommand = new AsyncRelayCommand(OpenPandora);
         OpenBethIniCommand = new AsyncRelayCommand(OpenBethIni);
+
+        SaveCurrentGameStateCommand = new AsyncRelayCommand(SaveGameCurrentState);
+        ResetGameStateCommand = new AsyncRelayCommand(ResetGameState);
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
@@ -479,5 +489,69 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         await LateInit();
         await UpdateModList(); // maybe you should include this in LateInit()
+    }
+
+    private async Task SaveGameCurrentState()
+    {
+        if (string.IsNullOrEmpty(GameFolderPath))
+        {
+            Logger.Log("Can't save manifest, because GameFolderPath is not initialized.", LogLevel.Warning);
+            return;
+        }
+
+        string manifestPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "default_manifest.json");
+
+        // Создаем слепок ТОЛЬКО если файл еще не существует
+        if (File.Exists(manifestPath))
+        {
+            Logger.Log("Manifest already exists.");
+            return;
+        }
+
+        try
+        {
+            Logger.Log("Generate clean game's manifest (default_manifest.json)...");
+
+            await _gameStateResetter.CreateDefaultManifestAsync(GameFolderPath, CompatdataFolderPath, manifestPath);
+
+            Logger.Log($"Manifest successfully created at: {manifestPath}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Error while creating manifest: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    private async Task ResetGameState()
+    {
+        if (string.IsNullOrEmpty(GameFolderPath))
+        {
+            Logger.Log("GameFolderPath is not initialized. Reset is unavailable.", LogLevel.Error);
+            return;
+        }
+
+        try
+        {
+            IsPlayAvailable = false;
+            var progress = new Progress<string>(message =>
+            {
+                Logger.Log(message);
+            });
+            Logger.Log("Resetting the game...");
+            
+            await _gameStateResetter.ResetToDefaultAsync(GameFolderPath, CompatdataFolderPath, progress);
+
+            Logger.Log("Game state has been reset to default.");
+            
+            await UpdateModList();
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Error while resetting the game: {ex.Message}", LogLevel.Error);
+        }
+        finally
+        {
+            IsPlayAvailable = true;
+        }
     }
 }

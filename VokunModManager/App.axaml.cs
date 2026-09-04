@@ -53,6 +53,7 @@ public partial class App : Application
         services.AddSingleton<ILoggerService, UiLoggerService>();
         services.AddSingleton<IModInstaller, FomodManager>(); // automatically applies ILoggerService to FomodManager ctor
         services.AddSingleton<IModListManager, ModListManager>();
+        services.AddSingleton<IGameStateResetter, GameStateResetter>();
         
         // register ViewModels
         services.AddTransient<MainWindowViewModel>();
