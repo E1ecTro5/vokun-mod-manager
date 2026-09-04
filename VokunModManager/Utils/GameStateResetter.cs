@@ -41,8 +41,7 @@ public class GameStateResetter : IGameStateResetter
     public async Task ResetToDefaultAsync(string gameFolderPath, string? compatDataPath, IProgress<string>? progress = null)
     {
         var manifest = await LoadManifestAsync();
-        if (manifest == null)
-            throw new InvalidOperationException("Couldn't load game's manifest.");
+        if (manifest == null) throw new InvalidOperationException("Couldn't load game's manifest.");
 
         var defaultGameSet = new HashSet<string>(manifest.GameFiles, StringComparer.OrdinalIgnoreCase);
         var defaultAppDataSet = new HashSet<string>(manifest.AppDataFiles, StringComparer.OrdinalIgnoreCase);
@@ -52,6 +51,9 @@ public class GameStateResetter : IGameStateResetter
             // Cleaning game folder
             if (Directory.Exists(gameFolderPath))
             {
+                progress?.Report("Restoring original game launcher...");
+                RestoreOriginalLauncher(gameFolderPath, progress);
+                
                 progress?.Report("Cleaning files in game's folder...");
                 CleanupDirectory(gameFolderPath, defaultGameSet, progress);
             }
@@ -65,6 +67,40 @@ public class GameStateResetter : IGameStateResetter
             }
         });
     }
+    
+    /// <summary>
+    /// Returns the original SkyrimSELauncher.exe from backup.
+    /// </summary>
+    private void RestoreOriginalLauncher(string gameFolderPath, IProgress<string>? progress)
+    {
+        string launcherPath = Path.Combine(gameFolderPath, "SkyrimSELauncher.exe");
+        string backupPath = Path.Combine(gameFolderPath, "SkyrimSELauncher_backup.exe");
+        string helperConfigPath = Path.Combine(gameFolderPath, "vokun_tool_config.txt");
+
+        try
+        {
+            if (File.Exists(backupPath))
+            {
+                if (File.Exists(launcherPath))
+                {
+                    File.Delete(launcherPath);
+                }
+
+                File.Move(backupPath, launcherPath);
+                progress?.Report("Original launcher restored from backup.");
+            }
+
+            // delete config for ToolLauncher.exe
+            if (File.Exists(helperConfigPath))
+            {
+                File.Delete(helperConfigPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            progress?.Report($"Failed to restore launcher: {ex.Message}");
+        }
+    }
 
     private void CleanupDirectory(string basePath, HashSet<string> defaultFiles, IProgress<string>? progress)
     {
@@ -75,14 +111,11 @@ public class GameStateResetter : IGameStateResetter
             string relativePath = NormalizePath(Path.GetRelativePath(basePath, filePath));
 
             // ignore/don't delete saves
-            if (relativePath.StartsWith("Saves/", StringComparison.OrdinalIgnoreCase))
-                continue;
+            if (relativePath.StartsWith("Saves/", StringComparison.OrdinalIgnoreCase)) continue;
 
-            if (!defaultFiles.Contains(relativePath))
-            {
-                progress?.Report($"Deleting: {relativePath}");
-                File.Delete(filePath);
-            }
+            if (defaultFiles.Contains(relativePath)) continue;
+            progress?.Report($"Deleting: {relativePath}");
+            File.Delete(filePath);
         }
 
         RemoveEmptySubdirectories(basePath);
@@ -105,8 +138,7 @@ public class GameStateResetter : IGameStateResetter
 
     private static string? GetAppDataPath(string? compatDataPath)
     {
-        if (string.IsNullOrWhiteSpace(compatDataPath))
-            return null;
+        if (string.IsNullOrWhiteSpace(compatDataPath)) return null;
 
         return Path.Combine(compatDataPath, "pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition");
     }
@@ -120,13 +152,9 @@ public class GameStateResetter : IGameStateResetter
         if (stream == null)
         {
             string localFallback = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "default_manifest.json");
-            if (File.Exists(localFallback))
-            {
-                await using var fileStream = File.OpenRead(localFallback);
-                return await JsonSerializer.DeserializeAsync<GameManifest>(fileStream);
-            }
-
-            return null;
+            if (!File.Exists(localFallback)) return null;
+            await using var fileStream = File.OpenRead(localFallback);
+            return await JsonSerializer.DeserializeAsync<GameManifest>(fileStream);
         }
 
         return await JsonSerializer.DeserializeAsync<GameManifest>(stream);
@@ -137,14 +165,13 @@ public class GameStateResetter : IGameStateResetter
         foreach (var directory in Directory.GetDirectories(startLocation))
         {
             RemoveEmptySubdirectories(directory);
-            if (!Directory.EnumerateFileSystemEntries(directory).Any())
+            if (Directory.EnumerateFileSystemEntries(directory).Any()) continue;
+            
+            try
             {
-                try
-                {
-                    Directory.Delete(directory, false);
-                }
-                catch (IOException) { /* ignore if busy */ }
+                Directory.Delete(directory, false);
             }
+            catch (IOException) { /* ignore if busy */ }
         }
     }
 }
