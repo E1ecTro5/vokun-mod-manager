@@ -3,6 +3,7 @@ namespace VokunModManager.Interfaces;
 public interface IAutoDetector
 {
     public string? TryGetGameFolder();
+    public string? TryGetCompatdataFolder();
     public string? TryGetPluginConfig();
     public string? TryGetPrefsFile();
     public string? TryGetFnisExecutable();

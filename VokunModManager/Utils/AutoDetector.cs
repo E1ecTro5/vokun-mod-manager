@@ -25,6 +25,28 @@ public class AutoDetector(IAppConfig config) : IAutoDetector
 
         return !Directory.Exists(possiblePath) ? null : possiblePath;
     }
+    
+    /// <summary>
+    /// Tries to find 'Skyrim Special Edition' folder inside the Steam folder and set it to the app config.
+    /// </summary>
+    /// <returns>Path to the game folder, if found. Null, if not.</returns>
+    public string? TryGetCompatdataFolder()
+    {
+        string possiblePath = string.Empty;
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            possiblePath = Path.Combine(userFolder, ".local/share/Steam/steamapps/compatdata/489830");
+        }
+        else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            // we don't need it on Windows
+            return null;
+        }
+
+        return !Directory.Exists(possiblePath) ? null : possiblePath;
+    }
 
     /// <summary>
     /// Tries to find game's Plugin.txt file, located in compatdata folder and set it to the app config.

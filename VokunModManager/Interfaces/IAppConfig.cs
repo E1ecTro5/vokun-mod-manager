@@ -3,6 +3,7 @@ namespace VokunModManager.Interfaces;
 public interface IAppConfig
 {
     public string? GameFolderPath { get; }
+    public string? CompatdataFolderPath { get; }
     public string? PluginFilePath { get; }
     public string? SkyrimPrefsFilePath { get; }
 

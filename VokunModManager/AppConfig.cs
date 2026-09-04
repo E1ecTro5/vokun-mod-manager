@@ -15,6 +15,7 @@ public sealed class AppConfig : IAppConfig
     public enum ConfigType
     {
         GameFolderPath,
+        CompatdataFolderPath,
         PluginFilePath,
         SkyrimPrefsFilePath
     }
@@ -25,6 +26,10 @@ public sealed class AppConfig : IAppConfig
     /// Path to the "...steamapps/common/Skyrim Special Edition" folder.
     /// </summary>
     public string? GameFolderPath { get; private set; }
+    /// <summary>
+    /// Path to the "...steamapps/compatdata/489830" folder.
+    /// </summary>
+    public string? CompatdataFolderPath { get; private set; }
     /// <summary>
     /// Path for "...AppData/Local/Skyrim Special Edition/Plugins.txt" file.
     /// </summary>
@@ -42,6 +47,9 @@ public sealed class AppConfig : IAppConfig
         {
             case ConfigType.GameFolderPath:
                 GameFolderPath = value;
+                break;
+            case ConfigType.CompatdataFolderPath:
+                CompatdataFolderPath = value;
                 break;
             case ConfigType.PluginFilePath:
                 PluginFilePath = value;
@@ -75,6 +83,7 @@ public sealed class AppConfig : IAppConfig
             switch (key)
             {
                 case "pluginFilePath": PluginFilePath = value; break;
+                case "compatdataFolderPath": CompatdataFolderPath = value; break;
                 case "gameFolderPath": GameFolderPath = value; break;
                 // since you WRITE FIRST and READ LATER, we don't expect exception there ; may be just empty
                 case "skyrimPrefsFilePath": SkyrimPrefsFilePath = value; break;
@@ -91,8 +100,8 @@ public sealed class AppConfig : IAppConfig
     {
         await using (StreamWriter sw = new StreamWriter(_appConfigPath))
         {
-            // GAME PATH GOES FIRST ; MODFILE (Plugins.txt) GOES SECOND and so on... it's hardcoded.
             await sw.WriteLineAsync($"gameFolderPath={GameFolderPath}");
+            await sw.WriteLineAsync($"compatdataFolderPath={CompatdataFolderPath}");
             await sw.WriteLineAsync($"pluginFilePath={PluginFilePath}");
             await sw.WriteLineAsync($"skyrimPrefsFilePath={SkyrimPrefsFilePath}");
         }
@@ -103,6 +112,7 @@ public sealed class AppConfig : IAppConfig
         IAutoDetector detector = new AutoDetector(this); 
         
         if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = detector.TryGetGameFolder();
+        if (string.IsNullOrEmpty(CompatdataFolderPath)) CompatdataFolderPath = detector.TryGetCompatdataFolder();
         if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = detector.TryGetPluginConfig();
         if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) SkyrimPrefsFilePath = detector.TryGetPrefsFile();
     }
