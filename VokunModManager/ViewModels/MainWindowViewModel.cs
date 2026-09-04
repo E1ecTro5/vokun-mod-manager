@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     // they all need to be displayed just to make it easier for me
     [ObservableProperty] private string? _gameFolderPath;     // Steam game folder
+    [ObservableProperty] private string? _compatdataFolderPath;
     [ObservableProperty] private string? _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private string? _skyrimPrefsFilePath;
 
@@ -174,6 +175,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // may be null/default if Skyrim not installed, or you're launching for the first time.
         // please, make sure they're initialized before using
         GameFolderPath = _appConfig.GameFolderPath;
+        CompatdataFolderPath = _appConfig.CompatdataFolderPath;
         PluginFilePath = _appConfig.PluginFilePath;
         SkyrimPrefsFilePath = _appConfig.SkyrimPrefsFilePath;
 

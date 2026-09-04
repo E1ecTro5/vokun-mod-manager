@@ -112,7 +112,7 @@ public sealed class AppConfig : IAppConfig
         IAutoDetector detector = new AutoDetector(this); 
         
         if (string.IsNullOrEmpty(GameFolderPath)) GameFolderPath = detector.TryGetGameFolder();
-        //if (string.IsNullOrEmpty(CompatdataFolderPath)) CompatdataFolderPath = detector.TryGetCompatdataFolder();
+        if (string.IsNullOrEmpty(CompatdataFolderPath)) CompatdataFolderPath = detector.TryGetCompatdataFolder();
         if (string.IsNullOrEmpty(PluginFilePath)) PluginFilePath = detector.TryGetPluginConfig();
         if (string.IsNullOrEmpty(SkyrimPrefsFilePath)) SkyrimPrefsFilePath = detector.TryGetPrefsFile();
     }
