@@ -10,8 +10,11 @@
         Icon="/Assets/vokunIcon.ico"
         Title="Vokun Mod Manager">
     
-    <Grid ColumnDefinitions="32,*">
-        <Border Grid.Column="0" Background="Aqua" />
+    <Grid ColumnDefinitions="auto,*">
+        <StackPanel Grid.Column="0" Background="GhostWhite" Orientation="Vertical">
+            <Button Margin="5" Command="{Binding SelectMainPageCommand}" Content="Main" HorizontalAlignment="Stretch"/>
+            <Button Margin="5" Command="{Binding SelectToolsPageCommand}" Content="Tools" HorizontalAlignment="Stretch"/>
+        </StackPanel>
         <ContentControl Grid.Column="1" Content="{Binding CurrentPage}"/>
     </Grid>
 </Window>

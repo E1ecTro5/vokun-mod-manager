@@ -55,6 +55,7 @@ public partial class App : Application
         
         // register ViewModels
         services.AddSingleton<MainPageViewModel>();
+        services.AddSingleton<ToolsPageViewModel>();
         services.AddSingleton<MainWindowViewModel>();
     }
 
