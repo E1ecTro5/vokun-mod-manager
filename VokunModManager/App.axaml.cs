@@ -29,7 +29,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
-
+            
             // get ViewModel from container; all the dependencies will be included
             var vm = Services.GetRequiredService<MainWindowViewModel>();
 
@@ -37,8 +37,6 @@ public partial class App : Application
             {
                 DataContext = vm
             };
-            
-            await vm.UpdateAll();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -56,7 +54,8 @@ public partial class App : Application
         services.AddSingleton<IGameStateResetter, GameStateResetter>();
         
         // register ViewModels
-        services.AddTransient<MainWindowViewModel>();
+        services.AddSingleton<MainPageViewModel>();
+        services.AddSingleton<MainWindowViewModel>();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()
