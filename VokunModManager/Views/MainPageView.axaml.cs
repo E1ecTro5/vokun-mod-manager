@@ -14,7 +14,6 @@ public partial class MainPageView : UserControl
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Отписываемся, чтобы метод не вызывался повторно при переключении страниц
         Loaded -= OnLoaded;
 
         if (DataContext is MainPageViewModel vm)

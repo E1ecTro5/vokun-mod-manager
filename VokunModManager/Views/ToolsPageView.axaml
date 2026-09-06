@@ -7,7 +7,21 @@
              x:Class="VokunModManager.Views.ToolsPageView"
              x:DataType="vm:ToolsPageViewModel">
     
-    <Grid RowDefinitions="Auto,*">
-        <TextBlock Grid.Row="0" Text="{Binding PathToFnisTool, StringFormat='FNIS path: {0}'}"/>
+    <Grid RowDefinitions="Auto,Auto,*" Margin="10">
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <TextBlock Text="Internal tools:" FontSize="12"/>
+            <TextBlock Text="{Binding PathToFnisTool, StringFormat='FNIS path: {0}'}" FontSize="11"/>
+            <TextBlock Text="{Binding PathToBodySlide, StringFormat='BodySlide path: {0}'}" FontSize="11"/>
+            <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='OutfitStudio path: {0}'}" FontSize="11"/>
+            <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Nemesis path: {0}'}" FontSize="11"/>
+            <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Pandora path: {0}'}" FontSize="11"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+            <Button Content="Open FNIS" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
+            <Button Content="Open BodySlide" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
+            <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
+            <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
+            <Button Content="Open Pandora" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
+        </StackPanel>
     </Grid>
 </UserControl>
