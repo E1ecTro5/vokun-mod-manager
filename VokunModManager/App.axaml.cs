@@ -58,6 +58,7 @@ public partial class App : Application
         services.AddSingleton<MainPageViewModel>();
         services.AddSingleton<ToolsPageViewModel>();
         services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<SettingsPageViewModel>();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

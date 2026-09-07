@@ -10,21 +10,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ICommand SelectMainPageCommand { get; }
     public ICommand SelectToolsPageCommand { get; }
+    public ICommand SelectSettingsPageCommand { get; }
 
     // get this from DI
     private readonly MainPageViewModel _mainPageViewModel;
     private readonly ToolsPageViewModel _toolsPageViewModel;
+    private readonly SettingsPageViewModel _settingsPageViewModel;
 
     public MainWindowViewModel(
         MainPageViewModel mainPageViewModel,
-        ToolsPageViewModel toolsPageViewModel)
+        ToolsPageViewModel toolsPageViewModel,
+        SettingsPageViewModel settingsPageViewModel)
     {
         _mainPageViewModel = mainPageViewModel;
         _toolsPageViewModel = toolsPageViewModel;
+        _settingsPageViewModel = settingsPageViewModel;
         _currentPage = _mainPageViewModel;
 
         SelectMainPageCommand = new AsyncRelayCommand(SelectMainPage);
         SelectToolsPageCommand = new AsyncRelayCommand(SelectToolsPage);
+        SelectSettingsPageCommand = new AsyncRelayCommand(SelectSettingsPage);
     }
 
     private async Task SelectMainPage()
@@ -35,5 +40,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task SelectToolsPage()
     {
         CurrentPage = _toolsPageViewModel;
+    }
+    
+    private async Task SelectSettingsPage()
+    {
+        CurrentPage = _settingsPageViewModel;
     }
 }
