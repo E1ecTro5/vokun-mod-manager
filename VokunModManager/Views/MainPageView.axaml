@@ -72,11 +72,8 @@
                     <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                     <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
                 </Grid>
-                <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
-                </Grid>
-                <Grid Grid.Row="4" ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                
+                <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="10">
                     <Button Content="Open Data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
                     <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
                     <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>

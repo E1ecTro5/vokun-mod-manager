@@ -7,8 +7,8 @@
              x:Class="VokunModManager.Views.ToolsPageView"
              x:DataType="vm:ToolsPageViewModel">
     
-    <Grid RowDefinitions="Auto,Auto,*" Margin="10">
-        <StackPanel Grid.Row="0" Orientation="Vertical">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10" RowSpacing="10">
+        <StackPanel Grid.Row="0" Orientation="Vertical" Spacing="2">
             <TextBlock Text="Internal tools:" FontSize="12"/>
             <TextBlock Text="{Binding PathToFnisTool, StringFormat='FNIS path: {0}'}" FontSize="11"/>
             <TextBlock Text="{Binding PathToBodySlide, StringFormat='BodySlide path: {0}'}" FontSize="11"/>
@@ -22,6 +22,17 @@
             <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
             <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
             <Button Content="Open Pandora" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Vertical" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
+                <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}"/>
+                <TextBlock Text="Deletes everything inside game folder except saved (in-config) files." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
+            </StackPanel>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
+                <Button Content="Open External Tool" Command="{Binding OpenExternalToolCommand}"/>
+                <TextBlock Text="If you've installed tools like xEdit or BethINI." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>
