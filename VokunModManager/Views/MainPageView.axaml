@@ -48,37 +48,9 @@
             </DataGrid>
         </Grid>
         <Grid Grid.Column="1">
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
-                <!--one day just make style for all these boxes-->
-                <StackPanel Grid.Row="0">
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
-                    </ScrollViewer>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding CompatdataFolderPath, StringFormat='Compatdata folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
-                    </ScrollViewer>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                        <TextBlock Text="{Binding SkyrimPrefsFilePath, StringFormat='SkyrimPrefs.ini path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-                    </ScrollViewer>
-                </StackPanel>
-                <Grid Grid.Row="1" ColumnDefinitions="2*,2*" ColumnSpacing="10">
-                    <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" />
-                    <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-                </Grid>
-                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Update Mod List" Command="{Binding UpdateModListCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5"  Grid.Column="1"/>
-                </Grid>
-                
-                <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                    <Button Content="Open Data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-                    <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-                    <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
-                </Grid>
-                <ScrollViewer Grid.Row="8" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="5">
+                <TextBlock Grid.Row="0" Text="Logs output" FontSize="12"/>
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:LogMessage">
@@ -97,7 +69,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <Grid Grid.Row="9" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="5">
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="5">
                     <Button Content="Install mod" Command="{Binding InstallModCommand}" Grid.Column="0" Padding="10,5"></Button>
                     <li:LoadingIndicator Grid.Column="1" Height="30" IsActive="{Binding IsModInstalling}" Mode="Arc" SpeedRatio="1.2" />
                     <Button Content="Save" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>

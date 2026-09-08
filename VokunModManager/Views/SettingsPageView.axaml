@@ -7,5 +7,31 @@
              x:DataType="vm:SettingsPageViewModel"
              x:Class="VokunModManager.Views.SettingsPageView">
     
-    <TextBlock>SettingsPage!!</TextBlock>
+    <Grid Margin="10" RowDefinitions="Auto, Auto, Auto, *, Auto" RowSpacing="8">
+        <StackPanel Grid.Row="0" Spacing="2" Orientation="Vertical">
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding CompatdataFolderPath, StringFormat='Compatdata folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
+            </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding SkyrimPrefsFilePath, StringFormat='SkyrimPrefs.ini path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
+            </ScrollViewer>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+            <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" />
+            <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+            <Button Content="Select SkyrimPrefs.ini" Command="{Binding SelectSkyrimPrefsFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+            <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10">
+            <Button Content="Open Data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
+            <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
+            <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
+        </StackPanel>
+    </Grid>
 </UserControl>
