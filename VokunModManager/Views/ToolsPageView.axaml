@@ -7,29 +7,91 @@
              x:Class="VokunModManager.Views.ToolsPageView"
              x:DataType="vm:ToolsPageViewModel">
     
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10" RowSpacing="10">
-        <StackPanel Grid.Row="0" Orientation="Vertical" Spacing="2">
-            <TextBlock Text="Internal tools:" FontSize="12"/>
-            <TextBlock Text="{Binding PathToFnisTool, StringFormat='FNIS path: {0}'}" FontSize="11"/>
-            <TextBlock Text="{Binding PathToBodySlide, StringFormat='BodySlide path: {0}'}" FontSize="11"/>
-            <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='OutfitStudio path: {0}'}" FontSize="11"/>
-            <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Nemesis path: {0}'}" FontSize="11"/>
-            <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Pandora path: {0}'}" FontSize="11"/>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-            <Button Content="Open FNIS" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
-            <Button Content="Open BodySlide" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
-            <Button Content="Open OutfitStudio" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
-            <Button Content="Open Nemesis" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
-            <Button Content="Open Pandora" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="3" Orientation="Vertical" Spacing="10">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="10" RowSpacing="10">
+        <Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+            <!-- FNIS TOOL -->
+            <Border Grid.Row="0" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="FNIS" FontSize="18"/>
+                        <TextBlock Text="Found=value" FontSize="12"/>
+                        <TextBlock Text="{Binding PathToFnisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- NEMESIS TOOL -->
+            <Border Grid.Row="0" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="Nemesis" FontSize="18"/>
+                        <TextBlock Text="Found=value" FontSize="12"/>
+                        <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- BodySlide Tool -->
+            <Border Grid.Row="1" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="BodySlide" FontSize="18"/>
+                        <TextBlock Text="Found=value" FontSize="12"/>
+                        <TextBlock Text="{Binding PathToBodySlide, StringFormat='BodySlide path: {0}'}" FontSize="11"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- OutfitStudio -->
+            <Border Grid.Row="1" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="OutfitStudio" FontSize="18"/>
+                        <TextBlock Text="Found=value" FontSize="12"/>
+                        <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='OutfitStudio path: {0}'}" FontSize="11"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- Pandora -->
+            <Border Grid.Row="2" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="Pandora" FontSize="18"/>
+                        <TextBlock Text="Found=value" FontSize="12"/>
+                        <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Pandora path: {0}'}" FontSize="11"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
+                </Grid>
+            </Border>
+        </Grid>
+        <StackPanel Grid.Row="2" Orientation="Vertical" Spacing="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
                 <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}"/>
                 <TextBlock Text="Deletes everything inside game folder except saved (in-config) files." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
             </StackPanel>
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Content="Open External Tool" Command="{Binding OpenExternalToolCommand}"/>
                 <TextBlock Text="If you've installed tools like xEdit or BethINI." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
             </StackPanel>
