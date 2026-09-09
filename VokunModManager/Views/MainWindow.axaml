@@ -10,21 +10,21 @@
         Icon="/Assets/vokunIcon.ico"
         Title="Vokun Mod Manager">
     
-    <Grid RowDefinitions="auto,*">
-        <StackPanel Grid.Row="0" Background="#14243D" Orientation="Horizontal">
+    <Grid RowDefinitions="auto,*" Background="#14243D">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,0,0,0">
             <Button Command="{Binding SelectMainPageCommand}"
                     Content="Main Page"
-                    Classes="Navbar-Default"
+                    Classes="Navbar-Button"
                     Classes.Navbar-Selected="{Binding IsMainPageSelected}"/>
             <Button Command="{Binding SelectToolsPageCommand}"
                     Content="Tools Page"
-                    Classes="Navbar-Default"
+                    Classes="Navbar-Button"
                     Classes.Navbar-Selected="{Binding IsToolsPageSelected}"/>
             <Button Command="{Binding SelectSettingsPageCommand}"
                     Content="Settings Page"
-                    Classes="Navbar-Default"
+                    Classes="Navbar-Button"
                     Classes.Navbar-Selected="{Binding IsSettingsPageSelected}"/>
         </StackPanel>
-        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}"/>
+        <ContentControl Grid.Row="1" Background="White" Content="{Binding CurrentPage}" CornerRadius="5,5,0,0"/>
     </Grid>
 </Window>
