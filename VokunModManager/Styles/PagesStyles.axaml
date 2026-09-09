@@ -1,0 +1,45 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+            <Border Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Classes="Image-Holder">
+                        <!--img here?-->
+                        <Rectangle Width="64" Height="64" Fill="Red"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                        <TextBlock Text="ItemName" FontSize="18"/>
+                        <TextBlock Text="Found=true" FontSize="12" Foreground="Green"/>
+                        <TextBlock Text="Path: " FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open"/>
+                </Grid>
+            </Border>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Add Styles Here -->
+    
+    <!-- this is for EACH of the tools-->
+    <Style Selector="Border.Tool-Handler">
+        <Setter Property="Background" Value="DarkGray"/>
+        <Setter Property="Padding" Value="10"/>
+    </Style>
+    
+    <Style Selector="Grid.Tool-Grid">
+        <Setter Property="ColumnSpacing" Value="10"/>
+    </Style>
+    
+    <Style Selector="Grid.Tool-Grid StackPanel.Image-Holder">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    
+    <Style Selector="Grid.Tool-Grid StackPanel.Text-Holder">
+        <Setter Property="Orientation" Value="Vertical"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Spacing" Value="2"/>
+    </Style>
+</Styles>

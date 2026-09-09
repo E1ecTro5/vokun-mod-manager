@@ -17,6 +17,7 @@
         <StyleInclude Source="avares://VokunModManager/Styles/DataGridDnd.axaml"/>
         
         <StyleInclude Source="avares://VokunModManager/Styles/NavbarStyles.axaml"/>
+        <StyleInclude Source="avares://VokunModManager/Styles/PagesStyles.axaml"/>
     </Application.Styles>
              
     <Application.Resources>
