@@ -12,9 +12,18 @@
     
     <Grid RowDefinitions="auto,*">
         <StackPanel Grid.Row="0" Background="#14243D" Orientation="Horizontal">
-            <Button Margin="5" Command="{Binding SelectMainPageCommand}" Content="Main Page" Foreground="White" HorizontalAlignment="Stretch" Width="160"/>
-            <Button Margin="5" Command="{Binding SelectToolsPageCommand}" Content="Tools Page" Foreground="White" HorizontalAlignment="Stretch" Width="160"/>
-            <Button Margin="5" Command="{Binding SelectSettingsPageCommand}" Content="Settings Page" Foreground="White" HorizontalAlignment="Stretch" Width="160"/>
+            <Button Command="{Binding SelectMainPageCommand}"
+                    Content="Main Page"
+                    Classes="Navbar-Default"
+                    Classes.Navbar-Selected="{Binding IsMainPageSelected}"/>
+            <Button Command="{Binding SelectToolsPageCommand}"
+                    Content="Tools Page"
+                    Classes="Navbar-Default"
+                    Classes.Navbar-Selected="{Binding IsToolsPageSelected}"/>
+            <Button Command="{Binding SelectSettingsPageCommand}"
+                    Content="Settings Page"
+                    Classes="Navbar-Default"
+                    Classes.Navbar-Selected="{Binding IsSettingsPageSelected}"/>
         </StackPanel>
         <ContentControl Grid.Row="1" Content="{Binding CurrentPage}"/>
     </Grid>

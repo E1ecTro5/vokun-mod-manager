@@ -1,0 +1,31 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+            <StackPanel Orientation="Horizontal" Background="#14243D">
+                <Button Classes="Navbar-Selected" Margin="5" Content="Main Page" />
+                <Button Classes="Navbar-Default" Margin="5" Content="Tools Page" />
+                <Button Classes="Navbar-Default" Margin="5" Content="Settings Page"/>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Add Styles Here -->
+    <Style Selector="Button.Navbar-Selected">
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="White"/>
+        
+        <Setter Property="Background" Value="#14243D"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Width" Value="160"/>
+    </Style>
+    
+    <Style Selector="Button.Navbar-Default">
+        <Setter Property="Background" Value="#14243D"/>
+        <Setter Property="Margin" Value="5,5,5,0"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Width" Value="160"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+</Styles>
