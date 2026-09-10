@@ -11,80 +11,71 @@
         <Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
             <!-- FNIS TOOL -->
             <Border Grid.Row="0" Grid.Column="0" Classes="Tool-Handler">
-                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Classes="Image-Holder">
-                        <!--img here?-->
-                        <Rectangle Width="64" Height="64" Fill="Red"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
                         <TextBlock Text="FNIS" FontSize="18"/>
-                        <TextBlock Text="Found=value" FontSize="12"/>
-                        <TextBlock Text="{Binding PathToFnisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        <TextBlock Text="{Binding IsFnisAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToFnisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
                 </Grid>
             </Border>
             <!-- NEMESIS TOOL -->
             <Border Grid.Row="0" Grid.Column="1" Classes="Tool-Handler">
-                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Classes="Image-Holder">
-                        <!--img here?-->
-                        <Rectangle Width="64" Height="64" Fill="Red"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
                         <TextBlock Text="Nemesis" FontSize="18"/>
-                        <TextBlock Text="Found=value" FontSize="12"/>
-                        <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        <TextBlock Text="{Binding IsNemesisAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
                 </Grid>
             </Border>
             <!-- BodySlide Tool -->
             <Border Grid.Row="1" Grid.Column="0" Classes="Tool-Handler">
-                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Classes="Image-Holder">
-                        <!--img here?-->
-                        <Rectangle Width="64" Height="64" Fill="Red"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
                         <TextBlock Text="BodySlide" FontSize="18"/>
-                        <TextBlock Text="Found=value" FontSize="12"/>
-                        <TextBlock Text="{Binding PathToBodySlide, StringFormat='BodySlide path: {0}'}" FontSize="11"/>
+                        <TextBlock Text="{Binding IsBodySlideAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToBodySlide, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
                 </Grid>
             </Border>
             <!-- OutfitStudio -->
             <Border Grid.Row="1" Grid.Column="1" Classes="Tool-Handler">
-                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Classes="Image-Holder">
-                        <!--img here?-->
-                        <Rectangle Width="64" Height="64" Fill="Red"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
                         <TextBlock Text="OutfitStudio" FontSize="18"/>
-                        <TextBlock Text="Found=value" FontSize="12"/>
-                        <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='OutfitStudio path: {0}'}" FontSize="11"/>
+                        <TextBlock Text="{Binding IsOutfitStudioAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
                 </Grid>
             </Border>
             <!-- Pandora -->
             <Border Grid.Row="2" Grid.Column="0" Classes="Tool-Handler">
-                <Grid Classes="Tool-Grid" ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Classes="Image-Holder">
-                        <!--img here?-->
-                        <Rectangle Width="64" Height="64" Fill="Red"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Classes="Text-Holder">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
                         <TextBlock Text="Pandora" FontSize="18"/>
-                        <TextBlock Text="Found=value" FontSize="12"/>
-                        <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Pandora path: {0}'}" FontSize="11"/>
+                        <TextBlock Text="{Binding IsPandoraAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
                 </Grid>
             </Border>
         </Grid>
+        
         <StackPanel Grid.Row="2" Orientation="Vertical" Spacing="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
