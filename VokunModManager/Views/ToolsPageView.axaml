@@ -102,10 +102,19 @@
             </Border>
         </Grid>
         
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10">
-            <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
-            <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}"/>
-            <TextBlock Text="Deletes everything inside game folder except saved (in-config) files." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
-    </StackPanel>
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Border Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="State-Func-Holder" ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="Save Current&#x0a;Game State" Command="{Binding SaveCurrentGameStateCommand}"/>
+                    <TextBlock Grid.Column="1" Text="Saves current game's folder and AppData state."/>
+                </Grid>
+            </Border>
+            <Border Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="State-Func-Holder" ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="Reset&#x0a;Game State" Command="{Binding ResetGameStateCommand}"/>
+                    <TextBlock Grid.Column="1" Text="Deletes everything inside game folder except saved (in-config) files."/>
+                </Grid>
+            </Border>
+         </Grid>
     </Grid>
 </UserControl>
