@@ -13,8 +13,11 @@
             <Border Grid.Row="0" Grid.Column="0" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="FNIS" FontSize="18"/>
-                        <TextBlock Text="{Binding IsFnisAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="FNIS" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsFnisAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsFnisAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsFnisAvailable}" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="{Binding PathToFnisTool, StringFormat='Path: {0}'}" FontSize="11"/>
                         </ScrollViewer>
@@ -26,8 +29,11 @@
             <Border Grid.Row="0" Grid.Column="1" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="Nemesis" FontSize="18"/>
-                        <TextBlock Text="{Binding IsNemesisAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Nemesis" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsNemesisAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsNemesisAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsNemesisAvailable}" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Path: {0}'}" FontSize="11"/>
                         </ScrollViewer>
@@ -39,8 +45,11 @@
             <Border Grid.Row="1" Grid.Column="0" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="BodySlide" FontSize="18"/>
-                        <TextBlock Text="{Binding IsBodySlideAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="BodySlide" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsBodySlideAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsBodySlideAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsBodySlideAvailable}" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="{Binding PathToBodySlide, StringFormat='Path: {0}'}" FontSize="11"/>
                         </ScrollViewer>
@@ -52,8 +61,11 @@
             <Border Grid.Row="1" Grid.Column="1" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="OutfitStudio" FontSize="18"/>
-                        <TextBlock Text="{Binding IsOutfitStudioAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="OutfitStudio" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsOutfitStudioAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsOutfitStudioAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsOutfitStudioAvailable}" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='Path: {0}'}" FontSize="11"/>
                         </ScrollViewer>
@@ -65,8 +77,11 @@
             <Border Grid.Row="2" Grid.Column="0" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="Pandora" FontSize="18"/>
-                        <TextBlock Text="{Binding IsPandoraAvailable, StringFormat='Found: {0}'}" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Pandora" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsPandoraAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsPandoraAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsPandoraAvailable}" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Path: {0}'}" FontSize="11"/>
                         </ScrollViewer>
@@ -78,7 +93,7 @@
             <Border Grid.Row="2" Grid.Column="1" Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="External Tool" FontSize="18"/>
+                        <TextBlock Text="External Tool" FontSize="18" FontWeight="SemiBold"/>
                         <TextBlock Text="Executable outside of the game's folder." FontSize="12"/>
                         <TextBlock Text="Select file and it'll be launched through Proton." FontSize="12"/>
                     </StackPanel>

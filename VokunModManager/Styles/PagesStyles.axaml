@@ -6,8 +6,11 @@
             <Border Classes="Tool-Handler">
                 <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Classes="Text-Holder">
-                        <TextBlock Text="ItemName" FontSize="18"/>
-                        <TextBlock Text="Found=true" FontSize="12" Foreground="Green"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="FNIS" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="True" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="Found=true" FontSize="12"/>
                         <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                             <TextBlock Text="Path: hereisthepathhereisthepathhereisthepath" FontSize="12"/>
                         </ScrollViewer>
@@ -19,6 +22,13 @@
     </Design.PreviewWith>
 
     <!-- Add Styles Here -->
+    
+    <Styles.Resources>
+        <!-- check -->
+        <StreamGeometry x:Key="CheckIconData">M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z</StreamGeometry>
+        <!-- cross -->
+        <StreamGeometry x:Key="CrossIconData">M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z</StreamGeometry>
+    </Styles.Resources>
     
     <!-- this is for EACH of the tools-->
     <Style Selector="Border.Tool-Handler">
@@ -36,5 +46,28 @@
         <Setter Property="Orientation" Value="Vertical"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Spacing" Value="2"/>
+    </Style>
+    
+    <!-- status text (Found=true / Found=false)-->
+    <Style Selector="TextBlock.Status-Text">
+        <Setter Property="Foreground" Value="Red"/>
+    </Style>
+    <Style Selector="TextBlock.Status-Text[Tag=True]">
+        <Setter Property="Foreground" Value="Green"/>
+    </Style>
+    
+    <!-- status icon false -->
+    <Style Selector="PathIcon.StatusIcon">
+        <Setter Property="Data" Value="{StaticResource CrossIconData}" />
+        <Setter Property="Foreground" Value="Black" /> <!-- Красный -->
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="14" />
+        <Setter Property="Margin" Value="6,0,0,0" />
+    </Style>
+
+    <!-- status icon true -->
+    <Style Selector="PathIcon.StatusIcon[Tag=True]">
+        <Setter Property="Data" Value="{StaticResource CheckIconData}" />
+        <Setter Property="Foreground" Value="Black" /> <!-- Зеленый -->
     </Style>
 </Styles>
