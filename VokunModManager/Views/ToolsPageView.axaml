@@ -74,18 +74,23 @@
                     <Button Grid.Column="1" Content="Open" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
                 </Grid>
             </Border>
+            <!-- external -->
+            <Border Grid.Row="2" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <TextBlock Text="External Tool" FontSize="18"/>
+                        <TextBlock Text="Executable outside of the game's folder." FontSize="12"/>
+                        <TextBlock Text="Select file and it'll be launched through Proton." FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenExternalToolCommand}"/>
+                </Grid>
+            </Border>
         </Grid>
         
-        <StackPanel Grid.Row="2" Orientation="Vertical" Spacing="10">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
-                <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}"/>
-                <TextBlock Text="Deletes everything inside game folder except saved (in-config) files." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Open External Tool" Command="{Binding OpenExternalToolCommand}"/>
-                <TextBlock Text="If you've installed tools like xEdit or BethINI." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
-            </StackPanel>
-        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10">
+            <Button Content="Save Current State" Command="{Binding SaveCurrentGameStateCommand}"/>
+            <Button Content="Reset Game State" Command="{Binding ResetGameStateCommand}"/>
+            <TextBlock Text="Deletes everything inside game folder except saved (in-config) files." VerticalAlignment="Center" FontSize="12" TextWrapping="NoWrap"/>
+    </StackPanel>
     </Grid>
 </UserControl>
