@@ -15,6 +15,13 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty] private string? _pluginFilePath;     // plugins.txt file
     [ObservableProperty] private string? _skyrimPrefsFilePath;
     
+    // RENAME EVERYTHING??
+    
+    [ObservableProperty] private bool _isGameFolderPathFound;
+    [ObservableProperty] private bool _isCompatdataFolderPathFound;
+    [ObservableProperty] private bool _isPluginsFilePathFound;
+    [ObservableProperty] private bool _isGameConfigFound;
+    
     private readonly IAppConfig _appConfig;
     private readonly ILoggerService _logger;
     private readonly IFileManager _fileManager;
@@ -54,6 +61,11 @@ public partial class SettingsPageViewModel : ViewModelBase
         CompatdataFolderPath = _appConfig.CompatdataFolderPath;
         PluginFilePath = _appConfig.PluginFilePath;
         SkyrimPrefsFilePath = _appConfig.SkyrimPrefsFilePath;
+
+        IsGameFolderPathFound = GameFolderPath != null;
+        IsCompatdataFolderPathFound = CompatdataFolderPath != null;
+        IsPluginsFilePathFound = PluginFilePath != null;
+        IsGameConfigFound = SkyrimPrefsFilePath != null;
     }
     
     private async Task SetGamePath()

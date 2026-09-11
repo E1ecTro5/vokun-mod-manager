@@ -11,7 +11,7 @@
                                 <TextBlock Text="FNIS" FontSize="18" FontWeight="SemiBold"/>
                                 <PathIcon Classes="StatusIcon" Tag="True" />
                             </StackPanel>
-                            <TextBlock Classes="Status-Text" Text="Found=true" FontSize="12"/>
+                            <TextBlock Classes="Status-Text" Text="Found=true" FontSize="12" Tag="Tru"/>
                             <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
                                 <TextBlock Text="Path: hereisthepathhereisthepathhereisthepath" FontSize="12"/>
                             </ScrollViewer>

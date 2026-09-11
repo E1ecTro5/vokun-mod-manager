@@ -14,8 +14,13 @@
             <Border Grid.Row="0" Classes="Property-Card-Border">
                 <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
                     <StackPanel>
-                        <TextBlock Classes="Property-Name" Text="Game Folder Path"/>
-                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Game Folder Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsGameFolderPathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsGameFolderPathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsGameFolderPathFound}"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                             <TextBlock Classes="Property-Path" Text="{Binding GameFolderPath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
@@ -28,8 +33,13 @@
             <Border Grid.Row="1" Classes="Property-Card-Border">
                 <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
                     <StackPanel>
-                        <TextBlock Classes="Property-Name" Text="Compatdata Folder Path"/>
-                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Compatdata Folder Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsCompatdataFolderPathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsCompatdataFolderPathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsCompatdataFolderPathFound}"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                             <TextBlock Classes="Property-Path" Text="{Binding CompatdataFolderPath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
@@ -42,8 +52,13 @@
             <Border Grid.Row="2" Classes="Property-Card-Border">
                 <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
                     <StackPanel>
-                        <TextBlock Classes="Property-Name" Text="Plugins.txt File Path"/>
-                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Plugins.txt File Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsPluginsFilePathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsPluginsFilePathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsPluginsFilePathFound}"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                             <TextBlock Classes="Property-Path" Text="{Binding PluginFilePath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
@@ -56,8 +71,13 @@
             <Border Grid.Row="3" Classes="Property-Card-Border">
                 <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
                     <StackPanel>
-                        <TextBlock Classes="Property-Name" Text="SkyrimPrefs.ini File Path"/>
-                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="SkyrimPrefs.ini File Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsGameConfigFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsGameConfigFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsGameConfigFound}"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                             <TextBlock Classes="Property-Path" Text="{Binding SkyrimPrefsFilePath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
