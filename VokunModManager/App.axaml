@@ -18,6 +18,7 @@
         
         <StyleInclude Source="avares://VokunModManager/Styles/NavbarStyles.axaml"/>
         <StyleInclude Source="avares://VokunModManager/Styles/ToolsPageStyles.axaml"/>
+        <StyleInclude Source="avares://VokunModManager/Styles/SettingsPageStyles.axaml"/>
     </Application.Styles>
              
     <Application.Resources>
