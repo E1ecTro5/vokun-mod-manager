@@ -24,6 +24,7 @@ public partial class SettingsPageViewModel : ViewModelBase
     public ICommand SelectSkyrimPrefsFileCommand { get; }
     public ICommand ReInitTextBlocksCommand { get; }
     public ICommand OpenDataFolderCommand { get; }
+    public ICommand OpenCompatdataFolderCommand { get; }
     public ICommand OpenPluginFileCommand { get; }
     public ICommand OpenGameConfigCommand { get; }
 
@@ -42,6 +43,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         ReInitTextBlocksCommand = new AsyncRelayCommand(ReInitValues);
         
         OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
+        OpenCompatdataFolderCommand = new AsyncRelayCommand(OpenCompatdataFolder);
         OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
         OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
     }
@@ -107,6 +109,17 @@ public partial class SettingsPageViewModel : ViewModelBase
             return;
         }
         await OpenFileDirectory(gameFolderPath);
+    }
+
+    private async Task OpenCompatdataFolder()
+    {
+        var compatdataFolderPath = _appConfig.CompatdataFolderPath;
+        if (string.IsNullOrEmpty(compatdataFolderPath))
+        {
+            _logger.Log("Compatdata folder path not selected!", LogLevel.Error);
+            return;
+        }
+        await OpenFileDirectory(compatdataFolderPath);
     }
     
     private async Task OpenPluginFile()

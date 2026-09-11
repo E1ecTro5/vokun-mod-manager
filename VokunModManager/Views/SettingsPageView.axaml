@@ -8,30 +8,64 @@
              x:Class="VokunModManager.Views.SettingsPageView">
     
     <Grid Margin="10" RowDefinitions="Auto, Auto, Auto, *, Auto" RowSpacing="8">
-        <StackPanel Grid.Row="0" Spacing="2" Orientation="Vertical">
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding GameFolderPath, StringFormat='Game folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding CompatdataFolderPath, StringFormat='Compatdata folder: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding PluginFilePath, StringFormat='Mod list path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"/>
-            </ScrollViewer>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <TextBlock Text="{Binding SkyrimPrefsFilePath, StringFormat='SkyrimPrefs.ini path: {0}'}" VerticalAlignment="Center" TextWrapping="NoWrap" FontSize="11"></TextBlock>
-            </ScrollViewer>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-            <Button Content="Select Game Directory" Command="{Binding SelectDirectoryCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0" />
-            <Button Content="Select Plugin.txt" Command="{Binding SelectFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-            <Button Content="Select SkyrimPrefs.ini" Command="{Binding SelectSkyrimPrefsFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-            <Button Content="ReInit Text Blocks" Command="{Binding ReInitTextBlocksCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
-        </StackPanel>
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10">
-            <Button Content="Open Data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="0"/>
-            <Button Content="Open Plugin.txt file" Command="{Binding OpenPluginFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="1"/>
-            <Button Content="Open Game Config" Command="{Binding OpenGameConfigCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="5" Grid.Column="2"/>
-        </StackPanel>
+        <!-- main grid for properties -->
+        <Grid Grid.Row="0" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
+            <!-- GameFolder -->
+            <Border Grid.Row="0" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <TextBlock Classes="Property-Name" Text="Game Folder Path"/>
+                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding GameFolderPath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenDataFolderCommand}"/>
+                </Grid>
+            </Border>
+            <!-- CompatdataFolder -->
+            <Border Grid.Row="1" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <TextBlock Classes="Property-Name" Text="Compatdata Folder Path"/>
+                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding CompatdataFolderPath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenCompatdataFolderCommand}"/>
+                </Grid>
+            </Border>
+            <!-- Plugins.txt -->
+            <Border Grid.Row="2" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <TextBlock Classes="Property-Name" Text="Plugins.txt File Path"/>
+                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding PluginFilePath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenPluginFileCommand}"/>
+                </Grid>
+            </Border>
+            <!-- SkyrimPrefs.ini -->
+            <Border Grid.Row="3" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <TextBlock Classes="Property-Name" Text="SkyrimPrefs.ini File Path"/>
+                        <TextBlock Classes="Status-Text" Text="Not now"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding SkyrimPrefsFilePath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenGameConfigCommand}"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
