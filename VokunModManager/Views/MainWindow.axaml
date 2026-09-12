@@ -11,7 +11,7 @@
         Title="Vokun Mod Manager">
     
     <Grid RowDefinitions="auto,*" Background="#14243D">
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,0,0,0">
+        <StackPanel Grid.Row="0" Classes="Navbar-Panel">
             <Button Command="{Binding SelectMainPageCommand}"
                     Content="Main Page"
                     Classes="Navbar-Button"
@@ -25,6 +25,6 @@
                     Classes="Navbar-Button"
                     Classes.Navbar-Selected="{Binding IsSettingsPageSelected}"/>
         </StackPanel>
-        <ContentControl Grid.Row="1" Background="White" Content="{Binding CurrentPage}" CornerRadius="5,5,0,0"/>
+        <ContentControl Grid.Row="1" Background="White" Content="{Binding CurrentPage}" CornerRadius="6"/>
     </Grid>
 </Window>
