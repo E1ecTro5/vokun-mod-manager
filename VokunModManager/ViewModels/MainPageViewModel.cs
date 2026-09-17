@@ -30,6 +30,7 @@ public partial class MainPageViewModel : ViewModelBase
     
     public ICommand PlayClickCommand { get; }
     public ICommand SaveModListCommand { get; }
+    public ICommand UpdateModListCommand { get; }
     public ICommand InstallModCommand { get; }
 
     public MainPageViewModel(
@@ -54,6 +55,7 @@ public partial class MainPageViewModel : ViewModelBase
 
         PlayClickCommand = new AsyncRelayCommand(StartGame);
         SaveModListCommand = new AsyncRelayCommand(SaveModList);
+        UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
 
         InstallModCommand = new AsyncRelayCommand(InstallMod);
     }
