@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:VokunModManager.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="VokunModManager.Views.ToolsPageView"
+             x:DataType="vm:ToolsPageViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="10" RowSpacing="10">
+        <Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+            <!-- FNIS TOOL -->
+            <Border Grid.Row="0" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="FNIS" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsFnisAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsFnisAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsFnisAvailable}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToFnisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenFnisCommand}" IsEnabled="{Binding IsFnisAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- NEMESIS TOOL -->
+            <Border Grid.Row="0" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Nemesis" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsNemesisAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsNemesisAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsNemesisAvailable}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToNemesisTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenNemesisCommand}" IsEnabled="{Binding IsNemesisAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- BodySlide Tool -->
+            <Border Grid.Row="1" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="BodySlide" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsBodySlideAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsBodySlideAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsBodySlideAvailable}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToBodySlide, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenBodySlideCommand}" IsEnabled="{Binding IsBodySlideAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- OutfitStudio -->
+            <Border Grid.Row="1" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="OutfitStudio" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsOutfitStudioAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsOutfitStudioAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsOutfitStudioAvailable}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToOutfitStudio, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenOutfitStudioCommand}" IsEnabled="{Binding IsOutfitStudioAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- Pandora -->
+            <Border Grid.Row="2" Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Pandora" FontSize="18" FontWeight="SemiBold"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsPandoraAvailable}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text" Text="{Binding IsPandoraAvailable, StringFormat='Found: {0}'}" Tag="{Binding IsPandoraAvailable}" FontSize="12"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock Text="{Binding PathToPandoraTool, StringFormat='Path: {0}'}" FontSize="11"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenPandoraCommand}" IsEnabled="{Binding IsPandoraAvailable}"/>
+                </Grid>
+            </Border>
+            <!-- external -->
+            <Border Grid.Row="2" Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="Tool-Grid" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Classes="Text-Holder">
+                        <TextBlock Text="External Tool" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="Executable outside of the game's folder." FontSize="12"/>
+                        <TextBlock Text="Select file and it'll be launched through Proton." FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Open" Command="{Binding OpenExternalToolCommand}"/>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Border Grid.Column="0" Classes="Tool-Handler">
+                <Grid Classes="State-Func-Holder" ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="Save Current&#x0a;Game State" Command="{Binding SaveCurrentGameStateCommand}"/>
+                    <TextBlock Grid.Column="1" Text="Saves current game's folder and AppData state."/>
+                </Grid>
+            </Border>
+            <Border Grid.Column="1" Classes="Tool-Handler">
+                <Grid Classes="State-Func-Holder" ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="Reset&#x0a;Game State" Command="{Binding ResetGameStateCommand}"/>
+                    <TextBlock Grid.Column="1" Text="Deletes everything inside game folder except saved (in-config) files."/>
+                </Grid>
+            </Border>
+         </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:VokunModManager.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:SettingsPageViewModel"
+             x:Class="VokunModManager.Views.SettingsPageView">
+    
+    <Grid Margin="10" RowDefinitions="Auto, Auto, Auto, *, Auto" RowSpacing="8">
+        <!-- main grid for properties -->
+        <Grid Grid.Row="0" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
+            <!-- GameFolder -->
+            <Border Grid.Row="0" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Game Folder Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsGameFolderPathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsGameFolderPathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsGameFolderPathFound}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding GameFolderPath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenDataFolderCommand}"/>
+                </Grid>
+            </Border>
+            <!-- CompatdataFolder -->
+            <Border Grid.Row="1" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Compatdata Folder Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsCompatdataFolderPathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsCompatdataFolderPathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsCompatdataFolderPathFound}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding CompatdataFolderPath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenCompatdataFolderCommand}"/>
+                </Grid>
+            </Border>
+            <!-- Plugins.txt -->
+            <Border Grid.Row="2" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="Plugins.txt File Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsPluginsFilePathFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsPluginsFilePathFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsPluginsFilePathFound}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding PluginFilePath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenPluginFileCommand}"/>
+                </Grid>
+            </Border>
+            <!-- SkyrimPrefs.ini -->
+            <Border Grid.Row="3" Classes="Property-Card-Border">
+                <Grid Classes="Property-Card-Grid" ColumnDefinitions="*, Auto, Auto">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Classes="Property-Name" Text="SkyrimPrefs.ini File Path"/>
+                            <PathIcon Classes="StatusIcon" Tag="{Binding IsGameConfigFound}" />
+                        </StackPanel>
+                        <TextBlock Classes="Status-Text"
+                                   Text="{Binding IsGameConfigFound, StringFormat='Initialized: {0}'}"
+                                   Tag="{Binding IsGameConfigFound}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                            <TextBlock Classes="Property-Path" Text="{Binding SkyrimPrefsFilePath, StringFormat='Path: {0}'}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenGameConfigCommand}"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

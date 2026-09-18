@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VokunModManager.ViewModels"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions.DragAndDrop"
+        xmlns:b="clr-namespace:VokunModManager.Behaviors"
+        xmlns:models="clr-namespace:VokunModManager.Models"
+        xmlns:li="using:LoadingIndicators.Avalonia"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="VokunModManager.Views.MainPageView"
+        x:DataType="vm:MainPageViewModel">
+    
+    <UserControl.Resources>
+        <!--used for drag n drop-->
+        <b:DataGridDnd x:Key="MyGridDndHandler" x:TypeArguments="models:Mod" />
+    </UserControl.Resources>
+    
+    <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
+        <Grid Grid.Column="0">
+            <DataGrid Classes="draggable"
+                      AutoGenerateColumns="False"
+                      CanUserSortColumns="False"
+                      CanUserResizeColumns="True"
+                      ItemsSource="{Binding ModList}"
+                      GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                
+                <!--Added behavior for drag n drop-->
+                <i:Interaction.Behaviors>
+                    <idd:ContextDropBehavior Handler="{StaticResource MyGridDndHandler}" />
+                </i:Interaction.Behaviors>
+                
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Mod" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <Grid Grid.Column="1" RowDefinitions="Auto,*, Auto" RowSpacing="5">
+            <TextBlock Grid.Row="0" Text="Logs output" FontSize="12"/>
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Logger.Logs}" Margin="8,4">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:LogMessage">
+                            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2">
+                                <TextBlock Text="{Binding Timestamp, StringFormat='[{0}]'}"
+                                           FontFamily="Monospace"
+                                           Foreground="#666666"
+                                           FontSize="12"/>
+                                <TextBlock Text="{Binding Message}"
+                                           FontFamily="Monospace"
+                                           TextWrapping="Wrap"
+                                           FontSize="12">
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Grid Grid.Row="2" RowDefinitions="*,*" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="5">
+                <Button Grid.Row="0" Grid.RowSpan="2" Classes="Main-Button" Content="Install mod" Command="{Binding InstallModCommand}" Grid.Column="0"></Button>
+                <li:LoadingIndicator Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Height="30" IsActive="{Binding IsModInstalling}" Mode="Arc" SpeedRatio="1.2" />
+                <Button Grid.Row="0" Content="Save modlist" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
+                <Button Grid.Row="1" Content="Refresh modlist" Command="{Binding UpdateModListCommand}" Grid.Column="3" Padding="10,5"></Button>
+                <Button Grid.Row="0" Grid.RowSpan="2" Classes="Main-Button" Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" ></Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

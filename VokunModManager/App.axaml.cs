@@ -29,7 +29,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
-
+            
             // get ViewModel from container; all the dependencies will be included
             var vm = Services.GetRequiredService<MainWindowViewModel>();
 
@@ -37,8 +37,6 @@ public partial class App : Application
             {
                 DataContext = vm
             };
-            
-            await vm.UpdateAll();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -54,9 +52,13 @@ public partial class App : Application
         services.AddSingleton<IModInstaller, FomodManager>(); // automatically applies ILoggerService to FomodManager ctor
         services.AddSingleton<IModListManager, ModListManager>();
         services.AddSingleton<IGameStateResetter, GameStateResetter>();
+        services.AddSingleton<IToolLauncher, ToolLauncher>();
         
         // register ViewModels
-        services.AddTransient<MainWindowViewModel>();
+        services.AddSingleton<MainPageViewModel>();
+        services.AddSingleton<ToolsPageViewModel>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<SettingsPageViewModel>();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()
