@@ -41,17 +41,6 @@ public partial class ToolsPageViewModel : ViewModelBase
     [ObservableProperty] private string? _pathToXEditAutoCleanTool;
     [ObservableProperty] private bool _isXEditAutoCleanAvailable;
     
-    // tools' commands
-    public ICommand OpenFnisCommand { get; }
-    public ICommand OpenOutfitStudioCommand { get; }
-    public ICommand OpenBodySlideCommand { get; }
-    public ICommand OpenNemesisCommand { get; }
-    public ICommand OpenPandoraCommand { get; }
-    public ICommand OpenExternalToolCommand { get; }
-    // resetter
-    public ICommand SaveCurrentGameStateCommand { get; }
-    public ICommand ResetGameStateCommand { get; }
-    
     public ToolsPageViewModel(
         IAutoDetector autoDetector,
         IAppConfig appConfig,
@@ -66,19 +55,6 @@ public partial class ToolsPageViewModel : ViewModelBase
         _toolLauncher = toolLauncher;
         _gameStateResetter = gameStateResetter;
         _loggerService = loggerService;
-        
-        //tools
-        OpenFnisCommand = new AsyncRelayCommand(OpenFnis);
-        OpenOutfitStudioCommand = new AsyncRelayCommand(OpenOutfitStudio);
-        OpenBodySlideCommand = new AsyncRelayCommand(OpenBodySlide);
-        OpenNemesisCommand = new AsyncRelayCommand(OpenNemesis);
-        OpenPandoraCommand = new AsyncRelayCommand(OpenPandora);
-
-        OpenExternalToolCommand = new AsyncRelayCommand(OpenExternalTool);
-        
-        // resetter
-        SaveCurrentGameStateCommand = new AsyncRelayCommand(SaveGameCurrentState);
-        ResetGameStateCommand = new AsyncRelayCommand(ResetGameState);
     }
 
     public async Task InitPaths()
@@ -112,6 +88,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         return true;
     }
     
+    [RelayCommand]
     private async Task OpenFnis()
     {
         string relativeFnisPath = Path.Combine("Data", "tools", "GenerateFNIS_for_Users", "GenerateFNISForUsers.exe");
@@ -127,6 +104,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         });
     }
 
+    [RelayCommand]
     private async Task OpenBodySlide()
     {
         string relativeBodySlidePath = Path.Combine("Data", "CalienteTools", "BodySlide", "BodySlide.exe");
@@ -134,6 +112,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         await _toolLauncher.LaunchInternalToolAsync(relativeBodySlidePath);
     }
     
+    [RelayCommand]
     private async Task OpenOutfitStudio()
     {
         string relativeStudioPath = Path.Combine("Data", "CalienteTools", "BodySlide", "OutfitStudio.exe");
@@ -141,6 +120,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         await _toolLauncher.LaunchInternalToolAsync(relativeStudioPath);
     }
 
+    [RelayCommand]
     private async Task OpenNemesis()
     {
         string relativeStudioPath = Path.Combine("Data", "Nemesis_Engine", "Nemesis Unlimited Behavior Engine.exe");
@@ -148,6 +128,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         await _toolLauncher.LaunchInternalToolAsync(relativeStudioPath);
     }
 
+    [RelayCommand]
     private async Task OpenPandora()
     {
         string relativeStudioPath = Path.Combine("Data", "Pandora Behaviour Engine+.exe");
@@ -155,6 +136,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         await _toolLauncher.LaunchInternalToolAsync(relativeStudioPath);
     }
 
+    [RelayCommand]
     private async Task OpenExternalTool()
     {
         string? filePath = await _fileManager.SelectFileAsync();
@@ -166,6 +148,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         await _toolLauncher.LaunchExternalToolAsync(filePath);
     }
     
+    [RelayCommand]
     private async Task SaveGameCurrentState()
     {
         if (string.IsNullOrEmpty(GameFolderPath))
@@ -197,6 +180,7 @@ public partial class ToolsPageViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
     private async Task ResetGameState()
     {
         if (string.IsNullOrEmpty(GameFolderPath))
