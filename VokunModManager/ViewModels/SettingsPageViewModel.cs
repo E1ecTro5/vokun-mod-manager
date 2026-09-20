@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
@@ -105,10 +104,12 @@ public partial class SettingsPageViewModel : ViewModelBase
         await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
     }
     
+    /*
     private async Task ReInitValues()
     {
         _appConfig.CheckConfigStatus();
     }
+    */
 
     [RelayCommand]
     private async Task OpenDataFolder()
