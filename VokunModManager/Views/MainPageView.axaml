@@ -73,7 +73,7 @@
                 <li:LoadingIndicator Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Height="30" IsActive="{Binding IsModInstalling}" Mode="Arc" SpeedRatio="1.2" />
                 <Button Grid.Row="0" Content="Save modlist" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding SaveModListCommand}" Grid.Column="3" Padding="10,5"></Button>
                 <Button Grid.Row="1" Content="Refresh modlist" Command="{Binding UpdateModListCommand}" Grid.Column="3" Padding="10,5"></Button>
-                <Button Grid.Row="0" Grid.RowSpan="2" Classes="Main-Button" Content="Play" Command="{Binding PlayClickCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" ></Button>
+                <Button Grid.Row="0" Grid.RowSpan="2" Classes="Main-Button" Content="Play" Command="{Binding StartGameCommand}" IsEnabled="{Binding IsPlayAvailable}" Grid.Column="4" ></Button>
             </Grid>
         </Grid>
     </Grid>

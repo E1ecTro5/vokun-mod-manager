@@ -21,45 +21,29 @@ public partial class MainPageViewModel : ViewModelBase
 
     private readonly IAppConfig _appConfig;
     private readonly IFileManager _fileManager;
-    private readonly IAutoDetector _autoDetector;
     private readonly IModInstaller _modInstaller;
     private readonly IModListManager _modListManager;
-    private readonly IGameStateResetter _gameStateResetter;
     
     public ILoggerService Logger { get; }
-    
-    public ICommand PlayClickCommand { get; }
-    public ICommand SaveModListCommand { get; }
-    public ICommand UpdateModListCommand { get; }
-    public ICommand InstallModCommand { get; }
 
     public MainPageViewModel(
         IAppConfig appConfig,
         IFileManager fileManager,
-        IAutoDetector autoDetector,
         ILoggerService loggerService,
         IModInstaller modInstaller,
-        IModListManager modListManager,
-        IGameStateResetter gameStateResetter)
+        IModListManager modListManager)
     {
         _appConfig = appConfig;
         _fileManager = fileManager;
-        _autoDetector = autoDetector;
         Logger = loggerService;
         Logger.Log("Logger initialized.");
         _modInstaller = modInstaller;
         _modListManager = modListManager;
-        _gameStateResetter = gameStateResetter;
-        
+
         ModList = new ObservableCollection<Mod>();
-
-        PlayClickCommand = new AsyncRelayCommand(StartGame);
-        SaveModListCommand = new AsyncRelayCommand(SaveModList);
-        UpdateModListCommand = new AsyncRelayCommand(UpdateModList);
-
-        InstallModCommand = new AsyncRelayCommand(InstallMod);
     }
 
+    [RelayCommand]
     private async Task StartGame()
     {
         var gameFolderPath = _appConfig.GameFolderPath;
@@ -119,6 +103,7 @@ public partial class MainPageViewModel : ViewModelBase
         IsLoadArchiveAvailable = true;
     }
 
+    [RelayCommand]
     private async Task UpdateModList()
     {
         var updated = await _modListManager.UpdateModList();
@@ -131,6 +116,7 @@ public partial class MainPageViewModel : ViewModelBase
         Logger.Log("Mod list updated.");
     }
     
+    [RelayCommand]
     private async Task SaveModList()
     {
         if (ModList is null)
@@ -142,6 +128,7 @@ public partial class MainPageViewModel : ViewModelBase
         await UpdateModList();
     }
 
+    [RelayCommand]
     private async Task InstallMod()
     {
         var filePath = await _fileManager.SelectFileAsync();
