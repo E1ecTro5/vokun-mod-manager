@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,8 +13,8 @@ public partial class InstallWindowViewModel : ViewModelBase
     [ObservableProperty] private string _groupName;
     [ObservableProperty] private List<PluginOption> _options;
 
-    public bool IsSingleSelect => _type is "SelectExactlyOne" or "SelectAtMostOne";
-    public bool IsMultiSelect => _type is "SelectAny" or "SelectAll" or "SelectAtLeastOne";
+    public bool IsSingleSelect => Type is "SelectExactlyOne" or "SelectAtMostOne";
+    public bool IsMultiSelect => Type is "SelectAny" or "SelectAll" or "SelectAtLeastOne";
     
     public ICommand SelectCommand { get; }
 
@@ -26,13 +23,13 @@ public partial class InstallWindowViewModel : ViewModelBase
     {
         _tcs = tcs;
         GroupName = group.Name;
-        _type = group.Type;
+        Type = group.Type;
         Options = group.Plugins.ToList();
 
         foreach (var option in _options) option.Description = option.Description.Trim();
 
         // select by default specifically to this type
-        if (_type == "SelectExactlyOne" && !Options.Any(x => x.IsSelected) && Options.Count > 0) Options[0].IsSelected = true;
+        if (Type == "SelectExactlyOne" && !Options.Any(x => x.IsSelected) && Options.Count > 0) Options[0].IsSelected = true;
         
         SelectCommand = new RelayCommand(SelectButton);
     }
@@ -41,9 +38,9 @@ public partial class InstallWindowViewModel : ViewModelBase
     {
         var selectedCount = Options.Count(x => x.IsSelected);
         
-        if (_type == "SelectExactlyOne" && selectedCount != 1) return;
-        if (_type == "SelectAtLeastOne" && selectedCount < 1) return;
-        if (_type == "SelectAtMostOne" && selectedCount > 1) return;
+        if (Type == "SelectExactlyOne" && selectedCount != 1) return;
+        if (Type == "SelectAtLeastOne" && selectedCount < 1) return;
+        if (Type == "SelectAtMostOne" && selectedCount > 1) return;
         
         // get all the selected files
         var selectedOptions = Options.Where(x => x.IsSelected).Cast<PluginOption?>().ToList();

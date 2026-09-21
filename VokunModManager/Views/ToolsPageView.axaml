@@ -105,7 +105,7 @@
         <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
             <Border Grid.Column="0" Classes="Tool-Handler">
                 <Grid Classes="State-Func-Holder" ColumnDefinitions="Auto,*">
-                    <Button Grid.Column="0" Content="Save Current&#x0a;Game State" Command="{Binding SaveCurrentGameStateCommand}"/>
+                    <Button Grid.Column="0" Content="Save Current&#x0a;Game State" Command="{Binding SaveGameCurrentStateCommand}"/>
                     <TextBlock Grid.Column="1" Text="Saves current game's folder and AppData state."/>
                 </Grid>
             </Border>

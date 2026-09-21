@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
@@ -25,15 +24,6 @@ public partial class SettingsPageViewModel : ViewModelBase
     private readonly IAppConfig _appConfig;
     private readonly ILoggerService _logger;
     private readonly IFileManager _fileManager;
-    
-    public ICommand SelectDirectoryCommand { get; }
-    public ICommand SelectFileCommand { get; }
-    public ICommand SelectSkyrimPrefsFileCommand { get; }
-    public ICommand ReInitTextBlocksCommand { get; }
-    public ICommand OpenDataFolderCommand { get; }
-    public ICommand OpenCompatdataFolderCommand { get; }
-    public ICommand OpenPluginFileCommand { get; }
-    public ICommand OpenGameConfigCommand { get; }
 
     public SettingsPageViewModel(
         IAppConfig appConfig,
@@ -43,16 +33,6 @@ public partial class SettingsPageViewModel : ViewModelBase
         _appConfig = appConfig;
         _logger = loggerService;
         _fileManager = fileManager;
-        
-        SelectDirectoryCommand = new AsyncRelayCommand(SetGamePath);
-        SelectFileCommand = new AsyncRelayCommand(SetModListPath);
-        SelectSkyrimPrefsFileCommand = new AsyncRelayCommand(SetSkyrimPrefsFile);
-        ReInitTextBlocksCommand = new AsyncRelayCommand(ReInitValues);
-        
-        OpenDataFolderCommand = new AsyncRelayCommand(OpenDataFolder);
-        OpenCompatdataFolderCommand = new AsyncRelayCommand(OpenCompatdataFolder);
-        OpenPluginFileCommand = new AsyncRelayCommand(OpenPluginFile);
-        OpenGameConfigCommand = new AsyncRelayCommand(OpenGameConfig);
     }
 
     public async Task LateInit()
@@ -68,7 +48,8 @@ public partial class SettingsPageViewModel : ViewModelBase
         IsGameConfigFound = SkyrimPrefsFilePath != null;
     }
     
-    private async Task SetGamePath()
+    [RelayCommand]
+    private async Task SetGameFolderPath()
     {
         var filePath = await _fileManager.SelectDirectoryAsync();
 
@@ -81,7 +62,22 @@ public partial class SettingsPageViewModel : ViewModelBase
         await _appConfig.UpdateConfig(AppConfig.ConfigType.GameFolderPath, filePath);
     }
 
-    private async Task SetModListPath()
+    [RelayCommand]
+    private async Task SetCompatdataFolder()
+    {
+        var directoryPath = await _fileManager.SelectDirectoryAsync();
+
+        if (string.IsNullOrEmpty(directoryPath))
+        {
+            _logger.Log("Game path has not been selected!", LogLevel.Error);
+            return;
+        }
+
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.CompatdataFolderPath, directoryPath);
+    }
+    
+    [RelayCommand]
+    private async Task SetPluginsFilePath()
     {
         var filePath = await _fileManager.SelectFileAsync();
 
@@ -94,7 +90,8 @@ public partial class SettingsPageViewModel : ViewModelBase
         await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
     }
 
-    private async Task SetSkyrimPrefsFile()
+    [RelayCommand]
+    private async Task SetGameConfigFile()
     {
         var filePath = await _fileManager.SelectFileAsync();
 
@@ -107,11 +104,14 @@ public partial class SettingsPageViewModel : ViewModelBase
         await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
     }
     
+    /*
     private async Task ReInitValues()
     {
         _appConfig.CheckConfigStatus();
     }
+    */
 
+    [RelayCommand]
     private async Task OpenDataFolder()
     {
         var gameFolderPath = _appConfig.GameFolderPath;
@@ -123,6 +123,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         await OpenFileDirectory(gameFolderPath);
     }
 
+    [RelayCommand]
     private async Task OpenCompatdataFolder()
     {
         var compatdataFolderPath = _appConfig.CompatdataFolderPath;
@@ -134,18 +135,20 @@ public partial class SettingsPageViewModel : ViewModelBase
         await OpenFileDirectory(compatdataFolderPath);
     }
     
+    [RelayCommand]
     private async Task OpenPluginFile()
     {
         var pluginFilePath = _appConfig.PluginFilePath;
         await OpenFileDirectory(pluginFilePath);
     }
 
-    private async Task OpenGameConfig()
+    [RelayCommand]
+    private async Task OpenGameConfigFile()
     {
         var gameConfigPath = _appConfig.SkyrimPrefsFilePath;
         await OpenFileDirectory(gameConfigPath);
     }
-    
+
     private async Task OpenFileDirectory(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;

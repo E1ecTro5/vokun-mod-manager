@@ -21,9 +21,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ToolsPageViewModel _toolsPageViewModel;
     private readonly SettingsPageViewModel _settingsPageViewModel;
 
-    public bool IsMainPageSelected => _currentPage is MainPageViewModel;
-    public bool IsToolsPageSelected => _currentPage is ToolsPageViewModel;
-    public bool IsSettingsPageSelected => _currentPage is SettingsPageViewModel;
+    public bool IsMainPageSelected => CurrentPage is MainPageViewModel;
+    public bool IsToolsPageSelected => CurrentPage is ToolsPageViewModel;
+    public bool IsSettingsPageSelected => CurrentPage is SettingsPageViewModel;
 
     public MainWindowViewModel(
         MainPageViewModel mainPageViewModel,

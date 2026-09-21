@@ -25,7 +25,7 @@
                             <TextBlock Classes="Property-Path" Text="{Binding GameFolderPath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="1" Content="Change" Command="{Binding SetGameFolderPathCommand}"/>
                     <Button Grid.Column="2" Content="Open" Command="{Binding OpenDataFolderCommand}"/>
                 </Grid>
             </Border>
@@ -44,7 +44,7 @@
                             <TextBlock Classes="Property-Path" Text="{Binding CompatdataFolderPath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="1" Content="Change" Command="{Binding SetCompatdataFolderCommand}"/>
                     <Button Grid.Column="2" Content="Open" Command="{Binding OpenCompatdataFolderCommand}"/>
                 </Grid>
             </Border>
@@ -63,7 +63,7 @@
                             <TextBlock Classes="Property-Path" Text="{Binding PluginFilePath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
+                    <Button Grid.Column="1" Content="Change" Command="{Binding SetPluginsFilePathCommand}"/>
                     <Button Grid.Column="2" Content="Open" Command="{Binding OpenPluginFileCommand}"/>
                 </Grid>
             </Border>
@@ -82,8 +82,8 @@
                             <TextBlock Classes="Property-Path" Text="{Binding SkyrimPrefsFilePath, StringFormat='Path: {0}'}"/>
                         </ScrollViewer>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="Configure" IsEnabled="False"/>
-                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenGameConfigCommand}"/>
+                    <Button Grid.Column="1" Content="Change" Command="{Binding SetGameConfigFileCommand}"/>
+                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenGameConfigFileCommand}"/>
                 </Grid>
             </Border>
         </Grid>
