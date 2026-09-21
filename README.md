@@ -13,12 +13,12 @@ Just download the latest release from the [release pages](https://github.com/E1e
 
 ### Launching application
 The only file you need to launch is called `VokunModManager`, that will be inside the archive's folder.
-On your first launch, the program will try to initialize all the paths by itself. If everything will work correctly, you'll see full paths above the buttons. If not, please manually select all the necessary stuff.
+On your first launch, the program will try to initialize all the paths by itself. If everything works correctly, you'll see full paths above the buttons. If not, please manually select all the necessary stuff.
 Next, just install mods, enable/disable them and go play. Just make sure you did everything correct (installation, paths configuration).
 
 ## How to use
 
-Here is a short .gif that show the process of mod installation, it's enabling and order establishment.
+Here is a short .gif that show the process of mod installation, its enabling and order establishment.
 
 <img width="800" height="401" alt="image" src="Assets/previewMain.gif" />
 
@@ -34,7 +34,7 @@ Main page contains functionality to install and order mods.
 * **`Logs output`** - logs errors, warnings, mod installation process.
 
 > [!CAUTION]
-> Canceling mod's instalation is not included in program yet, be careful.
+> Canceling mod installation is not included in program yet, be careful.
 
 ### Tools page
 <img width="800" height="401" alt="image" src="Assets/toolsPage.png" />
@@ -42,9 +42,9 @@ Main page contains functionality to install and order mods.
 This page contains detectors for internal tools, such as `FNIS`, `Pandora` and others, whose files have to be installed inside game's folder.
 
 * **`Internal tools`** - if their files exist in your game's data folder, they will be available to launch. Pressing `Open` will cause Steam to open this tool (via Proton), instead of the game via replacing executables.
-* **`External tool`** - made for tools like `XEdit`, which doesn't need to be exactly inside the game's foler. `Open` will cause Steam to open them instead of the game (via Proton).
+* **`External tool`** - made for tools like `XEdit`, which doesn't need to be exactly inside the game's folder. `Open` will cause Steam to open them instead of the game (via Proton).
 > [!WARNING]
-> Some tools, like [Reliquary](https://github.com/halgari/reliquary) (tool for downgrading/changing game versions) require to NOT touch the original game launcher. These kind of tools you'll need to add a non-steam game and launch them MANUALLY through proton.
+> Some tools, like [Reliquary](https://github.com/halgari/reliquary) (tool for downgrading/changing game versions) require you NOT TO TOUCH the original game launcher. These kinds of tools you'll need to add a non-steam game and launch them MANUALLY through proton.
 * **`Game State`** - saves current game folder state (files state written in specific config). Reset just deletes everything, that config file doesn't include.
 > [!WARNING]
 > Please, on your first launch, if you've reinstalled the game (clean installation), make a save. Just in case. I haven't made mod remove feature.
@@ -53,12 +53,12 @@ This page contains detectors for internal tools, such as `FNIS`, `Pandora` and o
 <img width="800" height="401" alt="image" src="Assets/settingsPage.png" />
 
 * **`Game Folder Path`** - path of the `../Steam/steamapps/common/Skyrim Special Edition/` folder.
-* **`Compatdata Folder Path`** - path of the `../Steam/steamapps/compatdata/489830/` folder. On Windows NOT work/needed.
+* **`Compatdata Folder Path`** - path of the `../Steam/steamapps/compatdata/489830/` folder. Does NOT work/needed on Windows.
 * **`Plugins.txt File Path`** - path of the `../Steam/steamapps/compatdata/.../AppData/Local/.../Plugins.txt` file. Plugins (mods togglers) listed here.
 * **`SkyrimPrefs.ini File Path`** - path of the `../Steam/steamapps/compatdata/.../Documents/.../SkyrimPrefs.ini` file. Game config/settings.
 
 > [!NOTE]
-> On every launch will try to detect paths if not initialized (null/empty in config).
+> The app will try to detect paths on every launch if they are not initialized.
 
 ### Check-in
 You can check if you did everything correct in game's "Creations" tab:
@@ -71,18 +71,18 @@ Example, College of Winterhold main hall and SkyHUB dot in the centre:
 
 ## Features
 Completed:
-* Launching game through the `skse64_loader.exe`.
-* Installing mods straight from archive to `Data` folder.
-* Installing mods via FOMOD config.
-* Enabling/disabling the mods.
-* Changing mods' load order (manually).
-* Cancel mod installation (only with config-included ones).
-* Cross-platform support (both Windows and Linux).
-* Internal tools support.
-* Basic state saving system.
+* [x] Launching game through the `skse64_loader.exe`.
+* [x] Installing mods straight from archive to `Data` folder.
+* [x] Installing mods via FOMOD config.
+* [x] Enabling/disabling the mods.
+* [x] Changing mods' load order (manually).
+* [x] Cancel mod installation (only with config-included ones).
+* [x] Cross-platform support (both Windows and Linux).
+* [x] Internal tools support.
+* [x] Basic state saving system.
 
 Coming:
-* Automatic mods sorting (priorities, etc.).
-* Deleting mods.
-* Full preset/backup system.
-* Nexus integration?
+* [ ] Automatic mods sorting (priorities, etc.).
+* [ ] Deleting mods.
+* [ ] Full preset/backup system.
+* [ ] Nexus integration?
