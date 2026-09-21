@@ -40,6 +40,7 @@ Please create an issue detailing:
   + LoadingIndicators.Avalonia v11.0.11.1
   + MessageBox.Avalonia v3.3.1.1
 * CommunityToolkit.Mvvm v8.2.1 (for MVVM pattern and bindings)
+* Microsoft.Extensions.DependencyInjection v10.0.11 for DI
 * SharpCompress v0.44.5 (main archive handler in app)
 * SteamKit2 v3.4.0 (I used this in previous solutions, not needed for now; will be deleted)
 * System.IO.Hashing v10.0.2 (I don't remember why I added this :3)
@@ -50,14 +51,15 @@ Two main projects inside the solutions are:
    * `How it works?` - On Linux, it temporarily swaps `SkyrimSELauncher.exe` with `ToolLauncher.exe` via symlink/backup, passes the target tool path via `vokun_tool_config.txt`,
   and triggers Steam game launch (`steam://rungameid/489830`) so Proton executes the tool within the game's prefix.
 + **`VokunModManager`** - the main project, contains everything you need.
-  * `Views/MainWindow.axaml` - main window, that you see once you open the app.
-  * `ViewModels/MainWindowViewModel` - view model for main window. Contains everything related to what's you see on it.
-  * `Misc/FileManager` - get/select the folder/file/archive paths.
-  * `Misc/FomodManager` - it's called "Fomod" but actually, this is the main mod installation file. Both with Fomod config and without it.
-  * `Misc/AutoDetector` - contains method for finding files/folder like `Data` folder of the game, files like `Plugins.txt`, tools like `OutfitStudio` and etc. Searches both on Windows and Linux.
-  * `Misc/ModListManager` - reads and updates `Plugins.txt`, scans `.esp`/`.bsa` files inside the `Data` directory.
-  * `Misc/PathResolver` - normalizes case-sensitivity issues (`textures` vs `Textures`), crucial for Linux native filesystems.
-  * `Misc/UiLoggerService` and `Misc/MsgBoxManager` - both used for logging. Probably will disappear in future, due to refactor.
+  * `Views/...` - contains window designs. `MainWindow` is the main one.
+  * `ViewModels/...` - view models for windows. Their names similar to their window names.
+  * `Utils/...` - contains implementation classes for `Interfaces/...` folder. Combination used to provide DI.
+    + `Utils/FileManager` - get/select the folder/file/archive paths.
+    + `Utils/FomodManager` - it's called "Fomod" but actually, this is the main mod installation file. Both with Fomod config and without it.
+    + `Utils/AutoDetector` - contains method for finding files/folder like `Data` folder of the game, files like `Plugins.txt`, tools like `OutfitStudio` and etc. Searches both on Windows and Linux.
+    + `Utils/ModListManager` - reads and updates `Plugins.txt`, scans `.esp`/`.bsa` files inside the `Data` directory.
+    + `Utils/PathResolver` - normalizes case-sensitivity issues (`textures` vs `Textures`), crucial for Linux native filesystems.
+    + `Utils/UiLoggerService` - used for logging.
 
 ## Development Workflow
 
