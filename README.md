@@ -13,35 +13,52 @@ Just download the latest release from the [release pages](https://github.com/E1e
 
 ### Launching application
 The only file you need to launch is called `VokunModManager`, that will be inside the archive's folder.
-On your first launch, the program will try to initialize all the paths by itself. If everything will work correctly, you'll see full paths above the buttons. If not, please manually select all the necessary stuff.
+On your first launch, the program will try to initialize all the paths by itself. If everything works correctly, you'll see full paths above the buttons. If not, please manually select all the necessary stuff.
 Next, just install mods, enable/disable them and go play. Just make sure you did everything correct (installation, paths configuration).
 
 ## How to use
 
-### So, here is the UI design:
-<img width="800" height="401" alt="image" src="Assets/preview1.gif" />
+Here is a short .gif that show the process of mod installation, its enabling and order establishment.
 
+<img width="800" height="401" alt="image" src="Assets/previewMain.gif" />
+
+## So, here is the UI design:
+### Main page
+<img width="800" height="401" alt="image" src="Assets/mainPage.png" />
+
+Main page contains functionality to install and order mods.
+
+* **`Navigation bar`** - on the top of the app you can see three tabs. Their names speak for themselves. Just press on them to go on that page.
 * **`Current mod list`** - on the left side is the list of mods (.esp/.esm/.esl) mentioned in the `Plugins.txt` file. The checkbox represents the `*` symbol in a string, saying whether the mod is currently on or off.
-You're also able to reorder them by drag-and-dropping, thanks to [@aldelaro5](https://github.com/aldelaro5) for the [solution](https://github.com/AvaloniaUI/Avalonia/discussions/10877).
-> [!NOTE]
-> After every launch the app will try to detect paths if they hadn't been initialized before.
-
-* **`Directories and files`** - just some info about:
-  + **`Game folder`** - just `Skyrim Special Edition` folder inside the `.../steamapps/common/`
-  + **`Mod file path`** - path of the `Plugins.txt file`, which contains info about current mod list. Used by game. Located in `AppData/Local` folder.
-  + **`SkyrimPrefs.ini path`** - path of the game's config. Since the main launcher will be replaced, you better to edit it manually. Or, if you want to automatically set graphics settings, just revert the original launcher and open it.
-* **`Buttons`**:
-  It usually comes with a huge number. The launcher ID will update after that.
-  + **`ReInit Text Blocks`** - ask app to auto-detect missing folder/filepaths. Automatically called at launch.
-  + **`The rest of the buttons`** - their names speak for themselves. Please initialize manually if textboxes above are null or empty.
-
-> [!WARNING]
-> Please, before you start just fill all the TextBoxes above the buttons. You should initialize every path (if it's not detected automatically) and make it look like this (first two strings can be ignored, since they are out of use already):
-> <img alt="image" src="Assets/preview2.png" />
-> Once you finish with all path and file's initializations, move on.
+  You're also able to reorder them by drag-and-dropping, thanks to [@aldelaro5](https://github.com/aldelaro5) for the [solution](https://github.com/AvaloniaUI/Avalonia/discussions/10877).
+* **`Logs output`** - logs errors, warnings, mod installation process.
 
 > [!CAUTION]
-> Canceling mod's instalation is not included in program yet, be careful.
+> Canceling mod installation is not included in program yet, be careful.
+
+### Tools page
+<img width="800" height="401" alt="image" src="Assets/toolsPage.png" />
+
+This page contains detectors for internal tools, such as `FNIS`, `Pandora` and others, whose files have to be installed inside game's folder.
+
+* **`Internal tools`** - if their files exist in your game's data folder, they will be available to launch. Pressing `Open` will cause Steam to open this tool (via Proton), instead of the game via replacing executables.
+* **`External tool`** - made for tools like `XEdit`, which doesn't need to be exactly inside the game's folder. `Open` will cause Steam to open them instead of the game (via Proton).
+> [!WARNING]
+> Some tools, like [Reliquary](https://github.com/halgari/reliquary) (tool for downgrading/changing game versions) require you NOT TO TOUCH the original game launcher. These kinds of tools you'll need to add a non-steam game and launch them MANUALLY through proton.
+* **`Game State`** - saves current game folder state (files state written in specific config). Reset just deletes everything, that config file doesn't include.
+> [!WARNING]
+> Please, on your first launch, if you've reinstalled the game (clean installation), make a save. Just in case. I haven't made mod remove feature.
+
+### Settings page
+<img width="800" height="401" alt="image" src="Assets/settingsPage.png" />
+
+* **`Game Folder Path`** - path of the `../Steam/steamapps/common/Skyrim Special Edition/` folder.
+* **`Compatdata Folder Path`** - path of the `../Steam/steamapps/compatdata/489830/` folder. Does NOT work/needed on Windows.
+* **`Plugins.txt File Path`** - path of the `../Steam/steamapps/compatdata/.../AppData/Local/.../Plugins.txt` file. Plugins (mods togglers) listed here.
+* **`SkyrimPrefs.ini File Path`** - path of the `../Steam/steamapps/compatdata/.../Documents/.../SkyrimPrefs.ini` file. Game config/settings.
+
+> [!NOTE]
+> The app will try to detect paths on every launch if they are not initialized.
 
 ### Check-in
 You can check if you did everything correct in game's "Creations" tab:
@@ -54,27 +71,18 @@ Example, College of Winterhold main hall and SkyHUB dot in the centre:
 
 ## Features
 Completed:
-* Launching game through the `skse64_loader.exe`.
-* Installing mods straight from archive to `Data` folder.
-* Installing mods via FOMOD config.
-* Enabling/disabling the mods.
-* Changing mods' load order (manually).
-* Cancel mod installation (only with config-included ones).
-* Cross-platform support (both Windows and Linux).
+* [x] Launching game through the `skse64_loader.exe`.
+* [x] Installing mods straight from archive to `Data` folder.
+* [x] Installing mods via FOMOD config.
+* [x] Enabling/disabling the mods.
+* [x] Changing mods' load order (manually).
+* [x] Cancel mod installation (only with config-included ones).
+* [x] Cross-platform support (both Windows and Linux).
+* [x] Internal tools support.
+* [x] Basic state saving system.
 
 Coming:
-* Automatic mods sorting (priorities, etc.).
-* Deleting mods.
-* Preset/backup system.
-* Nexus integration?
-* More mods support.
-* Something else...
-
-## Possible issues
-
-### Mods
-Not all type of mods are handled by Vokun, so if you install something like FNIS, or complex mods without FOMOD and other stuff, it may give you an exception or just dump all the files to `Data` folder and make a mess.
-
-Also, the "delete mod" feature is not ready yet, just like the profile/preset system, careful with deleting mods manually.
-
-I'll improve this manager and make it better.. one day... if i feel so.. :)
+* [ ] Automatic mods sorting (priorities, etc.).
+* [ ] Deleting mods.
+* [ ] Full preset/backup system.
+* [ ] Nexus integration?
