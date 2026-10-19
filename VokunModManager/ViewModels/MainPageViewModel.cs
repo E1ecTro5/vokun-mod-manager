@@ -11,6 +11,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainPageViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod>? _modList;
+    [ObservableProperty] private ObservableCollection<Plugin>? _pluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
 
