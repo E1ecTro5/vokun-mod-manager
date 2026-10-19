@@ -1,7 +1,8 @@
 namespace VokunModManager.Models;
 
-public class Plugin(string pluginName)
+public class Plugin(string pluginName, string[] types)
 {
     public string Name { get; set; } = pluginName;
-    public string[] Types {get; set;} = Array.Empty<string>();
+    public string[] Types { get; set; } = types;
+    public string TypesToString =>  string.Join(", ", Types);
 }

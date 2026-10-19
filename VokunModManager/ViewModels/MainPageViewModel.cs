@@ -106,6 +106,8 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task UpdateModList()
     {
+        await UpdatePluginsList(); // put here for now, may it just work
+        
         var updated = await _modListManager.UpdateModList();
         if (updated is null)
         {
@@ -114,6 +116,19 @@ public partial class MainPageViewModel : ViewModelBase
         }
         ModList = updated;
         Logger.Log("Mod list updated.");
+    }
+
+    private async Task UpdatePluginsList()
+    {
+        var updated = await _modListManager.UpdatePluginList();
+        if (updated is null)
+        {
+            Logger.Log("No SKSE plugins found.", LogLevel.Info);
+            return;
+        }
+
+        PluginList = updated;
+        Logger.Log("Plugin list updated.");
     }
     
     [RelayCommand]

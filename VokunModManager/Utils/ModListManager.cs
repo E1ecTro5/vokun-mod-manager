@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using SteamKit2.Internal;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
@@ -75,6 +76,11 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         }
 
         await SaveCurrentModList(list);
+    }
+
+    public async Task<ObservableCollection<Plugin>?> UpdatePluginList()
+    {
+        return await GetPluginsFromDisk();
     }
 
     /// <summary>
@@ -157,6 +163,47 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         }
 
         return result;
+    }
+
+    private async Task<ObservableCollection<Plugin>?> GetPluginsFromDisk()
+    {
+        // /home/epsilon/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data/SKSE/Plugins
+        
+        string gameFolderPath = config.GameFolderPath ?? string.Empty;
+        if (string.IsNullOrEmpty(gameFolderPath))
+        {
+            Console.WriteLine("GAMEPATH NOT FOUND");
+            return null;
+        }
+        
+        string path = Path.Combine(gameFolderPath, "Data", "SKSE", "Plugins");
+        if (!Directory.Exists(path)) return null;
+
+        ObservableCollection<Plugin> result = new();
+
+        var dllFiles = Directory.EnumerateFiles(path, "*.dll");
+        string?[] fileNames = Directory.GetFiles(path).Select(Path.GetFileName).ToArray();
+        
+        foreach (var item in dllFiles)
+        {
+            string itemName = Path.GetFileNameWithoutExtension(item);
+            var types = await SearchForSubFiles(itemName, fileNames);
+            result.Add(new Plugin(itemName, types));
+        }
+        
+        return result;
+    }
+
+    private async Task<string[]> SearchForSubFiles(string dllFileName, IEnumerable<string?> files)
+    {
+        List<string> result = new(); // default
+
+        foreach (var item in files)
+        {
+            if(item!.Contains(dllFileName)) result.Add(Path.GetExtension(item));
+        }
+        
+        return result.ToArray();
     }
     
     /// <summary>
