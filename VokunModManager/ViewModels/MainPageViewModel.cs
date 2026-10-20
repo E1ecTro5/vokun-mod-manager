@@ -11,6 +11,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainPageViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod>? _modList;
+    [ObservableProperty] private ObservableCollection<Plugin>? _pluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
 
@@ -103,6 +104,12 @@ public partial class MainPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task UpdateLists()
+    {
+        await UpdateModList();
+        await UpdatePluginsList();
+    }
+    
     private async Task UpdateModList()
     {
         var updated = await _modListManager.UpdateModList();
@@ -111,8 +118,22 @@ public partial class MainPageViewModel : ViewModelBase
             Logger.Log("Mod list is null.", LogLevel.Warning);
             return;
         }
+        
         ModList = updated;
         Logger.Log("Mod list updated.");
+    }
+
+    private async Task UpdatePluginsList()
+    {
+        var updated = await _modListManager.UpdatePluginList();
+        if (updated is null)
+        {
+            Logger.Log("No SKSE plugins found.");
+            return;
+        }
+
+        PluginList = updated;
+        Logger.Log("Plugin list updated.");
     }
     
     [RelayCommand]
@@ -124,7 +145,7 @@ public partial class MainPageViewModel : ViewModelBase
             return;
         }
         await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
-        await UpdateModList();
+        await UpdateLists();
     }
 
     [RelayCommand]
@@ -148,12 +169,12 @@ public partial class MainPageViewModel : ViewModelBase
         IsPlayAvailable = true;
         IsModInstalling = false;
         
-        await UpdateModList();
+        await UpdateLists();
     }
 
     public async Task UpdateAll()
     {
         await LateInit();
-        await UpdateModList(); // maybe you should include this in LateInit()
+        await UpdateLists(); // maybe you should include this in LateInit()
     }
 }
