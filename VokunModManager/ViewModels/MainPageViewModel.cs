@@ -104,16 +104,21 @@ public partial class MainPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task UpdateLists()
+    {
+        await UpdateModList();
+        await UpdatePluginsList();
+    }
+    
     private async Task UpdateModList()
     {
-        await UpdatePluginsList(); // put here for now, may it just work
-        
         var updated = await _modListManager.UpdateModList();
         if (updated is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Warning);
             return;
         }
+        
         ModList = updated;
         Logger.Log("Mod list updated.");
     }
@@ -123,7 +128,7 @@ public partial class MainPageViewModel : ViewModelBase
         var updated = await _modListManager.UpdatePluginList();
         if (updated is null)
         {
-            Logger.Log("No SKSE plugins found.", LogLevel.Info);
+            Logger.Log("No SKSE plugins found.");
             return;
         }
 
@@ -140,7 +145,7 @@ public partial class MainPageViewModel : ViewModelBase
             return;
         }
         await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
-        await UpdateModList();
+        await UpdateLists();
     }
 
     [RelayCommand]
@@ -164,12 +169,12 @@ public partial class MainPageViewModel : ViewModelBase
         IsPlayAvailable = true;
         IsModInstalling = false;
         
-        await UpdateModList();
+        await UpdateLists();
     }
 
     public async Task UpdateAll()
     {
         await LateInit();
-        await UpdateModList(); // maybe you should include this in LateInit()
+        await UpdateLists(); // maybe you should include this in LateInit()
     }
 }
