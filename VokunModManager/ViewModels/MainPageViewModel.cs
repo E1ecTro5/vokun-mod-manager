@@ -155,10 +155,10 @@ public partial class MainPageViewModel : ViewModelBase
         // select archives only
         var archiveFilter = new FilePickerFileType("Mod Archives") 
         {
-            Patterns = new[] { "*.zip", "*.rar", "*.7z", "*.tar", "*.gz" }
+            Patterns = ["*.zip", "*.rar", "*.7z", "*.tar", "*.gz"]
         };
         
-        var filePath = await _fileManager.SelectFileAsync(new[] { archiveFilter });
+        var filePath = await _fileManager.SelectFileAsync([archiveFilter]);
         if (string.IsNullOrEmpty(filePath))
         {
             Logger.Log("Mod archive not selected!", LogLevel.Error);
