@@ -107,8 +107,11 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task UpdateLists()
     {
-        await UpdateModList();
-        await UpdatePluginsList();
+        var modListTask = UpdateModList();
+        var pluginsListTask = UpdatePluginsList();
+
+        // whenAll should make them run asynchronously, not one after another
+        await Task.WhenAll(modListTask, pluginsListTask);
     }
     
     private async Task UpdateModList()
