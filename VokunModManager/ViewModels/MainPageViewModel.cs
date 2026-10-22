@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
@@ -151,7 +152,13 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task InstallMod()
     {
-        var filePath = await _fileManager.SelectFileAsync();
+        // select archives only
+        var archiveFilter = new FilePickerFileType("Mod Archives") 
+        {
+            Patterns = ["*.zip", "*.rar", "*.7z", "*.tar", "*.gz"]
+        };
+        
+        var filePath = await _fileManager.SelectFileAsync([archiveFilter]);
         if (string.IsNullOrEmpty(filePath))
         {
             Logger.Log("Mod archive not selected!", LogLevel.Error);
