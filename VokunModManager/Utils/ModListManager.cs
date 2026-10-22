@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using SteamKit2.Internal;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
 
