@@ -30,14 +30,14 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         }
         _defaultDestination = Path.Combine(gameFolderPath, "Data");
         
-        // open it ONCE
-        using var archive = ArchiveFactory.Open(archivePath);
-        
         // NormalizedKeyInArchive -> FullDestinationPathOnDisk
         var extractionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         try
         {
+            // open archive ONCE
+            using var archive = ArchiveFactory.OpenArchive(archivePath);
+            
             var (entries, hasFomod) = await Task.Run(() =>
             {
                 logger.Log("Opening the archive...");
@@ -107,7 +107,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         
         if (is7Zip)
         {
-            using var archive = SevenZipArchive.Open(archivePath);
+            using var archive = SevenZipArchive.OpenArchive(archivePath);
             using var reader = archive.ExtractAllEntries();
 
             while (reader.MoveToNextEntry())
@@ -127,7 +127,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         
         else
         {
-            using var archive = ArchiveFactory.Open(archivePath);
+            using var archive = ArchiveFactory.OpenArchive(archivePath);
 
             foreach (var entry in archive.Entries)
             {
