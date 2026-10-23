@@ -65,7 +65,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archive); });
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -97,55 +97,28 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, IArchive archive)
     {
         if (extractionMap.Count == 0) return;
         
-        bool is7Zip = archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase);
-        
         int leftToExtract = extractionMap.Count;
         
-        if (is7Zip)
+        foreach (var entry in archive.Entries)
         {
-            using var archive = SevenZipArchive.OpenArchive(archivePath);
-            using var reader = archive.ExtractAllEntries();
+            if (entry.IsDirectory || entry.Key == null) continue;
 
-            while (reader.MoveToNextEntry())
+            string normalizedKey = entry.Key.Replace('\\', '/');
+
+            if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
             {
-                if (reader.Entry.IsDirectory || reader.Entry.Key == null) continue;
-
-                string normalizedKey = reader.Entry.Key.Replace('\\', '/');
-
-                if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
-                {
-                    ExtractSingleEntry(reader, destinationPath);
-                    leftToExtract -= 1;
-                    if(leftToExtract == 0) break;
-                }
-            }
-        }
-        
-        else
-        {
-            using var archive = ArchiveFactory.OpenArchive(archivePath);
-
-            foreach (var entry in archive.Entries)
-            {
-                if (entry.IsDirectory || entry.Key == null) continue;
-
-                string normalizedKey = entry.Key.Replace('\\', '/');
-
-                if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
-                {
-                    ExtractSingleEntry(entry, destinationPath);
-                    leftToExtract -= 1;
-                    if(leftToExtract == 0) break;
-                }
+                ExtractSingleEntry(entry, destinationPath);
+                leftToExtract -= 1;
+                if(leftToExtract == 0) break;
             }
         }
     }
 
-    private void ExtractSingleEntry(object entryOrReader, string destinationPath)
+    private void ExtractSingleEntry(IArchiveEntry entry, string destinationPath)
     {
         // on Linux will be '/', on Windows '\'
         string cleanPath = destinationPath.Replace('/', Path.DirectorySeparatorChar) .Replace('\\', Path.DirectorySeparatorChar);
@@ -160,9 +133,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         if (!string.IsNullOrEmpty(parentDir) && _createdDirectories.Add(parentDir)) Directory.CreateDirectory(parentDir);
 
         using var fileStream = File.Create(cleanPath);
-
-        if (entryOrReader is IReader reader) reader.WriteEntryTo(fileStream);
-        else if (entryOrReader is IArchiveEntry entry) entry.WriteTo(fileStream);
+        entry.WriteTo(fileStream);
     }
 
     private bool SearchForFomodFolder(List<IArchiveEntry> entries)
