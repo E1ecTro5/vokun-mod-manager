@@ -106,7 +106,7 @@ public partial class SettingsPageViewModel : ViewModelBase
             return;
         }
 
-        await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
+        await _appConfig.UpdateConfig(AppConfig.ConfigType.SkyrimPrefsFilePath, filePath);
         await LateInit();
     }
     
