@@ -41,6 +41,8 @@ public partial class MainPageViewModel : ViewModelBase
         _modInstaller = modInstaller;
         _modListManager = modListManager;
 
+        _ = UpdateAll();
+
         ModList = new ObservableCollection<Mod>();
     }
 

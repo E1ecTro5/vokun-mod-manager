@@ -33,6 +33,8 @@ public partial class SettingsPageViewModel : ViewModelBase
         _appConfig = appConfig;
         _logger = loggerService;
         _fileManager = fileManager;
+
+        _ = LateInit();
     }
 
     public async Task LateInit()
@@ -60,6 +62,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         }
 
         await _appConfig.UpdateConfig(AppConfig.ConfigType.GameFolderPath, filePath);
+        await LateInit();
     }
 
     [RelayCommand]
@@ -74,6 +77,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         }
 
         await _appConfig.UpdateConfig(AppConfig.ConfigType.CompatdataFolderPath, directoryPath);
+        await LateInit();
     }
     
     [RelayCommand]
@@ -88,6 +92,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         }
 
         await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
+        await LateInit();
     }
 
     [RelayCommand]
@@ -102,6 +107,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         }
 
         await _appConfig.UpdateConfig(AppConfig.ConfigType.PluginFilePath, filePath);
+        await LateInit();
     }
     
     /*
