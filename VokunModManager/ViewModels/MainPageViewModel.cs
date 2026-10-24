@@ -16,7 +16,7 @@ public partial class MainPageViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
 
-    [ObservableProperty] private bool _isPlayAvailable;
+    [ObservableProperty] private bool _isButtonAvailable;
     [ObservableProperty] private bool _isLoadArchiveAvailable;
     [ObservableProperty] private bool _isModInstalling;
 
@@ -99,7 +99,7 @@ public partial class MainPageViewModel : ViewModelBase
         await _appConfig.InitConfig();
         _appConfig.CheckConfigStatus();
         
-        IsPlayAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
+        IsButtonAvailable = true; // no need for checking the launcher ID since I'm gonna delete it anyway
         
         IsLoadArchiveAvailable = true;
     }
@@ -168,15 +168,15 @@ public partial class MainPageViewModel : ViewModelBase
             return;
         }
 
+        IsButtonAvailable = false;
         IsModInstalling = true;
-        IsPlayAvailable = false;
         
         Logger.Log(string.Empty); // space for better visibility
         Logger.Log($"Selected file: {filePath}");
         await _modInstaller.InstallMod(filePath);
         Logger.Log(string.Empty); // space for better visibility
         
-        IsPlayAvailable = true;
+        IsButtonAvailable = true;
         IsModInstalling = false;
         
         await UpdateLists();
