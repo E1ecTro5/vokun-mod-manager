@@ -42,8 +42,9 @@ Please create an issue detailing:
 * CommunityToolkit.Mvvm v8.2.1 (for MVVM pattern and bindings)
 * Microsoft.Extensions.DependencyInjection v10.0.11 for DI
 * SharpCompress v0.44.5 (main archive handler in app)
-* SteamKit2 v3.4.0 (I used this in previous solutions, not needed for now; will be deleted)
-* System.IO.Hashing v10.0.2 (I don't remember why I added this :3)
+
+> [!WARNING]
+> I know that SharpCompress v0.44.5 is the old version. However, I had a lot of troubles trying to update it. This will be handled in the future.
 
 ### Repository Structure
 Two main projects inside the solutions are:
