@@ -31,7 +31,9 @@ Main page contains functionality to install and order mods.
 * **`Navigation bar`** - on the top of the app you can see three tabs. Their names speak for themselves. Just press on them to go on that page.
 * **`Current mod list`** - on the left side is the list of mods (.esp/.esm/.esl) mentioned in the `Plugins.txt` file. The checkbox represents the `*` symbol in a string, saying whether the mod is currently on or off.
   You're also able to reorder them by drag-and-dropping, thanks to [@aldelaro5](https://github.com/aldelaro5) for the [solution](https://github.com/AvaloniaUI/Avalonia/discussions/10877).
+* **`Current plugins list`** - on the right, displays current `.dll` files inside the `Data/SKSE/Plugins` folder. Basically, the skse plugins list.
 * **`Logs output`** - logs errors, warnings, mod installation process.
+* **`Buttons`** - their names speak for themselves.
 
 > [!CAUTION]
 > Canceling mod installation is not included in program yet, be careful.
