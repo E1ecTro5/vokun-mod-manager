@@ -4,14 +4,15 @@ namespace VokunModManager.ViewModels;
 
 public partial class InstallationProcessWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private string _test = "first";
+    [ObservableProperty] private string _logText;
 
     [ObservableProperty] private int _totalFiles;
+    [ObservableProperty] private int _processedFiles;
     [ObservableProperty] private int _copiedFiles;
     [ObservableProperty] private int _overwrittenFiles;
 
     public InstallationProcessWindowViewModel()
     {
-        Test = "HEY!";
+        LogText = string.Empty;
     }
 }

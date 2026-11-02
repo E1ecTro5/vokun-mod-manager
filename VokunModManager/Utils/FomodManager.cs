@@ -65,15 +65,38 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-
-                // this will be used to monitor the progress instead of logs
+                
+                // process window
+                var viewModel = new InstallationProcessWindowViewModel();
                 InstallationProcessWindow processWindow = new()
                 {
-                    DataContext = new InstallationProcessWindowViewModel()
+                    DataContext = viewModel
                 };
                 processWindow.Show();
                 
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
+                var logBuilder = new System.Text.StringBuilder();
+                int batchCounter = 0;
+
+                // IProgress<T> ; gotta learn more about this
+                var progress = new Progress<InstallationProgressReport>(report =>
+                {
+                    logBuilder.AppendLine(report.CurrentLogMessage);
+    
+                    // update
+                    viewModel.TotalFiles = extractionMap.Count;
+                    viewModel.ProcessedFiles = report.ProcessedFiles;
+
+                    // update the TextBox every 20 lines
+                    batchCounter++;
+                    if (batchCounter >= 20 || report.ProcessedFiles == extractionMap.Count)
+                    {
+                        viewModel.LogText = logBuilder.ToString();
+                        batchCounter = 0;
+                    }
+                });
+                
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath, progress); });
+                viewModel.LogText = logBuilder.ToString(); // just in case
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -105,7 +128,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath, IProgress<InstallationProgressReport> progress)
     {
         if (extractionMap.Count == 0) return;
         
@@ -126,6 +149,16 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
+                    string fileName = Path.GetFileName(destinationPath);
+
+                    // progress before and after
+                    progress?.Report(new InstallationProgressReport
+                    {
+                        CurrentLogMessage = $"Extracting: {fileName} | To: {destinationPath}",
+                        TotalFiles = extractionMap.Count,
+                        ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already did
+                    });
+                    
                     ExtractSingleEntry(reader, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;
@@ -145,6 +178,16 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
+                    string fileName = Path.GetFileName(destinationPath);
+
+                    // progress before and after
+                    progress?.Report(new InstallationProgressReport
+                    {
+                        CurrentLogMessage = $"Extracting: {fileName} | To: {destinationPath}",
+                        TotalFiles = extractionMap.Count,
+                        ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already did
+                    });
+
                     ExtractSingleEntry(entry, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;
