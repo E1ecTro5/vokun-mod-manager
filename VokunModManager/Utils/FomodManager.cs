@@ -65,6 +65,14 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
+
+                // this will be used to monitor the progress instead of logs
+                InstallationProcessWindow processWindow = new()
+                {
+                    DataContext = new InstallationProcessWindowViewModel()
+                };
+                processWindow.Show();
+                
                 await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }

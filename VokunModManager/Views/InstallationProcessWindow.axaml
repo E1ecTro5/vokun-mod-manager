@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:VokunModManager.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="300"
+        x:Class="VokunModManager.Views.InstallationProcessWindow"
+        x:DataType="vm:InstallationProcessWindowViewModel"
+        Title="InstallationProcessWindow">
+    
+    <Grid RowDefinitions="Auto, *, Auto">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="Show"/>
+                <TextBlock Text="{Binding TotalFiles, StringFormat='All files: {0}'}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="Show"/>
+                <TextBlock Text="{Binding CopiedFiles, StringFormat='Copied files: {0}'}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="Show"/>
+                <TextBlock Text="{Binding OverwrittenFiles, StringFormat='Overwritten files: {0}'}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="10, 0">
+            <TextBox IsReadOnly="True"
+                     Text="{Binding Test}"
+                     TextWrapping="NoWrap"
+                     BorderThickness="1"/>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button Content="OK"/>
+        </StackPanel>
+    </Grid>
+</Window>
