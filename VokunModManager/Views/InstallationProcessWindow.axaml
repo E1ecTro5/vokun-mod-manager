@@ -13,6 +13,7 @@
             <TextBox x:Name="LogTextBox"
                      IsReadOnly="True"
                      Text="{Binding LogText}"
+                     FontFamily="Cascadia Code"
                      TextWrapping="NoWrap"
                      BorderThickness="1"/>
         </ScrollViewer>
