@@ -8,36 +8,21 @@
         x:DataType="vm:InstallationProcessWindowViewModel"
         Title="InstallationProcessWindow">
     
-    <Grid RowDefinitions="Auto, *, Auto, Auto">
-        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10" Spacing="10">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Show"/>
-                <TextBlock Text="{Binding TotalFiles, StringFormat='All files: {0}'}" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Show"/>
-                <TextBlock Text="{Binding CopiedFiles, StringFormat='Copied files: {0}'}" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Show"/>
-                <TextBlock Text="{Binding OverwrittenFiles, StringFormat='Overwritten files: {0}'}" VerticalAlignment="Center"/>
-            </StackPanel>
-        </StackPanel>
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="10, 0">
+    <Grid RowDefinitions="*, Auto, Auto" Margin="10" RowSpacing="10">
+        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <TextBox x:Name="LogTextBox"
                      IsReadOnly="True"
                      Text="{Binding LogText}"
                      TextWrapping="NoWrap"
                      BorderThickness="1"/>
         </ScrollViewer>
-        <ProgressBar Grid.Row="2"
-                     Margin="10, 10"
+        <ProgressBar Grid.Row="1"
                      Minimum="0"
                      Maximum="{Binding TotalFiles}"
                      Value="{Binding ProcessedFiles}"
                      Height="25"
                      ShowProgressText="True"/>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="OK"/>
         </StackPanel>
     </Grid>
