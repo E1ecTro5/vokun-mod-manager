@@ -65,7 +65,42 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
             if (extractionMap.Count > 0)
             {
                 logger.Log("Extracting files...");
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath); });
+                
+                // process window
+                var viewModel = new InstallationProcessWindowViewModel();
+                InstallationProcessWindow processWindow = new()
+                {
+                    DataContext = viewModel
+                };
+                processWindow.Show();
+                
+                // for logs
+                var logBuilder = new System.Text.StringBuilder();
+                int batchCounter = 0;
+
+                // IProgress<T> ; gotta learn more about this
+                var progress = new Progress<InstallationProgressReport>(report =>
+                {
+                    // append log
+                    var currentTimeStamp = DateTime.Now.ToString("HH:mm:ss.fff");
+                    logBuilder.AppendLine($"[{currentTimeStamp}] {report.CurrentLogMessage}");
+    
+                    // update
+                    viewModel.TotalFiles = extractionMap.Count;
+                    viewModel.ProcessedFiles = report.ProcessedFiles;
+
+                    // update the TextBox every 20 lines
+                    batchCounter++;
+                    if (batchCounter >= 20 || report.ProcessedFiles == extractionMap.Count)
+                    {
+                        viewModel.LogText = logBuilder.ToString();
+                        batchCounter = 0;
+                    }
+                });
+                
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath, progress); });
+                viewModel.IsInstallFinished = true;
+                viewModel.LogText = logBuilder.ToString(); // just in case
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -97,7 +132,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath, IProgress<InstallationProgressReport> progress)
     {
         if (extractionMap.Count == 0) return;
         
@@ -118,6 +153,17 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
+                    string fileName = Path.GetFileName(destinationPath);
+                    string inGamePath = destinationPath.Substring(destinationPath.IndexOf("Data", StringComparison.Ordinal)); // first 'Data' on the path string
+
+                    // progress before and after
+                    progress?.Report(new InstallationProgressReport
+                    {
+                        CurrentLogMessage = $"Extracting: {fileName} to: {inGamePath}",
+                        TotalFiles = extractionMap.Count,
+                        ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already done
+                    });
+                    
                     ExtractSingleEntry(reader, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;
@@ -137,6 +183,17 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
                 if (extractionMap.TryGetValue(normalizedKey, out string? destinationPath))
                 {
+                    string fileName = Path.GetFileName(destinationPath);
+                    string inGamePath = destinationPath.Substring(destinationPath.LastIndexOf("Data", StringComparison.Ordinal));
+
+                    // progress before and after
+                    progress?.Report(new InstallationProgressReport
+                    {
+                        CurrentLogMessage = $"Extracting: {fileName} to: {inGamePath}",
+                        TotalFiles = extractionMap.Count,
+                        ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already done
+                    });
+
                     ExtractSingleEntry(entry, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;

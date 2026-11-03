@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:VokunModManager.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="300"
+        x:Class="VokunModManager.Views.InstallationProcessWindow"
+        x:DataType="vm:InstallationProcessWindowViewModel"
+        Title="InstallationProcessWindow"
+        x:Name="ThisWindow">
+    
+    <Grid RowDefinitions="*, Auto, Auto" Margin="10" RowSpacing="10">
+        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <TextBox x:Name="LogTextBox"
+                     IsReadOnly="True"
+                     Text="{Binding LogText}"
+                     FontFamily="Cascadia Code"
+                     TextWrapping="NoWrap"
+                     BorderThickness="1"/>
+        </ScrollViewer>
+        <ProgressBar Grid.Row="1"
+                     Minimum="0"
+                     Maximum="{Binding TotalFiles}"
+                     Value="{Binding ProcessedFiles}"
+                     Height="25"
+                     ShowProgressText="True"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK"
+                    Command="{Binding PressOkCommand}"
+                    CommandParameter="{Binding #ThisWindow}"
+                    IsEnabled="{Binding IsInstallFinished}"/>
+        </StackPanel>
+    </Grid>
+</Window>
