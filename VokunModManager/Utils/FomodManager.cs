@@ -99,6 +99,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
                 });
                 
                 await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath, progress); });
+                viewModel.IsInstallFinished = true;
                 viewModel.LogText = logBuilder.ToString(); // just in case
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
