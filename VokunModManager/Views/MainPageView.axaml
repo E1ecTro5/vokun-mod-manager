@@ -62,7 +62,7 @@
                       AutoGenerateColumns="False"
                       CanUserSortColumns="False"
                       CanUserResizeColumns="True"
-                      ItemsSource="{Binding PluginList}"
+                      ItemsSource="{Binding SksePluginList}"
                       GridLinesVisibility="All"
                       BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                 <DataGrid.Columns>

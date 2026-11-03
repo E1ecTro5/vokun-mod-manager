@@ -12,7 +12,7 @@ namespace VokunModManager.ViewModels;
 public partial class MainPageViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod>? _modList;
-    [ObservableProperty] private ObservableCollection<Plugin>? _pluginList;
+    [ObservableProperty] private ObservableCollection<SksePlugin>? _sksePluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
 
@@ -131,14 +131,14 @@ public partial class MainPageViewModel : ViewModelBase
 
     private async Task UpdatePluginsList()
     {
-        var updated = await _modListManager.UpdatePluginList();
+        var updated = await _modListManager.UpdateSksePluginList();
         if (updated is null)
         {
             Logger.Log("No SKSE plugins found.");
             return;
         }
 
-        PluginList = updated;
+        SksePluginList = updated;
         Logger.Log("Plugin list updated.");
     }
     

@@ -77,9 +77,9 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         await SaveCurrentModList(list);
     }
 
-    public async Task<ObservableCollection<Plugin>?> UpdatePluginList()
+    public async Task<ObservableCollection<SksePlugin>?> UpdateSksePluginList()
     {
-        return await GetPluginsFromDisk();
+        return await GetSksePluginsFromDisk();
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         return result;
     }
 
-    private async Task<ObservableCollection<Plugin>?> GetPluginsFromDisk()
+    private async Task<ObservableCollection<SksePlugin>?> GetSksePluginsFromDisk()
     {
         // /home/epsilon/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data/SKSE/Plugins
         
@@ -178,7 +178,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         string path = Path.Combine(gameFolderPath, "Data", "SKSE", "Plugins");
         if (!Directory.Exists(path)) return null;
 
-        ObservableCollection<Plugin> result = new();
+        ObservableCollection<SksePlugin> result = new();
 
         var dllFiles = Directory.EnumerateFiles(path, "*.dll");
         string?[] fileNames = Directory.GetFiles(path).Select(Path.GetFileName).ToArray();
@@ -187,7 +187,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         {
             string itemName = Path.GetFileNameWithoutExtension(item);
             var types = await SearchForSubFiles(itemName, fileNames);
-            result.Add(new Plugin(itemName, types));
+            result.Add(new SksePlugin(itemName, types));
         }
         
         return result;
