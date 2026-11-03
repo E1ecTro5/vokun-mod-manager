@@ -34,7 +34,7 @@
                       AutoGenerateColumns="False"
                       CanUserSortColumns="False"
                       CanUserResizeColumns="True"
-                      ItemsSource="{Binding ModList}"
+                      ItemsSource="{Binding ModPluginsList}"
                       GridLinesVisibility="All"
                       BorderThickness="1" BorderBrush="Black" CornerRadius="10">
                 

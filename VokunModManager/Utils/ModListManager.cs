@@ -19,17 +19,17 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         return true;
     }
 
-    public async Task<ObservableCollection<Mod>?> UpdateModList()
+    public async Task<ObservableCollection<ModPlugin>?> UpdateModPluginList()
     {
         if (!await CheckForExistance()) return null;
         
         // Disk check should always be earlier than the plugins file.
         var modsOnDisk = await GetModsFromDisk();
-        if (modsOnDisk is null || !modsOnDisk.Any())  return new ObservableCollection<Mod>();
+        if (modsOnDisk is null || !modsOnDisk.Any())  return new ObservableCollection<ModPlugin>();
         
         var pluginFileMods = await ReadModList();
         
-        var updatedList = new ObservableCollection<Mod>();
+        var updatedList = new ObservableCollection<ModPlugin>();
 
         foreach (var diskFile in modsOnDisk)
         {
@@ -50,21 +50,21 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
             updatedList.Add(diskFile);
         }
         
-        var sortedCollection = new ObservableCollection<Mod>(
+        var sortedCollection = new ObservableCollection<ModPlugin>(
             updatedList
                 .OrderByDescending(m => m.IsEnabled)
                 .ThenBy(m => m.LoadOrder)
                 .ThenBy(m => m.Name)
         );
         
-        await SaveCurrentModList(sortedCollection);
+        await SaveCurrentPluginsList(sortedCollection);
         
         return sortedCollection;
     }
     
-    public async Task SaveCurrentModListState(ObservableCollection<Mod> modList)
+    public async Task SaveCurrentModPluginsListState(ObservableCollection<ModPlugin> modList)
     {
-        var list = new ObservableCollection<Mod>();
+        var list = new ObservableCollection<ModPlugin>();
         
         ushort order = 1;
         foreach (var mod in modList)
@@ -74,7 +74,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
             list.Add(mod);
         }
 
-        await SaveCurrentModList(list);
+        await SaveCurrentPluginsList(list);
     }
 
     public async Task<ObservableCollection<SksePlugin>?> UpdateSksePluginList()
@@ -86,14 +86,14 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
     /// Reads the "Plugin.txt" file.
     /// </summary>
     /// <returns>Collection of mods, found inside the file.</returns>
-    private async Task<ObservableCollection<Mod>?> ReadModList()
+    private async Task<ObservableCollection<ModPlugin>?> ReadModList()
     {
         var modlistPath = config.PluginFilePath;
         if(string.IsNullOrEmpty(modlistPath)) return null;
         
         if (!await CheckForExistance()) return null;
         
-        ObservableCollection<Mod> result = new();
+        ObservableCollection<ModPlugin> result = new();
 
         // change modlistpath to config reference?
         using (StreamReader reader = new StreamReader(modlistPath))
@@ -111,7 +111,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
                 if (!isActive) loadOrder = 0; // don't mention offed mods
                 else loadOrder = ++currentIndex;
                 string name = line.TrimStart('*');
-                var mod = new Mod(loadOrder, name, isActive);
+                var mod = new ModPlugin(loadOrder, name, isActive);
                 result.Add(mod);
             }
         }
@@ -124,7 +124,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
     /// </summary>
     /// <param name="modList"></param>
     /// <returns>Collection of the found mods inside the folder.</returns>
-    private async Task<ObservableCollection<Mod>?> GetModsFromDisk()
+    private async Task<ObservableCollection<ModPlugin>?> GetModsFromDisk()
     {
         // checked on Windows first launch; needed to fix this
         string gameFolderPath = config.GameFolderPath ?? string.Empty;
@@ -146,7 +146,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
             "ccQDRSSE001-SurvivalMode.esl", "_ResourcePack.esl"
         };
 
-        ObservableCollection<Mod> result = new ObservableCollection<Mod>();
+        ObservableCollection<ModPlugin> result = new ObservableCollection<ModPlugin>();
         
         var extensions = new[] { "*.esl", "*.esm", "*.esp" };
     
@@ -157,7 +157,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
                 string fileName = Path.GetFileName(filePath);
                 if (ignoredFiles.Contains(fileName)) continue;
 
-                result.Add(new Mod(0, fileName, false));
+                result.Add(new ModPlugin(0, fileName, false));
             }
         }
 
@@ -209,7 +209,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
     /// Overwrites the Plugins.txt file with the ModList in arguments.
     /// </summary>
     /// <param name="modList">Relevant mod list, will be written into the file.</param>
-    private async Task SaveCurrentModList(ObservableCollection<Mod> modList)
+    private async Task SaveCurrentPluginsList(ObservableCollection<ModPlugin> modList)
     {
         var modlistPath = config.PluginFilePath;
         if(string.IsNullOrEmpty(modlistPath)) return;
@@ -220,7 +220,7 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
             .ThenBy(m => m.Name);
         
         await using StreamWriter writer = new StreamWriter(modlistPath, false);
-        foreach (Mod mod in sortedList)
+        foreach (ModPlugin mod in sortedList)
         {
             await writer.WriteLineAsync(mod.ToString());
         }

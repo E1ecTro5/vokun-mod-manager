@@ -5,8 +5,8 @@ namespace VokunModManager.Interfaces;
 
 public interface IModListManager
 {
-    public Task<ObservableCollection<Mod>?> UpdateModList();
+    public Task<ObservableCollection<ModPlugin>?> UpdateModPluginList();
     // here also add for ModPlugin in future
     public Task<ObservableCollection<SksePlugin>?> UpdateSksePluginList();
-    public Task SaveCurrentModListState(ObservableCollection<Mod> modList);
+    public Task SaveCurrentModPluginsListState(ObservableCollection<ModPlugin> modList);
 }

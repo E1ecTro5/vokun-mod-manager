@@ -11,7 +11,7 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainPageViewModel : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<Mod>? _modList;
+    [ObservableProperty] private ObservableCollection<ModPlugin>? _modPluginsList;
     [ObservableProperty] private ObservableCollection<SksePlugin>? _sksePluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
@@ -43,7 +43,7 @@ public partial class MainPageViewModel : ViewModelBase
 
         _ = UpdateAll();
 
-        ModList = new ObservableCollection<Mod>();
+        ModPluginsList = new ObservableCollection<ModPlugin>();
     }
 
     [RelayCommand]
@@ -118,14 +118,14 @@ public partial class MainPageViewModel : ViewModelBase
     
     private async Task UpdateModList()
     {
-        var updated = await _modListManager.UpdateModList();
+        var updated = await _modListManager.UpdateModPluginList();
         if (updated is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Warning);
             return;
         }
         
-        ModList = updated;
+        ModPluginsList = updated;
         Logger.Log("Mod list updated.");
     }
 
@@ -145,12 +145,12 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveModList()
     {
-        if (ModList is null)
+        if (ModPluginsList is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Error);
             return;
         }
-        await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
+        await _modListManager.SaveCurrentModPluginsListState(ModPluginsList); // has to be initialized at this time...
         await UpdateLists();
     }
 
