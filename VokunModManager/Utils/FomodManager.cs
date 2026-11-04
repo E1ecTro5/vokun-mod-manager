@@ -12,7 +12,7 @@ using VokunModManager.Views;
 
 namespace VokunModManager.Utils;
 
-public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModInstaller
+public class FomodManager(IAppConfig appConfig, ILoggerService logger, IModManifestManager modManifestManager) : IModInstaller
 {
     private string? _moduleName;
     private string? _defaultDestination;
@@ -22,6 +22,9 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
 
     public async Task InstallMod(string archivePath)
     {
+        string modName = Path.GetFileNameWithoutExtension(archivePath);
+        Mod newMod = new(modName); // change this to moduleName one day :)
+        
         var gameFolderPath = appConfig.GameFolderPath;
         if (string.IsNullOrEmpty(gameFolderPath))
         {
@@ -98,9 +101,10 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
                     }
                 });
                 
-                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath, progress); });
+                await Task.Run(() => { ExtractAllStreamlined(extractionMap, archivePath, progress, newMod); });
                 viewModel.IsInstallFinished = true;
                 viewModel.LogText = logBuilder.ToString(); // just in case
+                await modManifestManager.WriteModFiles(newMod);
                 logger.Log($"{extractionMap.Count} files have been extracted.");
             }
         }
@@ -132,7 +136,10 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
         logger.Log("Mod installment finished.");
     }
 
-    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap, string archivePath, IProgress<InstallationProgressReport> progress)
+    private void ExtractAllStreamlined(Dictionary<string, string> extractionMap,
+        string archivePath,
+        IProgress<InstallationProgressReport> progress,
+        Mod mod)
     {
         if (extractionMap.Count == 0) return;
         
@@ -164,6 +171,8 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
                         ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already done
                     });
                     
+                    mod.InstalledFiles.Add(destinationPath);
+                    
                     ExtractSingleEntry(reader, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;
@@ -194,6 +203,8 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger) : IModIns
                         ProcessedFiles = extractionMap.Count - leftToExtract + 1 // already done
                     });
 
+                    mod.InstalledFiles.Add(destinationPath);
+                    
                     ExtractSingleEntry(entry, destinationPath);
                     leftToExtract -= 1;
                     if(leftToExtract == 0) break;

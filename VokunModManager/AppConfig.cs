@@ -6,10 +6,12 @@ namespace VokunModManager;
 public sealed class AppConfig : IAppConfig
 {
     private readonly string _appConfigPath; // .../VokunModManager/appConfig.txt ; will store it in .txt for now
+    public string ModsFolderPath { get; } // .../VokunModManager/ModsInfo/ ; stores installed mods .json files
     public AppConfig()
     {
         var baseDirectory = AppContext.BaseDirectory; // path of the folder which contains the executable / binary
         _appConfigPath = Path.Combine(baseDirectory, "config.txt");
+        ModsFolderPath = Path.Combine(baseDirectory, "ModsInfo");
     }
 
     public enum ConfigType
@@ -21,7 +23,7 @@ public sealed class AppConfig : IAppConfig
     }
 
     // ======== PROPS ========
-    
+
     /// <summary>
     /// Path to the "...steamapps/common/Skyrim Special Edition" folder.
     /// </summary>

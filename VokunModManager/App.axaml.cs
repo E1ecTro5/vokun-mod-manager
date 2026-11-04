@@ -53,6 +53,7 @@ public partial class App : Application
         services.AddSingleton<IModListManager, ModListManager>();
         services.AddSingleton<IGameStateResetter, GameStateResetter>();
         services.AddSingleton<IToolLauncher, ToolLauncher>();
+        services.AddSingleton<IModManifestManager, ModManifestManager>();
         
         // register ViewModels
         services.AddSingleton<MainPageViewModel>();
