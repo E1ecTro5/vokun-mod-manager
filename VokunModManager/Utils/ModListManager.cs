@@ -4,7 +4,10 @@ using VokunModManager.Models;
 
 namespace VokunModManager.Utils;
 
-public class ModListManager(IAppConfig config, ILoggerService logger) : IModListManager
+public class ModListManager(
+    IAppConfig config,
+    ILoggerService logger,
+    IModManifestManager modManifestManager) : IModListManager
 {
     private async Task<bool> CheckForExistance()
     {
@@ -17,6 +20,23 @@ public class ModListManager(IAppConfig config, ILoggerService logger) : IModList
         }
 
         return true;
+    }
+
+    public async Task<ObservableCollection<Mod>?> UpdateModList()
+    {
+        string modsInfoDirectory = config.ModsFolderPath;
+        if (string.IsNullOrEmpty(modsInfoDirectory)) return null;
+
+        ObservableCollection<Mod> result = new();
+
+        foreach (var item in Directory.EnumerateFiles(modsInfoDirectory, "*.json"))
+        {
+            var mod = await modManifestManager.DeserializeModManifest(item);
+            if(mod is null) continue;
+            result.Add(mod);
+        }
+
+        return result;
     }
 
     public async Task<ObservableCollection<ModPlugin>?> UpdateModPluginList()

@@ -22,10 +22,21 @@
             <DataGrid AutoGenerateColumns="False"
                       CanUserSortColumns="False"
                       CanUserResizeColumns="True"
-                      ItemsSource=""
+                      ItemsSource="{Binding ModList}"
                       GridLinesVisibility="All"
                       BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-                
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Mod" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding Name}"/>
+                                    <TextBlock Text="{Binding InstalledFiles.Count, StringFormat='Files count: {0}'}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
             </DataGrid>
         </Grid>
         <Grid Grid.Column="1" RowDefinitions="2*, *, Auto" RowSpacing="5">

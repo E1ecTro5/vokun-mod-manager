@@ -11,6 +11,7 @@ namespace VokunModManager.ViewModels;
 
 public partial class MainPageViewModel : ViewModelBase
 {
+    [ObservableProperty] private ObservableCollection<Mod>? _modList;
     [ObservableProperty] private ObservableCollection<ModPlugin>? _modPluginsList;
     [ObservableProperty] private ObservableCollection<SksePlugin>? _sksePluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
@@ -110,26 +111,40 @@ public partial class MainPageViewModel : ViewModelBase
     private async Task UpdateLists()
     {
         var modListTask = UpdateModList();
-        var pluginsListTask = UpdatePluginsList();
+        var modPluginsListTask = UpdateModPluginsList();
+        var sksePluginsListTask = UpdateSksePluginsList();
 
         // whenAll should make them run asynchronously, not one after another
-        await Task.WhenAll(modListTask, pluginsListTask);
+        await Task.WhenAll(modListTask, modPluginsListTask, sksePluginsListTask);
     }
     
     private async Task UpdateModList()
     {
-        var updated = await _modListManager.UpdateModPluginList();
+        var updated = await _modListManager.UpdateModList();
         if (updated is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Warning);
             return;
         }
         
-        ModPluginsList = updated;
+        ModList = updated;
         Logger.Log("Mod list updated.");
     }
+    
+    private async Task UpdateModPluginsList()
+    {
+        var updated = await _modListManager.UpdateModPluginList();
+        if (updated is null)
+        {
+            Logger.Log("Mod plugins list is null.", LogLevel.Warning);
+            return;
+        }
+        
+        ModPluginsList = updated;
+        Logger.Log("Mod plugins list updated.");
+    }
 
-    private async Task UpdatePluginsList()
+    private async Task UpdateSksePluginsList()
     {
         var updated = await _modListManager.UpdateSksePluginList();
         if (updated is null)

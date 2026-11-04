@@ -26,4 +26,11 @@ public class ModManifestManager : IModManifestManager
         // serialize into the stream
         await JsonSerializer.SerializeAsync(fs, mod, _jsonOptions);
     }
+
+    public async Task<Mod?> DeserializeModManifest(string modPath)
+    {
+        await using FileStream fs = new FileStream(modPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var deserializeAsync = await JsonSerializer.DeserializeAsync<Mod>(fs, _jsonOptions);
+        return deserializeAsync;
+    }
 }
