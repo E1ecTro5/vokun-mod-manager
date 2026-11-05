@@ -410,6 +410,21 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger, IModManif
 
         return minSkip == int.MaxValue ? 0 : minSkip; // Data is the root
     }
+    
+    public async Task DeleteMod(Mod mod)
+    {
+        // just delete every file
+        foreach (var file in mod.InstalledFiles)
+        {
+            File.Delete(file);
+        }
+        
+        // and the manifest
+        if (!string.IsNullOrEmpty(mod.PathToJson) && File.Exists(mod.PathToJson))
+        {
+            File.Delete(mod.PathToJson);
+        }
+    }
 
     /*
        So the structure of most of the configs should be like:
