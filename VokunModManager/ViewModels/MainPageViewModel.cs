@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
+using VokunModManager.Views;
 
 namespace VokunModManager.ViewModels;
 
@@ -196,6 +198,17 @@ public partial class MainPageViewModel : ViewModelBase
         IsButtonAvailable = true;
         IsModInstalling = false;
         
+        await UpdateLists();
+    }
+
+    // THIS ALL LOOKS LIKE SHIT. but it works. REFACTOR!
+    [RelayCommand]
+    public async Task OpenDeleteModWindowAsync(Window? ownerWindow)
+    {
+        var deleteVm = new ModDeleteListViewModel(_modInstaller, ModList); // FIX LATER ; LOOKS AWFUL!
+        var deleteWindow = new ModDeleteListWindow(deleteVm);
+        
+        await deleteWindow.ShowDialog(ownerWindow);
         await UpdateLists();
     }
 

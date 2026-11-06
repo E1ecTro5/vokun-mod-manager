@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="VokunModManager.Views.ModDeleteListWindow"
+        Title="ModDeleteListWindow"
+        xmlns:vm="using:VokunModManager.ViewModels"
+        x:DataType="vm:ModDeleteListViewModel">
+        
+        <StackPanel Orientation="Vertical">
+                <DataGrid AutoGenerateColumns="False"
+                           CanUserSortColumns="False"
+                           CanUserResizeColumns="True"
+                           ItemsSource="{Binding ModList}"
+                           SelectedItem="{Binding SelectedMod, Mode=TwoWay}"
+                           GridLinesVisibility="All"
+                           BorderThickness="1" BorderBrush="Black" CornerRadius="10">
+                        <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Name}"/>
+                        </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding SelectedMod?.Name, StringFormat='Selected: {0}'}"/>
+                        <Button Content="Cancel" Click="Cancel_Click" Width="80" HorizontalContentAlignment="Center"/>
+                        <Button Content="Delete" Command="{Binding ConfirmDeleteCommand}" Width="80" HorizontalContentAlignment="Center"/>
+                </StackPanel>
+        </StackPanel>
+</Window>
