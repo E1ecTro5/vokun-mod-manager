@@ -1,18 +1,21 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VokunModManager.Interfaces;
 using VokunModManager.Models;
+using VokunModManager.Views;
 
 namespace VokunModManager.ViewModels;
 
 public partial class MainPageViewModel : ViewModelBase
 {
     [ObservableProperty] private ObservableCollection<Mod>? _modList;
-    [ObservableProperty] private ObservableCollection<Plugin>? _pluginList;
+    [ObservableProperty] private ObservableCollection<ModPlugin>? _modPluginsList;
+    [ObservableProperty] private ObservableCollection<SksePlugin>? _sksePluginList;
     [ObservableProperty] private ObservableCollection<Mod>? _foundMods;
     [ObservableProperty] private ObservableCollection<ArchiveNode>? _archiveItems; // items shown in specific border
 
@@ -43,7 +46,7 @@ public partial class MainPageViewModel : ViewModelBase
 
         _ = UpdateAll();
 
-        ModList = new ObservableCollection<Mod>();
+        ModPluginsList = new ObservableCollection<ModPlugin>();
     }
 
     [RelayCommand]
@@ -110,10 +113,11 @@ public partial class MainPageViewModel : ViewModelBase
     private async Task UpdateLists()
     {
         var modListTask = UpdateModList();
-        var pluginsListTask = UpdatePluginsList();
+        var modPluginsListTask = UpdateModPluginsList();
+        var sksePluginsListTask = UpdateSksePluginsList();
 
         // whenAll should make them run asynchronously, not one after another
-        await Task.WhenAll(modListTask, pluginsListTask);
+        await Task.WhenAll(modListTask, modPluginsListTask, sksePluginsListTask);
     }
     
     private async Task UpdateModList()
@@ -128,29 +132,42 @@ public partial class MainPageViewModel : ViewModelBase
         ModList = updated;
         Logger.Log("Mod list updated.");
     }
-
-    private async Task UpdatePluginsList()
+    
+    private async Task UpdateModPluginsList()
     {
-        var updated = await _modListManager.UpdatePluginList();
+        var updated = await _modListManager.UpdateModPluginList();
+        if (updated is null)
+        {
+            Logger.Log("Mod plugins list is null.", LogLevel.Warning);
+            return;
+        }
+        
+        ModPluginsList = updated;
+        Logger.Log("Mod plugins list updated.");
+    }
+
+    private async Task UpdateSksePluginsList()
+    {
+        var updated = await _modListManager.UpdateSksePluginList();
         if (updated is null)
         {
             Logger.Log("No SKSE plugins found.");
             return;
         }
 
-        PluginList = updated;
+        SksePluginList = updated;
         Logger.Log("Plugin list updated.");
     }
     
     [RelayCommand]
     private async Task SaveModList()
     {
-        if (ModList is null)
+        if (ModPluginsList is null)
         {
             Logger.Log("Mod list is null.", LogLevel.Error);
             return;
         }
-        await _modListManager.SaveCurrentModListState(ModList); // has to be initialized at this time...
+        await _modListManager.SaveCurrentModPluginsListState(ModPluginsList); // has to be initialized at this time...
         await UpdateLists();
     }
 
@@ -181,6 +198,17 @@ public partial class MainPageViewModel : ViewModelBase
         IsButtonAvailable = true;
         IsModInstalling = false;
         
+        await UpdateLists();
+    }
+
+    // THIS ALL LOOKS LIKE SHIT. but it works. REFACTOR!
+    [RelayCommand]
+    public async Task OpenDeleteModWindowAsync(Window? ownerWindow)
+    {
+        var deleteVm = new ModDeleteListViewModel(_modInstaller, ModList); // FIX LATER ; LOOKS AWFUL!
+        var deleteWindow = new ModDeleteListWindow(deleteVm);
+        
+        await deleteWindow.ShowDialog(ownerWindow);
         await UpdateLists();
     }
 

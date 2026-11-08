@@ -2,6 +2,8 @@ namespace VokunModManager.Interfaces;
 
 public interface IAppConfig
 {
+    public string ModsFolderPath { get; }
+    
     public string? GameFolderPath { get; }
     public string? CompatdataFolderPath { get; }
     public string? PluginFilePath { get; }
