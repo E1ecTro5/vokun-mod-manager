@@ -8,6 +8,14 @@
         x:Class="VokunModManager.Views.MainPageView"
         x:DataType="vm:MainPageViewModel">
     
+    <UserControl.Styles>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        </Style>
+    </UserControl.Styles>
+    
     <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
         <Grid Grid.Column="0">
             <ListBox Grid.Row="0"
@@ -17,23 +25,31 @@
                      BorderThickness="1"
                      BorderBrush="Black"
                      CornerRadius="10"
+                     Padding="0"
                      Background="Transparent"
                      DragDrop.AllowDrop="True"
                      PointerMoved="ListBox_PointerMoved">
     
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <!-- put PointerPressed on the Grid itself to capture the whole row -->
-                        <Grid ColumnDefinitions="*, Auto" Margin="4,2" Background="Transparent" 
+                        <Grid ColumnDefinitions="30, *" Background="Transparent" 
+                              ClipToBounds="True"
                               PointerPressed="Row_PointerPressed"
                               PointerReleased="Row_PointerReleased">
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding LoadOrder}" 
+                                       VerticalAlignment="Center" 
+                                       HorizontalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" 
+                                          VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Name}"
+                                           VerticalAlignment="Center"/>
                             </StackPanel>
-                
-                            <TextBlock Grid.Column="1" Text="{Binding LoadOrder}" VerticalAlignment="Center" 
-                                       HorizontalAlignment="Right" Width="40" Margin="10,0,5,0"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
