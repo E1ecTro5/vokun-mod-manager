@@ -1,10 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:VokunModManager.ViewModels"
-        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-        xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions.DragAndDrop"
-        xmlns:b="clr-namespace:VokunModManager.Behaviors"
-        xmlns:models="clr-namespace:VokunModManager.Models"
         xmlns:li="using:LoadingIndicators.Avalonia"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,13 +8,54 @@
         x:Class="VokunModManager.Views.MainPageView"
         x:DataType="vm:MainPageViewModel">
     
-    <UserControl.Resources>
-        <!--used for drag n drop-->
-        <b:DataGridDnd x:Key="MyGridDndHandler" x:TypeArguments="models:Mod" />
-    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        </Style>
+    </UserControl.Styles>
     
     <Grid ColumnDefinitions="3*,5*" ColumnSpacing="10" Margin="10">
         <Grid Grid.Column="0">
+            <ListBox Grid.Row="0"
+                     Name="PluginsListBox"
+                     Classes="draggable"
+                     ItemsSource="{Binding ModPluginsList}"
+                     BorderThickness="1"
+                     BorderBrush="Black"
+                     CornerRadius="10"
+                     Padding="0"
+                     Background="Transparent"
+                     DragDrop.AllowDrop="True"
+                     PointerMoved="ListBox_PointerMoved">
+    
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="30, *" Background="Transparent" 
+                              ClipToBounds="True"
+                              PointerPressed="Row_PointerPressed"
+                              PointerReleased="Row_PointerReleased">
+
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding LoadOrder}" 
+                                       VerticalAlignment="Center" 
+                                       HorizontalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" 
+                                          VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Name}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+        <Grid Grid.Column="1" RowDefinitions="2*, *, Auto" RowSpacing="5">
             <DataGrid AutoGenerateColumns="False"
                       CanUserSortColumns="False"
                       CanUserResizeColumns="True"
@@ -36,36 +73,6 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Grid>
-        <Grid Grid.Column="1" RowDefinitions="2*, *, Auto" RowSpacing="5">
-            <DataGrid Grid.Row="0"
-                      Classes="draggable"
-                      AutoGenerateColumns="False"
-                      CanUserSortColumns="False"
-                      CanUserResizeColumns="True"
-                      ItemsSource="{Binding ModPluginsList}"
-                      GridLinesVisibility="All"
-                      BorderThickness="1" BorderBrush="Black" CornerRadius="10">
-                
-                <!--Added behavior for drag n drop-->
-                <i:Interaction.Behaviors>
-                    <idd:ContextDropBehavior Handler="{StaticResource MyGridDndHandler}" />
-                </i:Interaction.Behaviors>
-                
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Mod" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Order" Width="70"  Binding="{Binding LoadOrder}" IsReadOnly="True"/>
                 </DataGrid.Columns>
             </DataGrid>
             
