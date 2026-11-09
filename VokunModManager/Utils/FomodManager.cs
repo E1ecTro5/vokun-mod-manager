@@ -416,7 +416,7 @@ public class FomodManager(IAppConfig appConfig, ILoggerService logger, IModManif
         // just delete every file
         foreach (var file in mod.InstalledFiles)
         {
-            File.Delete(file);
+            if(File.Exists(file)) File.Delete(file);
         }
         
         // and the manifest
